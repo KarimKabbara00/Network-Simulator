@@ -1,0 +1,7 @@
+show
+show interfaces
+show routing-table
+show arp
+interface
+interface G
+interface 10G

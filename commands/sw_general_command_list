@@ -1,0 +1,7 @@
+show
+show interfaces
+show mac-address-table
+interface
+interface Fa
+interface G
+interface 10G

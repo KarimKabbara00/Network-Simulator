@@ -1,0 +1,17 @@
+shutdown
+no
+no shutdown|Enable the interface
+exit
+interface
+interface Fa
+interface G
+interface 10G
+switchport
+switchport mode
+switchport mode access
+switchport mode trunk
+switchport access
+switchport access vlan
+switchport access vlan <1-4094>
+switchport trunk allowed-vlans
+switchport trunk allowed-vlans <1-4094>

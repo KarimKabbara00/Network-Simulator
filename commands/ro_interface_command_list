@@ -1,0 +1,11 @@
+shutdown
+no
+no shutdown
+exit
+interface
+interface G
+interface 10G
+ip
+ip address
+ip address A.B.C.D
+ip address A.B.C.D A.B.C.D
