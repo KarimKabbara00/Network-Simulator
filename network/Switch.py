@@ -39,6 +39,8 @@ class Switch:
         except AttributeError:
             src_dot1q = None
 
+        print("Originating VLAN:", src_dot1q)
+
         packet = frame.get_packet()
 
         # Get the interface and broadcast domain (vlan_id) to forward this frame
@@ -51,27 +53,22 @@ class Switch:
         else:
             dot1q_header = None
 
+        print("Destination VLAN:", broadcast_domain)
+
         # if CAM table entry exists
         if interface:
-            if broadcast_domain == interface[1]:  # if equal to dst vlan
-                new_frame = self.encapsulate(hf.bin_to_hex(original_src_mac), hf.bin_to_hex(original_dst_mac),
-                                             dot1q_header, packet, receiving_interface)
-                # pass in src_mac so that we don't forward it back to sender
-                self.unicast(new_frame)
+            new_frame = self.encapsulate(hf.bin_to_hex(original_src_mac), hf.bin_to_hex(original_dst_mac), dot1q_header,
+                                         packet, receiving_interface)
 
-            # # If an interface is a trunk port, and vlan is allowed on it
-            # elif interface[3].get_switchport_type() == "Trunk" and broadcast_domain in interface[3].get_trunk_vlan_ids():
-            #     new_frame = self.encapsulate(hf.bin_to_hex(original_src_mac), hf.bin_to_hex(original_dst_mac),
-            #                                  dot1q_header, packet, receiving_interface)
-            #     # pass in src_mac so that we don't forward it back to sender
-            #     self.unicast(new_frame)
+            # unicast to destination
+            self.unicast(interface[3], new_frame)
 
         # if not, broadcast it
         else:
             new_frame = self.encapsulate(hf.bin_to_hex(original_src_mac), 'FF:FF:FF:FF:FF:FF', dot1q_header, packet,
                                          receiving_interface)
             # pass in src_mac so that we don't forward it back to sender
-            self.broadcast(new_frame, original_src_mac, src_dot1q)  # Only broadcast it in the host's vlan
+            self.broadcast(new_frame, original_src_mac, broadcast_domain)  # Only broadcast it in the host's vlan
 
     def check_cam_table(self, src_mac, dst_mac, receiving_interface, src_dot1q):
 
@@ -108,12 +105,9 @@ class Switch:
         # Unknown Unicast
         return None, src_dot1q
 
-    def unicast(self, frame):
-        for i in self.CAM_table:
-            if self.CAM_table[i][0] == hf.bin_to_hex(frame.get_dst_mac()):
-                if self.CAM_table[i][3].get_is_operational():
-                    self.CAM_table[i][3].send(frame)
-                break
+    def unicast(self, interface, frame):
+        if interface.get_is_operational():
+            interface.send(frame)
 
     def broadcast(self, frame, original_src_mac, broadcast_domain):
 
@@ -125,20 +119,17 @@ class Switch:
             if i.get_is_connected():
                 all_except.append(i)
 
-        # keep only the interfaces in the same broadcast domain
-        for i in self.interfaces:
-            try:
-                if i.get_access_vlan_id() != broadcast_domain:
-                    all_except.remove(self.CAM_table[i][3])
-            except KeyError:  # If the destination is not in the MAC table
-                pass
+        # Remove interfaces in a different broadcast domain, and the originating interface
+        for i in all_except:
+            if i.get_access_vlan_id() != broadcast_domain:
+                all_except.remove(i)
+                continue
 
-        # keep all connected interfaces except where the frame was received
-        for i in self.CAM_table:
-            if self.CAM_table[i][0] == hf.bin_to_hex(original_src_mac):
-                all_except.remove(self.CAM_table[i][3])
-                break
+            if i.get_host().get_mac_address() == original_src_mac:
+                all_except.remove(i)
+                continue
 
+        # send
         for i in all_except:
             i.send(frame)
 

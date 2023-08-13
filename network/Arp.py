@@ -25,7 +25,7 @@ class Arp:
     def get_sender_mac(self):
         return self.sender_mac
 
-    def get_sender_ip(self):
+    def get_src_ip(self):
         return self.sender_ip
 
     def get_dest_ip(self):

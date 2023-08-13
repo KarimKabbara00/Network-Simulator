@@ -33,55 +33,28 @@ class Router:
         packet_identifier = packet.get_identifier()
         forwarding_interface = self.decide_route(packet)
 
-        # if packet is destined to this device
-        if packet.get_dest_ip() == forwarding_interface.get_ipv4_address():
+        if packet_identifier == "ARP":
+            if packet.get_operation_id() == 0x001:  # receiving an ARP REQUEST
+                dest_mac = packet.get_sender_mac()
+                dest_ipv4 = packet.get_src_ip()
+                self.arp_reply(forwarding_interface, forwarding_interface.get_ipv4_address(), dest_mac, dest_ipv4)
+                self.add_arp_entry(dest_ipv4, dest_mac, "DYNAMIC")
 
-            if packet_identifier == "ARP":
+            elif packet.get_operation_id() == 0x002:  # receiving an ARP REPLY
+                ipv4 = packet.get_src_ip()
+                mac_address = packet.get_sender_mac()
+                self.add_arp_entry(ipv4, mac_address, "DYNAMIC")
 
-                # Receiving an ARP request
-                if packet.get_operation_id() == 0x001:
-                    dest_mac = packet.get_sender_mac()
-                    dest_ipv4 = packet.get_sender_ip()
-                    self.arp_reply(dest_mac, dest_ipv4, receiving_interface, receiving_interface.get_ipv4_address())
-                    self.add_arp_entry(dest_ipv4, dest_mac, "DYNAMIC")
+        elif packet_identifier == "ipv4":
+            segment = packet.get_segment()
+            segment_identifier = segment.get_segment_identifier()
+            if segment_identifier == "ICMP ECHO REQUEST":
+                self.icmp_echo_reply(packet.get_src_ip(), forwarding_interface)
 
-                # Receiving an ARP Reply
-                elif packet.get_operation_id() == 0x002:
-                    ipv4 = packet.get_sender_ip()
-                    mac_address = packet.get_sender_mac()
-                    self.add_arp_entry(ipv4, mac_address, "DYNAMIC")
-
-            elif packet_identifier == "ipv4":
-                segment = packet.get_segment()
-                segment_identifier = segment.get_segment_identifier()
-
-                original_sender_ipv4 = packet.get_src_ip()
-
-                if segment_identifier == "ICMP ECHO REQUEST":
-                    self.icmp_echo_reply(original_sender_ipv4, forwarding_interface)
-
-        # Route the packet
-        else:
-
-            # Only route ipv4 packets
-            if packet_identifier == "ipv4":
-                try:
-                    # Does the dest_ip exist in the ARP table?
-                    dest_mac = self.ARP_table[packet.get_dest_ip()][0]
-
-                    # Is there a dot1q header?
-                    if frame.get_dot1q():
-                        dot1q = frame.get_dot1q()
-                    else:
-                        dot1q = None
-
-                    # Send the frame if dest_ip exists
-                    new_frame = nf.create_ethernet_frame(dest_mac, self.MAC_Address, dot1q, packet, None)
-                    forwarding_interface.send(new_frame)
-
-                except KeyError:
-                    # if the dest_ip does not exist, send an arp request out of the forwarding interface
-                    self.arp_request(packet.get_dest_ip(), forwarding_interface)
+        print(packet.get_src_ip())
+        print(packet.get_dest_ip())
+        print(packet_identifier)
+        print(forwarding_interface.get_name())
 
     def icmp_echo_reply(self, original_sender_ipv4, interface):
         if original_sender_ipv4 not in self.ARP_table:
@@ -93,9 +66,9 @@ class Router:
         arp_frame = nf.create_arp_request(self.MAC_Address, forwarding_interface.get_ipv4_address(), dst_ipv4_address)
         forwarding_interface.send(arp_frame)
 
-    def arp_reply(self, dest_mac, dest_ip, receiving_interface, interface_ip_address):
-        frame = nf.create_arp_reply(self.MAC_Address, interface_ip_address, dest_mac, dest_ip)
-        receiving_interface.send(frame)
+    def arp_reply(self, forwarding_interface, fwd_int_ip, dest_mac, dest_ip):
+        frame = nf.create_arp_reply(self.MAC_Address, fwd_int_ip, dest_mac, dest_ip)
+        forwarding_interface.send(frame)
 
     def show_interfaces(self):
         header = "{:<12} {:<15} {:<15} {:<15}".format('Interface', 'IP Address', 'Connected', 'Operational')

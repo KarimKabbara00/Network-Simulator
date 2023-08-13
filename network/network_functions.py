@@ -64,7 +64,6 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
             canvas.get_info(info="Reply from " + source_ip + ": Destination Host Unreachable",
                             linebreak=True, last=False)
         else:
-            # Type 8 and code 0 indicate Echo Request
             icmp_segment = create_icmp_echo_segment()
             packet = create_ipv4_packet(icmp_segment, source_ip, dest_ip)
             frame = create_ethernet_frame(dst_mac, source_mac, None, packet, None)

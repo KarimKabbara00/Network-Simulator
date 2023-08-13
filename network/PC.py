@@ -88,11 +88,11 @@ class PC:
             if packet.get_dest_ip() == self.ipv4_address:  # if ARP request is destined to this host
                 if packet.get_operation_id() == 0x001:
                     dest_mac = packet.get_sender_mac()
-                    dest_ipv4 = packet.get_sender_ip()
+                    dest_ipv4 = packet.get_src_ip()
                     self.arp_reply(dest_mac, dest_ipv4)
                     self.add_arp_entry(dest_ipv4, dest_mac, "DYNAMIC")
                 elif packet.get_operation_id() == 0x002:
-                    ipv4 = packet.get_sender_ip()
+                    ipv4 = packet.get_src_ip()
                     mac_address = packet.get_sender_mac()
                     self.add_arp_entry(ipv4, mac_address, "DYNAMIC")
 
