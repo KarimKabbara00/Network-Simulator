@@ -33,28 +33,26 @@ class Router:
         packet_identifier = packet.get_identifier()
         forwarding_interface = self.decide_route(packet)
 
-        if packet_identifier == "ARP":
-            if packet.get_operation_id() == 0x001:  # receiving an ARP REQUEST
-                dest_mac = packet.get_sender_mac()
-                dest_ipv4 = packet.get_src_ip()
-                self.arp_reply(forwarding_interface, forwarding_interface.get_ipv4_address(), dest_mac, dest_ipv4)
-                self.add_arp_entry(dest_ipv4, dest_mac, "DYNAMIC")
+        original_sender_ipv4 = packet.get_src_ip()
+        original_sender_mac = hf.bin_to_hex(frame.get_src_mac())
 
-            elif packet.get_operation_id() == 0x002:  # receiving an ARP REPLY
-                ipv4 = packet.get_src_ip()
-                mac_address = packet.get_sender_mac()
-                self.add_arp_entry(ipv4, mac_address, "DYNAMIC")
+        if packet_identifier == "ARP":
+
+            if packet.get_operation_id() == 0x001:
+                self.arp_reply(forwarding_interface, forwarding_interface.get_ipv4_address(), original_sender_mac,
+                               original_sender_ipv4)
+                self.add_arp_entry(original_sender_ipv4, original_sender_mac, "DYNAMIC")
+
+            elif packet.get_operation_id() == 0x002:
+                self.add_arp_entry(original_sender_ipv4, original_sender_mac, "DYNAMIC")
 
         elif packet_identifier == "ipv4":
+
             segment = packet.get_segment()
             segment_identifier = segment.get_segment_identifier()
-            if segment_identifier == "ICMP ECHO REQUEST":
-                self.icmp_echo_reply(packet.get_src_ip(), forwarding_interface)
 
-        print(packet.get_src_ip())
-        print(packet.get_dest_ip())
-        print(packet_identifier)
-        print(forwarding_interface.get_name())
+            if segment_identifier == "ICMP ECHO REQUEST":
+                self.icmp_echo_reply(original_sender_ipv4, forwarding_interface)
 
     def icmp_echo_reply(self, original_sender_ipv4, interface):
         if original_sender_ipv4 not in self.ARP_table:

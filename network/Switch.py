@@ -32,43 +32,21 @@ class Switch:
     def de_encapsulate(self, frame, receiving_interface):
         original_src_mac = frame.get_src_mac()
         original_dst_mac = frame.get_dst_mac()
+        src_dot1q = frame.get_dot1q()
 
-        # If the frame originated from the Native VLAN, the frame should be untagged
-        try:
-            src_dot1q = frame.get_dot1q().get_VID()
-        except AttributeError:
-            src_dot1q = None
+        forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface, src_dot1q)
 
-        print("Originating VLAN:", src_dot1q)
+        # Unicast
+        if forwarding_interface and forwarding_interface.get_is_operational():
+            forwarding_interface.send(frame)
 
-        packet = frame.get_packet()
+        # Unicast but interface is down
+        elif forwarding_interface and not forwarding_interface.get_is_operational():
+            pass
 
-        # Get the interface and broadcast domain (vlan_id) to forward this frame
-        interface, broadcast_domain = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface,
-                                                           src_dot1q)
-
-        # If the vlan ID is 1, don't tag the ethernet header
-        if broadcast_domain != 1:
-            dot1q_header = nf.create_dot1q_header(broadcast_domain)
-        else:
-            dot1q_header = None
-
-        print("Destination VLAN:", broadcast_domain)
-
-        # if CAM table entry exists
-        if interface:
-            new_frame = self.encapsulate(hf.bin_to_hex(original_src_mac), hf.bin_to_hex(original_dst_mac), dot1q_header,
-                                         packet, receiving_interface)
-
-            # unicast to destination
-            self.unicast(interface[3], new_frame)
-
-        # if not, broadcast it
-        else:
-            new_frame = self.encapsulate(hf.bin_to_hex(original_src_mac), 'FF:FF:FF:FF:FF:FF', dot1q_header, packet,
-                                         receiving_interface)
-            # pass in src_mac so that we don't forward it back to sender
-            self.broadcast(new_frame, original_src_mac, broadcast_domain)  # Only broadcast it in the host's vlan
+        # Broadcast
+        elif not forwarding_interface:
+            self.broadcast(frame, receiving_interface, vlan_id)
 
     def check_cam_table(self, src_mac, dst_mac, receiving_interface, src_dot1q):
 
@@ -78,59 +56,37 @@ class Switch:
         src_mac = hf.bin_to_hex(src_mac)
         dst_mac = hf.bin_to_hex(dst_mac)
 
-        # If the sender is a host, dot1q will be None, correct it by setting vlan_id to the port's
         if not src_dot1q:
             src_dot1q = receiving_interface.get_access_vlan_id()
 
-        # Check if the sender MAC and interface combo is in the CAM table
+        # Check if the source mac exists in the cam table
         exists = False
         for i in self.CAM_table:
             if self.CAM_table[i][0] == src_mac and self.CAM_table[i][3] == receiving_interface:
                 exists = True
                 break
 
-        # If the sender MAC does not exist in the CAM table, add it
+        # if it doesn't, add it
         if not exists:
             self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface]
 
-        # If a broadcast frame, return no specific cam table entry, and the corrected dot1q
-        if dst_mac == "FF:FF:FF:FF:FF:FF":
-            return None, src_dot1q
-
-        # Return the cam table entry, and the corrected source_dot1q
+        # Get the forwarding interface
         for i in self.CAM_table:
             if self.CAM_table[i][0] == dst_mac and self.CAM_table[i][1] == src_dot1q:
-                return self.CAM_table[i], src_dot1q
+                return self.CAM_table[i][3], self.CAM_table[i][1]
 
-        # Unknown Unicast
+        # If a broadcast frame, or unknown unicast
         return None, src_dot1q
 
-    def unicast(self, interface, frame):
-        if interface.get_is_operational():
-            interface.send(frame)
+    def broadcast(self, frame, receiving_interface, broadcast_domain):
 
-    def broadcast(self, frame, original_src_mac, broadcast_domain):
+        forwarding_interfaces = []
 
-        # all interfaces except where the frame was received
-        all_except = []
-
-        # get all connected interfaces
         for i in self.interfaces:
-            if i.get_is_connected():
-                all_except.append(i)
+            if i.get_is_operational() and i.get_access_vlan_id() == broadcast_domain and i != receiving_interface:
+                forwarding_interfaces.append(i)
 
-        # Remove interfaces in a different broadcast domain, and the originating interface
-        for i in all_except:
-            if i.get_access_vlan_id() != broadcast_domain:
-                all_except.remove(i)
-                continue
-
-            if i.get_host().get_mac_address() == original_src_mac:
-                all_except.remove(i)
-                continue
-
-        # send
-        for i in all_except:
+        for i in forwarding_interfaces:
             i.send(frame)
 
     def show_cam_table(self):
