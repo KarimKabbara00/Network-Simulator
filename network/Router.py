@@ -1,5 +1,3 @@
-import time
-
 import UI.helper_functions as hf
 import network.network_functions as nf
 from network.Physical_Interface import PhysicalInterface
@@ -14,7 +12,7 @@ class Router:
         self.serial_interfaces = []
         self.interfaces = self.set_interfaces()
 
-        self.routing_table = {}  # TYPE (STATIC, Connected, Local)   DEST NETWORK    Exit Interface/Next hop
+        self.routing_table = {}
         self.ARP_table = {}
 
         self.canvas_object = None
@@ -36,15 +34,21 @@ class Router:
         original_sender_ipv4 = packet.get_src_ip()
         original_sender_mac = hf.bin_to_hex(frame.get_src_mac())
 
+        original_dest_ipv4 = packet.get_dest_ip()
+
         # Check if the dest is in the router's ARP table
-        if packet.get_dest_ip() not in self.ARP_table:
-            self.arp_request(packet.get_dest_ip(), forwarding_interface)
+        if original_dest_ipv4 not in self.ARP_table:
+            self.arp_request(original_dest_ipv4, forwarding_interface)
 
         # TODO: MAKE THIS CLEANER: nf.process_request(packet_identifier, packet, ...)
         # Do not route ARP
-        if packet_identifier == "ARP" and forwarding_interface == receiving_interface:
+        # If an ARP packet, use receiving interface to reply so that ARP isn't routed.
+
+        # if packet_identifier == "ARP" and forwarding_interface == receiving_interface:
+        # TODO: Test this and see if it works. Using ^, the ICMP reply results in key error
+        if packet_identifier == "ARP":
             if packet.get_operation_id() == 0x001:
-                self.arp_reply(forwarding_interface, forwarding_interface.get_ipv4_address(), original_sender_mac,
+                self.arp_reply(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
                                original_sender_ipv4)
                 self.add_arp_entry(original_sender_ipv4, original_sender_mac, "DYNAMIC")
 
@@ -58,7 +62,15 @@ class Router:
 
             # TODO: ICMP REQUEST destined to me or another host? If another host, do i have them in my ARP table?
             if segment_identifier == "ICMP ECHO REQUEST":
-                self.icmp_echo_reply(original_sender_ipv4, forwarding_interface)
+                if original_dest_ipv4 == forwarding_interface.get_ipv4_address():       # Is this ICMP destined to me?
+                    self.icmp_echo_reply(original_sender_ipv4, forwarding_interface)
+                else:                                                                   # If not
+                    if original_dest_ipv4 in self.ARP_table:                            # Does ARP table have a record
+                        frame = nf.create_ethernet_frame(self.ARP_table[original_dest_ipv4][0], self.MAC_Address,
+                                                         None, packet, None)
+                        forwarding_interface.send(frame)
+                    else:                                                               # If not, send one
+                        self.arp_request(original_dest_ipv4, forwarding_interface)
 
     def icmp_echo_reply(self, original_sender_ipv4, interface):
         if original_sender_ipv4 not in self.ARP_table:

@@ -49,15 +49,8 @@ class SwitchCanvasObject:
 
         # CLI Stuff
         self.cli_object = None
-        self.cli_command_files = ['commands/sw_general_command_list', 'commands/sw_interface_command_list']
+        self.cli_command_files = ['..\\commands/sw_general_command_list', '..\\commands/sw_interface_command_list']
         # CLI Stuff
-
-        # Device Label
-        # self.device_label = tk.Label(self.canvas, text="Switch " + str(hf.increment_sw_id()), background="gray88",
-        #                              font=("Arial", 10))
-        # self.canvas_label = self.canvas.create_window(x, y + 60, window=self.device_label, tag=self.block_name + "_tag")
-        # self.hidden_label = False
-        # Device Label
 
         # Light & Line Stuff
         self.line_connections = {}
