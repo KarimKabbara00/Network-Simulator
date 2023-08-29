@@ -36,8 +36,13 @@ class Router:
         original_sender_ipv4 = packet.get_src_ip()
         original_sender_mac = hf.bin_to_hex(frame.get_src_mac())
 
-        if packet_identifier == "ARP":
+        # Check if the dest is in the router's ARP table
+        if packet.get_dest_ip() not in self.ARP_table:
+            self.arp_request(packet.get_dest_ip(), forwarding_interface)
 
+        # TODO: MAKE THIS CLEANER: nf.process_request(packet_identifier, packet, ...)
+        # Do not route ARP
+        if packet_identifier == "ARP" and forwarding_interface == receiving_interface:
             if packet.get_operation_id() == 0x001:
                 self.arp_reply(forwarding_interface, forwarding_interface.get_ipv4_address(), original_sender_mac,
                                original_sender_ipv4)
@@ -51,6 +56,7 @@ class Router:
             segment = packet.get_segment()
             segment_identifier = segment.get_segment_identifier()
 
+            # TODO: ICMP REQUEST destined to me or another host? If another host, do i have them in my ARP table?
             if segment_identifier == "ICMP ECHO REQUEST":
                 self.icmp_echo_reply(original_sender_ipv4, forwarding_interface)
 

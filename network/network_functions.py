@@ -29,12 +29,13 @@ def create_dot1q_header(vlan_id):
     return Dot1q(vlan_id)
 
 
-def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, dest_ip, arp_table, count, canvas, host,
+def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, dest_ip, count, canvas, host,
                       time_between_pings, interface):
 
     same_subnet = hf.is_same_subnet(source_ip, source_netmask, dest_ip)
 
     canvas.toggle_cli_busy()
+    # TODO: POTENTIAL PROBLEM??? DOES THE ARP TABLE UPDATE IN THE THREAD? IF NOT, FOR LOOP OUTSIDE OF THE FUNCTION CALL
     for _ in range(count):
         host.set_start_time(time.time())
 
@@ -42,10 +43,10 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
         dst_mac = ""
         host_not_found = False
         if same_subnet:
-            if dest_ip not in arp_table:
+            if dest_ip not in host.get_arp_table_actual():
                 host.arp_request(dest_ip)
             try:
-                dst_mac = arp_table[dest_ip][0]
+                dst_mac = host.get_arp_table_actual()[dest_ip][0]
             except KeyError:
                 host_not_found = True
 
@@ -53,10 +54,10 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
         elif not same_subnet:
             if not default_gateway:
                 host_not_found = True
-            elif default_gateway not in arp_table:
+            elif default_gateway not in host.get_arp_table_actual():
                 host.arp_request(default_gateway)
             try:
-                dst_mac = arp_table[default_gateway][0]
+                dst_mac = host.get_arp_table_actual()[default_gateway][0]
             except KeyError:
                 host_not_found = True
 

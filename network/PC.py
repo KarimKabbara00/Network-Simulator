@@ -60,8 +60,7 @@ class PC:
     def icmp_echo_request(self, dest_ipv4_address, count):
 
         nf.icmp_echo_request(self.ipv4_address, self.MAC_Address, self.netmask, self.default_gateway, dest_ipv4_address,
-                             self.ARP_table, count, self.canvas_object, self, self.time_between_pings,
-                             self.interface[0])
+                             count, self.canvas_object, self, self.time_between_pings, self.interface[0])
 
         hf.compute_ping_stats(self.ping_rtt_times, dest_ipv4_address, count, self.received_ping_count,
                               self.canvas_object, self)
@@ -161,6 +160,9 @@ class PC:
 
     def get_arp_table(self):
         return nf.get_arp_table(self.ARP_table)
+
+    def get_arp_table_actual(self):
+        return self.ARP_table
 
     def get_cli_busy(self):
         return self.cli_busy
