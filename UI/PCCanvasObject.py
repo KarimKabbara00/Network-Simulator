@@ -31,10 +31,13 @@ class PCCanvasObject(object):
         # Current Cursor Location
 
         # New menu
-        self.hover_area = self.canvas.create_rectangle(x-45, y-50, x+90, y+50, fill="white")#, outline="")
+        self.hover_area = self.canvas.create_rectangle(x-50, y-50, x+100, y+50, fill="white")#, outline="")
         self.canvas.lower(self.hover_area)
-        self.menu_buttons = self.canvas.create_rectangle(x+55, y-45, x+80, y+45, outline="black", fill="gray", width=1.2)
+        self.menu_buttons = self.canvas.create_rectangle(x+55, y-45, x+90, y+45, outline="black", fill="gray", width=1.2)
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+
+        self.config_button = tk.Button(self.canvas, width=3, height=1)
+        self.config_flag = False
         # Submenu Stuff
 
         # Icon Stuff
@@ -79,15 +82,17 @@ class PCCanvasObject(object):
 
     def motion(self, event):
 
+        # TODO: hide menu when moving object. Might not go here necessarily
+
         # Move the object
         self.canvas.coords(self.block_name, self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 
         # Move the hover area and menu buttons
         self.canvas.coords(self.hover_area, self.canvas.canvasx(event.x)-45, self.canvas.canvasy(event.y)-50,
-                           self.canvas.canvasx(event.x)+90, self.canvas.canvasy(event.y)+50)
+                           self.canvas.canvasx(event.x)+100, self.canvas.canvasy(event.y)+50)
 
         self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x)+55, self.canvas.canvasy(event.y)-45,
-                           self.canvas.canvasx(event.x)+80, self.canvas.canvasy(event.y)+45)
+                           self.canvas.canvasx(event.x)+90, self.canvas.canvasy(event.y)+45)
 
         # Move the Label
         self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event.x), self.canvas.canvasy(event.y) + 60)
@@ -141,6 +146,7 @@ class PCCanvasObject(object):
             self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
             self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
             self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
+            self.config_button.bind('<Enter>', self.open_config_screen)
 
         self._x = event.x
         self._y = event.y
@@ -475,11 +481,15 @@ class PCCanvasObject(object):
     def on_start_hover(self, event):
         # Add the frame to the canvas
         self.canvas.itemconfigure(self.menu_buttons, state='normal')
-        # tk.Button(self.canvas, width=1, height=1).place(x=self._x + 60, y=self._y - 50)
-        print("hovering")
+        self.config_button.place(x=self._x + 58, y=self._y - 40)
         return
 
     def on_end_hover(self, event):
-        print("end hovering")
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
-        return
+
+        self.config_button.place_forget()
+
+
+    def open_config_screen(self, event):
+        self.canvas.itemconfigure(self.menu_buttons, state='normal')  # keeps the button menu open
+        # TODO: ADD CONFIG MENU HERE
