@@ -93,6 +93,7 @@ class PC:
                 elif packet.get_operation_id() == 0x002:
                     ipv4 = packet.get_src_ip()
                     mac_address = packet.get_sender_mac()
+                    print(ipv4, mac_address)
                     self.add_arp_entry(ipv4, mac_address, "DYNAMIC")
 
         elif packet_identifier == "ipv4":

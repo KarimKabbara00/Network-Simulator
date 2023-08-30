@@ -60,6 +60,7 @@ class Router:
                     if original_dest_ipv4 not in self.ARP_table and forwarding_interface:
                         self.arp_request(original_dest_ipv4, forwarding_interface)
 
+                    # TODO: This is needed, and mostly works. Sender does not create an ARP entry but receiver does????
                     # If in ARP table, send a reply to the original sender
                     if original_dest_ipv4 in self.ARP_table:
                         self.arp_reply(receiving_interface, original_dest_ipv4, original_sender_mac,

@@ -51,10 +51,12 @@ action_frame.place(x=0, y=795, width=width, height=height - 840)
 
 # device buttons and logic
 device_frame = LabelFrame(tk, text="Devices", padx=5, pady=5)
-device_frame.place(x=30, y=825, height=175, width=175)
+device_frame.place(x=30, y=625, height=175, width=175)
+# device_frame.place(x=30, y=825, height=175, width=175)
 
 cable_frame = LabelFrame(tk, text="Cables", padx=5, pady=5)
-cable_frame.place(x=225, y=825, height=175, width=82)
+cable_frame.place(x=225, y=625, height=175, width=82)
+# cable_frame.place(x=225, y=825, height=175, width=82)
 
 pc = Image.open("icons/desktop-computer.png")
 sw = Image.open("icons/switch.png")

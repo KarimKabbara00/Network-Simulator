@@ -44,6 +44,7 @@ def get_next_label(canvas):
 
 
 def create_pc(popup, canvas, pc_icon, generation):
+
     pc = PCCanvasObject(canvas, get_next_pc(generation), pc_icon, network.PC.PC(generation))
     objects.append(pc)
     popup.destroy()

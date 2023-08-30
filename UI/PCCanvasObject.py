@@ -8,8 +8,8 @@ from UI import helper_functions as hf
 
 class PCCanvasObject(object):
     def __init__(self, canvas, block_name, icon, class_object):
-        self._y = None
         self._x = None
+        self._y = None
         self.canvas = canvas
         self.block_name = block_name
         self.class_object = class_object
@@ -23,13 +23,19 @@ class PCCanvasObject(object):
         self.submenu.add_cascade(label="Disconnect", menu=self.disconnect_menu)
         self.submenu.add_separator()
         self.submenu.add_command(label="Delete PC", command=self.menu_delete)
-        # Submenu Stuff
 
         # Current Cursor Location
         # For placing the new widget under the mouse
         x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
         y = self.canvas.winfo_pointery() - self.canvas.winfo_rooty()
         # Current Cursor Location
+
+        # New menu
+        self.hover_area = self.canvas.create_rectangle(x-45, y-50, x+90, y+50, fill="white")#, outline="")
+        self.canvas.lower(self.hover_area)
+        self.menu_buttons = self.canvas.create_rectangle(x+55, y-45, x+80, y+45, outline="black", fill="gray", width=1.2)
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+        # Submenu Stuff
 
         # Icon Stuff
         self.icon = icon
@@ -76,6 +82,13 @@ class PCCanvasObject(object):
         # Move the object
         self.canvas.coords(self.block_name, self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 
+        # Move the hover area and menu buttons
+        self.canvas.coords(self.hover_area, self.canvas.canvasx(event.x)-45, self.canvas.canvasy(event.y)-50,
+                           self.canvas.canvasx(event.x)+90, self.canvas.canvasy(event.y)+50)
+
+        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x)+55, self.canvas.canvasy(event.y)-45,
+                           self.canvas.canvasx(event.x)+80, self.canvas.canvasy(event.y)+45)
+
         # Move the Label
         self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event.x), self.canvas.canvasy(event.y) + 60)
 
@@ -120,6 +133,17 @@ class PCCanvasObject(object):
         if str(event.type) == "4":
             self.canvas.tag_unbind(self.block_name, "<Motion>")
             self.canvas.tag_unbind(self.block_name, "<Button-1>")
+
+            # For the object menu
+            self.canvas.tag_bind(self.hover_area, '<Enter>', self.on_start_hover)
+            self.canvas.tag_bind(self.hover_area, '<Leave>', self.on_end_hover)
+            self.canvas.tag_bind(self.block_name, '<Enter>', self.on_start_hover)
+            self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
+            self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
+            self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
+
+        self._x = event.x
+        self._y = event.y
         return
 
     def sub_menu(self, event):
@@ -447,3 +471,15 @@ class PCCanvasObject(object):
     def set_interfaces(self, ignored, int1, int2):
         self.interface_1 = int1
         self.interface_2 = int2
+
+    def on_start_hover(self, event):
+        # Add the frame to the canvas
+        self.canvas.itemconfigure(self.menu_buttons, state='normal')
+        # tk.Button(self.canvas, width=1, height=1).place(x=self._x + 60, y=self._y - 50)
+        print("hovering")
+        return
+
+    def on_end_hover(self, event):
+        print("end hovering")
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+        return
