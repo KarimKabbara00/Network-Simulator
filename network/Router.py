@@ -43,13 +43,28 @@ class Router:
         # TODO: MAKE THIS CLEANER: nf.process_request(packet_identifier, packet, ...)
         # Do not route ARP
         # If an ARP packet, use receiving interface to reply so that ARP isn't routed.
-
-        # if packet_identifier == "ARP" and forwarding_interface == receiving_interface:
-        # TODO: Test this and see if it works. Using ^, the ICMP reply results in key error
         if packet_identifier == "ARP":
+
             if packet.get_operation_id() == 0x001:
-                self.arp_reply(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
-                               original_sender_ipv4)
+                # If destined to me, reply with the receiving interface to the sender
+                if original_dest_ipv4 == receiving_interface.get_ipv4_address():
+                    self.arp_reply(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
+                                   original_sender_ipv4)
+
+                # If destined to someone on another subnet
+                elif not hf.is_same_subnet(receiving_interface.get_ipv4_address(), receiving_interface.get_netmask(),
+                                           original_dest_ipv4):
+
+                    # If not in ARP table, but in routing table (forwarding interface not None), send an ARP request
+                    # to discover the original intended destination
+                    if original_dest_ipv4 not in self.ARP_table and forwarding_interface:
+                        self.arp_request(original_dest_ipv4, forwarding_interface)
+
+                    # If in ARP table, send a reply to the original sender
+                    if original_dest_ipv4 in self.ARP_table:
+                        self.arp_reply(receiving_interface, original_dest_ipv4, original_sender_mac,
+                                       original_sender_ipv4)
+
                 self.add_arp_entry(original_sender_ipv4, original_sender_mac, "DYNAMIC")
 
             elif packet.get_operation_id() == 0x002:
@@ -60,7 +75,6 @@ class Router:
             segment = packet.get_segment()
             segment_identifier = segment.get_segment_identifier()
 
-            # TODO: ICMP REQUEST destined to me or another host? If another host, do i have them in my ARP table?
             if segment_identifier == "ICMP ECHO REQUEST":
                 if original_dest_ipv4 == forwarding_interface.get_ipv4_address():       # Is this ICMP destined to me?
                     self.icmp_echo_reply(original_sender_ipv4, forwarding_interface)
@@ -71,6 +85,15 @@ class Router:
                         forwarding_interface.send(frame)
                     else:                                                               # If not, send one
                         self.arp_request(original_dest_ipv4, forwarding_interface)
+
+            elif segment_identifier == "ICMP ECHO REPLY":
+                if original_dest_ipv4 == forwarding_interface.get_ipv4_address():
+                    pass  # destined to me
+                else:
+                    # If routing an ICMP reply, the request must have gone through, therefore ARP entry exists already
+                    frame = nf.create_ethernet_frame(self.ARP_table[original_dest_ipv4][0], self.MAC_Address,
+                                                     None, packet, None)
+                    forwarding_interface.send(frame)
 
     def icmp_echo_reply(self, original_sender_ipv4, interface):
         if original_sender_ipv4 not in self.ARP_table:

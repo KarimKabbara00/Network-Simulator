@@ -49,7 +49,7 @@ class SwitchCanvasObject:
 
         # CLI Stuff
         self.cli_object = None
-        self.cli_command_files = ['..\\commands/sw_general_command_list', '..\\commands/sw_interface_command_list']
+        self.cli_command_files = ['commands/sw_general_command_list', 'commands/sw_interface_command_list']
         # CLI Stuff
 
         # Light & Line Stuff

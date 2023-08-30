@@ -76,7 +76,7 @@ def handle_button_click(master, canvas, device_type):
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=250, width=675)
 
-        pc_icon = "..\\icons/desktop-computer.png"
+        pc_icon = "icons/desktop-computer.png"
 
         tk.Button(frame, width=10, height=5, text="First Gen",
                   command=lambda: create_pc(popup, canvas, pc_icon, "FirstGen")).place(x=60, y=30)
@@ -99,7 +99,7 @@ def handle_button_click(master, canvas, device_type):
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=300, width=525)
 
-        switch_icon = "..\\icons/switch.png"
+        switch_icon = "icons/switch.png"
 
         tk.Button(frame, width=10, height=5, text="TSA1000X",
                   command=lambda: create_switch(popup, canvas, switch_icon, "TSA1000X")).place(x=100, y=30)
@@ -127,7 +127,7 @@ def handle_button_click(master, canvas, device_type):
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=300, width=425)
 
-        router_icon = "..\\icons/router.png"
+        router_icon = "icons/router.png"
 
         tk.Button(frame, width=10, height=5, text="R94X",
                   command=lambda: create_router(popup, canvas, router_icon)).place(x=165, y=80)
@@ -139,7 +139,7 @@ def handle_button_click(master, canvas, device_type):
     #     pass
 
     elif device_type == "Eth_cable":
-        eth_icon = "..\\icons/ethernet.png"
+        eth_icon = "icons/ethernet.png"
         cable = EthernetCableCanvasObject(canvas, get_next_cable(canvas), eth_icon,
                                           network.Ethernet_Cable.EthernetCable())
         cable_objects.append(cable)

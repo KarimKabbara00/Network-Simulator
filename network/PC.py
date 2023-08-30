@@ -110,10 +110,12 @@ class PC:
                 self.ping_rtt_times.append(time_taken)
                 self.received_ping_count += 1
 
-                if time_taken < 0.0011:
+                time_taken = round(time_taken, 3)
+
+                if time_taken == 0.001:
                     time_taken = "<1ms"
                 else:
-                    time_taken = str(time_taken) + "ms"
+                    time_taken = str(int(str(time_taken)[2:5])) + "ms"
 
                 self.canvas_object.get_info(
                     info="Reply from " + original_sender_ipv4 + ": bytes=" + str(
