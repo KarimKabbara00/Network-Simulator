@@ -263,3 +263,7 @@ class SwitchCanvasObject:
     def get_lights(self, line_obj):
         return self.line_connections[line_obj][2], self.line_connections[line_obj][3]
         # TODO: Do i need to update [2] & [3] in the motion def?
+
+    # TODO: Make this work for sw
+    def enable_disconnect_button(self):
+        pass

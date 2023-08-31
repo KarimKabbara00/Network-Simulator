@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 from tkinter import ttk
 from tkinter import messagebox
 from UI import helper_functions as hf
+from ttkwidgets.frames import Tooltip
 
 
 class PCCanvasObject(object):
@@ -24,11 +25,11 @@ class PCCanvasObject(object):
 
         # Submenu Stuff
         self.hover_area = self.canvas.create_polygon(x - 50, y - 50, x + 50, y - 50, x + 50, y - 75, x + 90, y - 75,
-                                                     x + 90, y + 65,
-                                                     x + 50, y + 65, x + 50, y + 50, x - 50, y + 50, fill="")
+                                                     x + 90, y + 65, x + 50, y + 65, x + 50, y + 50, x - 50, y + 50,
+                                                     fill="")
         self.canvas.lower(self.hover_area)
-        self.menu_buttons = self.canvas.create_rectangle(x + 50, y - 75, x + 90, y + 70, outline="black", fill="gray63",
-                                                         width=1)
+        self.menu_buttons = self.canvas.create_polygon(x+40, y-5, x+50, y-5, x+50, y-72, x+92, y-72, x+92, y+72, x+50,
+                                                       y+72, x+50, y+5, outline="black", fill="gray80", width=1)
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
 
         # TODO: Why declare these for every instance?
@@ -44,6 +45,7 @@ class PCCanvasObject(object):
         self.ethernet_del_icon = self.ethernet_del_icon.resize((25, 25))
         self.ethernet_del_icon1 = ImageTk.PhotoImage(self.ethernet_del_icon)
 
+        # TODO: https://www.flaticon.com/search?word=red%20trash%20can
         self.x_node_icon = Image.open('icons/x_node.png')
         self.x_node_icon = self.x_node_icon.resize((20, 20))
         self.x_node_icon1 = ImageTk.PhotoImage(self.x_node_icon)
@@ -52,6 +54,8 @@ class PCCanvasObject(object):
         self.terminal_button = tk.Button(self.canvas, width=25, height=25, image=self.terminal_icon1)
         self.disconnect_button = tk.Button(self.canvas, width=25, height=25, image=self.ethernet_del_icon1)
         self.delete_button = tk.Button(self.canvas, width=25, height=25, image=self.x_node_icon1)
+
+        self.disconnect_button.config(state="disabled")
         # Submenu Stuff
 
         # Icon Stuff
@@ -81,13 +85,6 @@ class PCCanvasObject(object):
         self.command_history_index = -1
         # CLI Stuff
 
-        # Device Label
-        # self.device_label = tk.Label(self.canvas, text="PC" + str(hf.increment_pc_id()), background="gray88",
-        #                              font=("Arial", 10))
-        # self.canvas_label = self.canvas.create_window(x, y + 60, window=self.device_label, tag=self.block_name + "_tag")
-        # self.hidden_label = False
-        # Device Label
-
         # Light Stuff
         self.line_connections = {}
         self.tag_1 = ""
@@ -116,8 +113,13 @@ class PCCanvasObject(object):
                            self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 50,
                            self.canvas.canvasx(event.x) - 50, self.canvas.canvasy(event.y) + 50)
 
-        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) - 75,
-                           self.canvas.canvasx(event.x) + 90, self.canvas.canvasy(event.y) + 70)
+        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x) + 40, self.canvas.canvasy(event.y),
+                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) - 5,
+                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) - 72,
+                           self.canvas.canvasx(event.x) + 92, self.canvas.canvasy(event.y) - 72,
+                           self.canvas.canvasx(event.x) + 92, self.canvas.canvasy(event.y) + 72,
+                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 72,
+                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 5)
 
         # Move the Label
         self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event.x), self.canvas.canvasy(event.y) + 60)
@@ -179,17 +181,24 @@ class PCCanvasObject(object):
         self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
         self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
         self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
-        self.config_button.bind('<Enter>', self.on_start_hover)
+
+        self.config_button.bind('<Enter>', self.config_button_bg_enter)
+        self.config_button.bind('<Leave>', self.config_button_bg_leave)
         self.config_button.bind('<Button-1>', self.open_config_menu)
 
-        self.terminal_button.bind('<Enter>', self.on_start_hover)
+        self.terminal_button.bind('<Enter>', self.terminal_button_bg_enter)
+        self.terminal_button.bind('<Leave>', self.terminal_button_bg_leave)
         self.terminal_button.bind('<Button-1>', self.menu_pc_cli)
 
-        self.disconnect_button.bind('<Enter>', self.on_start_hover)
+        self.disconnect_button.bind('<Enter>', self.disconnect_button_bg_enter)
+        self.disconnect_button.bind('<Leave>', self.disconnect_button_bg_leave)
         self.disconnect_button.bind('<Button-1>', self.disconnect_cable)
 
-        self.delete_button.bind('<Enter>', self.on_start_hover)
+        self.delete_button.bind('<Enter>', self.delete_button_bg_enter)
+        self.delete_button.bind('<Leave>', self.delete_button_bg_leave)
         self.delete_button.bind('<Button-1>', self.menu_delete)
+
+        self.on_start_hover(event)
 
     def hide_menu(self):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
@@ -216,6 +225,10 @@ class PCCanvasObject(object):
 
         popup = tk.Toplevel(self.canvas)
         popup.geometry("%dx%d+%d+%d" % (700, 350, 600, 200))
+
+        icon = ImageTk.PhotoImage(Image.open('icons/gear.png'))
+        popup.wm_iconphoto(False, icon)
+        popup.wm_title("Configure PC")
 
         configure_menu = ttk.Notebook(popup)
         general_tab = ttk.Frame(configure_menu)
@@ -283,9 +296,13 @@ class PCCanvasObject(object):
 
         self.hide_menu()
 
+        # For PC's, there will be only 1 connection, so disabled after clicked.
+        self.disconnect_button.config(state="disabled")
+
         # Disable the hover area when disconnect cable is clicked because mouse lands on the hover area causing the menu
         # to reappear instantly. It is re-enabled in self.on_end_hover()
         self.canvas.itemconfigure(self.hover_area, state="hidden")
+
 
     def menu_delete(self, event):
         self.hide_menu()
@@ -400,6 +417,11 @@ class PCCanvasObject(object):
         popup = tk.Toplevel(self.canvas)
         popup.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
         popup.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(popup))
+
+        icon = ImageTk.PhotoImage(Image.open('icons/terminal.png'))
+        popup.wm_iconphoto(False, icon)
+        popup.wm_title("Terminal")
+
         # Parent widget
 
         # CLI initial config
@@ -538,13 +560,12 @@ class PCCanvasObject(object):
         self.interface_2 = int2
 
     def on_start_hover(self, event):
-
         if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
             self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
-            self.config_button.place(x=self._x + 56, y=self._y - 68)
-            self.terminal_button.place(x=self._x + 56, y=self._y - 34)
-            self.disconnect_button.place(x=self._x + 56, y=self._y)
-            self.delete_button.place(x=self._x + 56, y=self._y + 34)
+            self.config_button.place(x=self._x + 57, y=self._y - 65)
+            self.terminal_button.place(x=self._x + 57, y=self._y - 31)
+            self.disconnect_button.place(x=self._x + 57, y=self._y + 3)
+            self.delete_button.place(x=self._x + 57, y=self._y + 37)
         return
 
     def on_end_hover(self, event):
@@ -561,3 +582,42 @@ class PCCanvasObject(object):
 
     def get_lights(self):
         return self.l1, self.l2
+
+    def config_button_bg_enter(self, event):
+        self.on_start_hover(event)
+        Tooltip(self.config_button, text="Configure this PC", showheader=False, offset=(22, -18), background="#feffcd",
+                timeout=0.5)
+        self.config_button.config(background='OrangeRed3', foreground="white")
+
+    def config_button_bg_leave(self, event):
+        self.config_button.config(background='SystemButtonFace', foreground='black')
+
+    def terminal_button_bg_enter(self, event):
+        self.on_start_hover(event)
+        Tooltip(self.terminal_button, text="Open the Terminal", showheader=False, offset=(22, -18), background="#feffcd"
+                , timeout=0.5)
+        self.terminal_button.config(background='OrangeRed3', foreground="white")
+
+    def terminal_button_bg_leave(self, event):
+        self.terminal_button.config(background='SystemButtonFace', foreground='black')
+
+    def disconnect_button_bg_enter(self, event):
+        self.on_start_hover(event)
+        Tooltip(self.disconnect_button, text="Disconnect Connection", showheader=False, offset=(22, -18),
+                background="#feffcd", timeout=0.5)
+        self.disconnect_button.config(background='OrangeRed3', foreground="white")
+
+    def disconnect_button_bg_leave(self, event):
+        self.disconnect_button.config(background='SystemButtonFace', foreground='black')
+
+    def delete_button_bg_enter(self, event):
+        self.on_start_hover(event)
+        Tooltip(self.delete_button, text="Delete this Node", showheader=False, offset=(22, -18), background="#feffcd",
+                timeout=0.5)
+        self.delete_button.config(background='OrangeRed3', foreground="white")
+
+    def delete_button_bg_leave(self, event):
+        self.delete_button.config(background='SystemButtonFace', foreground='black')
+
+    def enable_disconnect_button(self):
+        self.disconnect_button.config(state="normal")

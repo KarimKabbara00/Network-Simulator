@@ -248,6 +248,9 @@ class EthernetCableCanvasObject:
 
             self.canvas.delete(self.canvas_object)
 
+            self.canvas_object_1.enable_disconnect_button()
+            self.canvas_object_2.enable_disconnect_button()
+
     def set_light(self, color, side):
         if self.canvas.find_withtag(side + "_light_" + self.obj1_canvas_tag + "_" + str(self.existing_line_count)):
             self.canvas.itemconfig(self.canvas.find_withtag(side + "_light_" + self.obj1_canvas_tag + "_" +
