@@ -15,29 +15,48 @@ class PCCanvasObject(object):
         self.class_object = class_object
         self.class_object.set_canvas_object(self)
 
+        # Cursor Location when object is created
+        x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
+        y = self.canvas.winfo_pointery() - self.canvas.winfo_rooty()
+        # Cursor Location when object is created
+
         # Submenu Stuff
         self.submenu = tk.Menu(self.canvas, tearoff=0)
         self.disconnect_menu = tk.Menu(self.submenu, tearoff=0)  # Submenu for disconnecting interfaces
-        self.submenu.add_command(label="Configure", command=self.menu_configure)
+        # self.submenu.add_command(label="Configure", command=self.menu_configure)
         self.submenu.add_command(label="Terminal", command=self.menu_pc_cli)
         self.submenu.add_cascade(label="Disconnect", menu=self.disconnect_menu)
         self.submenu.add_separator()
         self.submenu.add_command(label="Delete PC", command=self.menu_delete)
 
-        # Current Cursor Location
-        # For placing the new widget under the mouse
-        x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
-        y = self.canvas.winfo_pointery() - self.canvas.winfo_rooty()
-        # Current Cursor Location
-
         # New menu
-        self.hover_area = self.canvas.create_rectangle(x-50, y-50, x+100, y+50, fill="white")#, outline="")
+        # self.hover_area = self.canvas.create_rectangle(x-50, y-50, x+100, y+50, fill="white")#, outline="")
+        self.hover_area = self.canvas.create_polygon(x-50, y-50, x+50, y-50, x+50, y-80, x+90, y-80, x+90, y+50, x-50, y+50, fill="white")
         self.canvas.lower(self.hover_area)
-        self.menu_buttons = self.canvas.create_rectangle(x+55, y-45, x+90, y+45, outline="black", fill="gray", width=1.2)
+        self.menu_buttons = self.canvas.create_rectangle(x+50, y-80, x+90, y+50, outline="black", fill="gray63", width=1.2)
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
 
-        self.config_button = tk.Button(self.canvas, width=3, height=1)
-        self.config_flag = False
+        # TODO: Why declare these for every instance?
+        self.config_icon = Image.open('icons/gear.png')
+        self.config_icon = self.config_icon.resize((50, 50))
+        self.config_icon = ImageTk.PhotoImage(self.config_icon)
+
+        self.terminal_icon = Image.open('icons/terminal.png')
+        self.terminal_icon = self.terminal_icon.resize((50, 50))
+        self.terminal_icon = ImageTk.PhotoImage(self.terminal_icon)
+
+        self.ethernet_del_icon = Image.open('icons/ethernet_delete.png')
+        self.ethernet_del_icon = self.ethernet_del_icon.resize((50, 50))
+        self.ethernet_del_icon = ImageTk.PhotoImage(self.ethernet_del_icon)
+
+        self.x_node_icon = Image.open('icons/x_node.png')
+        self.x_node_icon = self.x_node_icon.resize((50, 50))
+        self.x_node_icon = ImageTk.PhotoImage(self.x_node_icon)
+
+        self.config_button = tk.Button(self.canvas, width=3, height=1, image=self.config_icon)
+        self.terminal_button = tk.Button(self.canvas, width=3, height=1, image=self.terminal_icon)
+        self.disconnect_button = tk.Button(self.canvas, width=3, height=1, image=self.ethernet_del_icon)
+        self.delete_button = tk.Button(self.canvas, width=3, height=1, image=self.x_node_icon)
         # Submenu Stuff
 
         # Icon Stuff
@@ -53,7 +72,9 @@ class PCCanvasObject(object):
         # Button Bindings
         self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
         self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
+
         self.canvas.tag_bind(self.block_name, '<B1-Motion>', self.motion)  # When moving the object after it is created
+        self.canvas.tag_bind(self.block_name, '<ButtonRelease-1>', self.button_release)  # When moving the object after it is created
         self.canvas.tag_bind(self.block_name, '<Button-3>', self.sub_menu)  # For the object menu
         # Button Bindings
 
@@ -82,17 +103,22 @@ class PCCanvasObject(object):
 
     def motion(self, event):
 
-        # TODO: hide menu when moving object. Might not go here necessarily
+        # Hide the menu
+        self.unbind_menu_temporarily()
 
         # Move the object
         self.canvas.coords(self.block_name, self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 
         # Move the hover area and menu buttons
-        self.canvas.coords(self.hover_area, self.canvas.canvasx(event.x)-45, self.canvas.canvasy(event.y)-50,
-                           self.canvas.canvasx(event.x)+100, self.canvas.canvasy(event.y)+50)
+        self.canvas.coords(self.hover_area, self.canvas.canvasx(event.x)-50, self.canvas.canvasy(event.y)-50,
+                           self.canvas.canvasx(event.x)+50, self.canvas.canvasy(event.y)-50,
+                           self.canvas.canvasx(event.x)+50, self.canvas.canvasy(event.y)-80,
+                           self.canvas.canvasx(event.x)+90, self.canvas.canvasy(event.y)-80,
+                           self.canvas.canvasx(event.x)+90, self.canvas.canvasy(event.y)+50,
+                           self.canvas.canvasx(event.x)-50, self.canvas.canvasy(event.y)+50,)
 
-        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x)+55, self.canvas.canvasy(event.y)-45,
-                           self.canvas.canvasx(event.x)+90, self.canvas.canvasy(event.y)+45)
+        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x)+50, self.canvas.canvasy(event.y)-80,
+                           self.canvas.canvasx(event.x)+90, self.canvas.canvasy(event.y)+50)
 
         # Move the Label
         self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event.x), self.canvas.canvasy(event.y) + 60)
@@ -134,28 +160,59 @@ class PCCanvasObject(object):
         except StopIteration:
             pass
 
-        # Unbind after created
-        if str(event.type) == "4":
-            self.canvas.tag_unbind(self.block_name, "<Motion>")
-            self.canvas.tag_unbind(self.block_name, "<Button-1>")
-
-            # For the object menu
-            self.canvas.tag_bind(self.hover_area, '<Enter>', self.on_start_hover)
-            self.canvas.tag_bind(self.hover_area, '<Leave>', self.on_end_hover)
-            self.canvas.tag_bind(self.block_name, '<Enter>', self.on_start_hover)
-            self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
-            self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
-            self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
-            self.config_button.bind('<Enter>', self.open_config_screen)
-
         self._x = event.x
         self._y = event.y
         return
 
+    def button_release(self, event):
+
+        self.canvas.tag_unbind(self.block_name, "<Motion>")
+        self.canvas.tag_unbind(self.block_name, "<Button-1>")
+
+        # For the object menu
+        self.canvas.tag_bind(self.hover_area, '<Enter>', self.on_start_hover)
+        self.canvas.tag_bind(self.hover_area, '<Leave>', self.on_end_hover)
+        self.canvas.tag_bind(self.block_name, '<Enter>', self.on_start_hover)
+        self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
+        self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
+        self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
+        self.config_button.bind('<Enter>', self.on_start_hover)
+        self.config_button.bind('<Button-1>', self.open_config_menu)
+
+        self.terminal_button.bind('<Enter>', self.on_start_hover)
+        self.terminal_button.bind('<Button-1>', self.open_config_menu)
+
+        self.disconnect_button.bind('<Enter>', self.on_start_hover)
+        self.disconnect_button.bind('<Button-1>', self.open_config_menu)
+
+        self.delete_button.bind('<Enter>', self.on_start_hover)
+        self.delete_button.bind('<Button-1>', self.open_config_menu)
+
+    def hide_menu(self):
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+        self.config_button.place_forget()
+        self.terminal_button.place_forget()
+        self.disconnect_button.place_forget()
+        self.delete_button.place_forget()
+
+    def unbind_menu_temporarily(self):
+        self.canvas.tag_unbind(self.hover_area, '<Enter>')
+        self.canvas.tag_unbind(self.hover_area, '<Leave>')
+        self.canvas.tag_unbind(self.block_name, '<Enter>')
+        self.canvas.tag_unbind(self.block_name, '<Leave>')
+        self.canvas.tag_unbind(self.menu_buttons, '<Enter>')
+        self.canvas.tag_unbind(self.menu_buttons, '<Leave>')
+        self.config_button.unbind('<Enter>')
+        self.terminal_button.unbind('<Enter>')
+        self.disconnect_button.unbind('<Enter>')
+        self.delete_button.unbind('<Enter>')
+        # Hide menu
+        self.hide_menu()
+
     def sub_menu(self, event):
         self.submenu.tk_popup(event.x_root, event.y_root)
 
-    def menu_configure(self):
+    def open_config_menu(self, event):
 
         popup = tk.Toplevel(self.canvas)
         popup.geometry("%dx%d+%d+%d" % (700, 350, 600, 200))
@@ -216,6 +273,7 @@ class PCCanvasObject(object):
         # Save Button
 
         popup.focus_set()
+        self.hide_menu()
 
     def add_to_disconnect_menu(self, interface):
         self.disconnect_menu.add_command(label=interface.get_shortened_name(),
@@ -481,15 +539,17 @@ class PCCanvasObject(object):
     def on_start_hover(self, event):
         # Add the frame to the canvas
         self.canvas.itemconfigure(self.menu_buttons, state='normal')
-        self.config_button.place(x=self._x + 58, y=self._y - 40)
+
+        self.config_button.place(x=self._x + 56, y=self._y - 72)
+        self.terminal_button.place(x=self._x + 56, y=self._y - 42)
+        self.disconnect_button.place(x=self._x + 56, y=self._y - 12)
+        self.delete_button.place(x=self._x + 56, y=self._y + 18)
         return
 
     def on_end_hover(self, event):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
-
         self.config_button.place_forget()
-
-
-    def open_config_screen(self, event):
-        self.canvas.itemconfigure(self.menu_buttons, state='normal')  # keeps the button menu open
-        # TODO: ADD CONFIG MENU HERE
+        self.terminal_button.place_forget()
+        self.disconnect_button.place_forget()
+        self.delete_button.place_forget()
+        return
