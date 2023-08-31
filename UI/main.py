@@ -138,7 +138,8 @@ Button(canvas_drawing, command=lambda: button_handler.handle_button_click(tk, ca
 
 # Delete Button Stuff
 canvas_delete = LabelFrame(tk, text="Delete", padx=12, pady=3)
-canvas_delete.place(x=width - 567, y=925, height=75, width=75)
+canvas_delete.place(x=width - 567, y=625, height=75, width=75)
+# canvas_delete.place(x=width - 567, y=925, height=75, width=75)
 
 Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
        image=x1, width=40, height=40).grid(row=0, column=0)

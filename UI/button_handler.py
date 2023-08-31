@@ -43,9 +43,9 @@ def get_next_label(canvas):
     return "Label_" + str(len(canvas.find_withtag('Label')) + 1)
 
 
-def create_pc(popup, canvas, pc_icon, generation):
+def create_pc(popup, canvas, pc_icon, generation, master):
 
-    pc = PCCanvasObject(canvas, get_next_pc(generation), pc_icon, network.PC.PC(generation))
+    pc = PCCanvasObject(canvas, get_next_pc(generation), pc_icon, network.PC.PC(generation), master)
     objects.append(pc)
     popup.destroy()
 
@@ -80,11 +80,11 @@ def handle_button_click(master, canvas, device_type):
         pc_icon = "icons/desktop-computer.png"
 
         tk.Button(frame, width=10, height=5, text="First Gen",
-                  command=lambda: create_pc(popup, canvas, pc_icon, "FirstGen")).place(x=60, y=30)
+                  command=lambda: create_pc(popup, canvas, pc_icon, "FirstGen", master)).place(x=60, y=30)
         tk.Button(frame, width=10, height=5, text="Second Gen",
-                  command=lambda: create_pc(popup, canvas, pc_icon, "SecondGen")).place(x=280, y=30)
+                  command=lambda: create_pc(popup, canvas, pc_icon, "SecondGen", master)).place(x=280, y=30)
         tk.Button(frame, width=10, height=5, text="Third Gen",
-                  command=lambda: create_pc(popup, canvas, pc_icon, "ThirdGen")).place(x=520, y=30)
+                  command=lambda: create_pc(popup, canvas, pc_icon, "ThirdGen", master)).place(x=520, y=30)
 
         tk.Label(frame, text="One Fast Ethernet Interface\n(100 mbps)").place(x=25, y=150)
         tk.Label(frame, text="One Gigabit Ethernet Interface\n(1000 mbps)").place(x=245, y=150)
@@ -228,7 +228,7 @@ def delete_object(canvas, icon):
 
             for i in objects:
                 if i.get_block_name() == canvas_object_tag:
-                    i.menu_delete()
+                    i.menu_delete(None)
                     return
 
             # for i in cable_objects:

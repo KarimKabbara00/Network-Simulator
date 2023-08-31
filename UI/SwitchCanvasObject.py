@@ -234,6 +234,9 @@ class SwitchCanvasObject:
     def add_line_connection(self, tag1, tag2, light1, light2, canvas_cable_object):
         self.line_connections[canvas_cable_object] = [tag1, tag2, light1, light2]
 
+    def del_line_connection(self, cable):
+        self.line_connections.pop(cable)
+
     def get_line_connection_count(self, tag1, tag2):
 
         count = 0
@@ -256,3 +259,7 @@ class SwitchCanvasObject:
 
     def set_interfaces(self, line, int1, int2):
         self.line_interface_relations[line] = [int1, int2]
+
+    def get_lights(self, line_obj):
+        return self.line_connections[line_obj][2], self.line_connections[line_obj][3]
+        # TODO: Do i need to update [2] & [3] in the motion def?

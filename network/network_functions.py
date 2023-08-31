@@ -35,7 +35,7 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
     same_subnet = hf.is_same_subnet(source_ip, source_netmask, dest_ip)
 
     canvas.toggle_cli_busy()
-    # TODO: POTENTIAL PROBLEM??? DOES THE ARP TABLE UPDATE IN THE THREAD? IF NOT, FOR LOOP OUTSIDE OF THE FUNCTION CALL
+
     for _ in range(count):
         host.set_start_time(time.time())
 

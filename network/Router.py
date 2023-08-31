@@ -96,8 +96,6 @@ class Router:
                                                      None, packet, None)
                     forwarding_interface.send(frame)
 
-                # TODO: PC does not add ARP entry when pinging outside of subnet. Possibly a PC thing, or a here thing
-
     def icmp_echo_reply(self, original_sender_ipv4, interface):
         if original_sender_ipv4 not in self.ARP_table:
             self.arp_request(original_sender_ipv4, interface)

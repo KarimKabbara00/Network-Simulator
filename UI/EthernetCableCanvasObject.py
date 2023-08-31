@@ -12,11 +12,6 @@ class EthernetCableCanvasObject:
         self.block_name = block_name
         self.class_object = class_object
 
-        # Submenu Stuff
-        self.submenu = tk.Menu(self.canvas, tearoff=0)
-        self.submenu.add_command(label="Delete Ethernet Cable", command=self.menu_delete)
-        # Submenu Stuff
-
         # Current Cursor Location
         # For placing the new widget under the mouse
         hf.move_mouse_to(350, 800)
@@ -37,14 +32,7 @@ class EthernetCableCanvasObject:
         # Button Bindings
         self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
         self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
-        self.canvas.tag_bind(self.block_name, '<Button-3>', self.sub_menu)  # For the object menu
         # Button Bindings
-
-        # CLI Stuff
-        self.cli_text = "Switch> "
-        self.cli_history = []
-        self.cli_history_index = 0
-        # CLI Stuff
 
         # Objects to connect to
         self.canvas_line = None
@@ -74,8 +62,6 @@ class EthernetCableCanvasObject:
         # self.updated_l1 = None
         # self.updated_l2 = None
         # Link Lights
-
-        self.delete_info = []
 
     def motion(self, event):
 
@@ -118,14 +104,24 @@ class EthernetCableCanvasObject:
                     break
         return
 
-    def sub_menu(self, event):
-        self.submenu.tk_popup(event.x_root, event.y_root)
+    def delete_canvas_cable(self):
 
-    def menu_delete(self):
-        self.canvas.delete(self.canvas_object)
+        l1, l2 = self.canvas_object_1.get_lights()
 
-    def get_canvas_line(self):
-        return self.canvas_line
+        self.canvas.delete(l1)
+        self.canvas.delete(l2)
+
+        # Still needed in case lights never moved
+        self.canvas.delete(self.light_1)
+        self.canvas.delete(self.light_2)
+
+        self.canvas.delete(self.canvas_line)
+
+        self.canvas_object_1.del_line_connection(self)
+        self.canvas_object_2.del_line_connection(self)
+
+        self.cable_end_1.disconnect()
+        self.cable_end_2.disconnect()
 
     def show_interfaces(self, event, host_object):
         submenu = tk.Menu(self.canvas, tearoff=0)
@@ -211,7 +207,10 @@ class EthernetCableCanvasObject:
                                           self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
                                           "_" + str(self.existing_line_count))
 
-            # Lower line under canvas object
+            # Lower line and lights one layer to underlap the hover menu and canvas object
+
+            self.canvas.tag_lower(self.light_1)
+            self.canvas.tag_lower(self.light_2)
             self.canvas.tag_lower(self.canvas_line)
 
             # Add each light to the cable class
@@ -262,9 +261,3 @@ class EthernetCableCanvasObject:
 
     def get_obj_2(self):
         return self.canvas_object_2
-
-    def get_obj_1_coords(self):
-        return self.obj1_coords
-
-    def get_obj_2_coords(self):
-        return self.obj2_coords
