@@ -93,6 +93,9 @@ def handle_button_click(master, canvas, device_type):
         popup.focus_set()
 
     elif device_type == "switch":
+
+        sw_icons = loadIcons.get_sw_icons()
+
         popup = tk.Toplevel(master)
         popup.title("Add Switch")
         popup.geometry("%dx%d+%d+%d" % (550, 325, 675, 300))
@@ -100,8 +103,6 @@ def handle_button_click(master, canvas, device_type):
 
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=300, width=525)
-
-        sw_icons = loadIcons.get_sw_icons()
 
         tk.Button(frame, width=10, height=5, text="TSA1000X",
                   command=lambda: create_switch(popup, canvas, sw_icons, "TSA1000X", master)).place(x=100, y=30)

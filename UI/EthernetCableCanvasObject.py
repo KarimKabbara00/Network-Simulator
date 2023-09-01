@@ -265,3 +265,15 @@ class EthernetCableCanvasObject:
     def set_lights(self, l1, l2):
         self.light_1 = l1
         self.light_2 = l2
+
+    def get_cable_end_1(self):
+        return self.cable_end_1
+
+    def get_cable_end_2(self):
+        return self.cable_end_2
+
+    def get_class_object_1(self):
+        return self.class_object_1
+
+    def get_class_object_2(self):
+        return self.class_object_2

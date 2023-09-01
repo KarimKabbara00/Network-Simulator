@@ -1,11 +1,10 @@
+import tkinter
 import tkinter as tk
-
+from tkinter import messagebox, ttk
 from ttkwidgets.frames import Tooltip
-
 import UI.helper_functions as hf
 from PCCanvasObject import PCCanvasObject
 from SwitchCLI import SwitchCli
-import tkinter
 
 
 class SwitchCanvasObject:
@@ -18,6 +17,7 @@ class SwitchCanvasObject:
         self.class_object = class_object
         self.class_object.set_canvas_object(self)
         self.master = master
+        self.icons = icons
 
         # Cursor Location when object is created
         x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
@@ -25,10 +25,10 @@ class SwitchCanvasObject:
         # Cursor Location when object is created
 
         # Icon Stuff
-        self.icon = icons[0]
-        self.terminal_icon = icons[1]
-        self.ethernet_del_icon = icons[2]
-        self.x_node_icon = icons[3]
+        self.icon = self.icons[0]
+        self.terminal_icon = self.icons[1]
+        self.ethernet_del_icon = self.icons[2]
+        self.x_node_icon = self.icons[3]
         # Assigned to canvas_object to allow delete
         self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "Switch"))
         self.canvas.photo = self.icon
@@ -249,7 +249,7 @@ class SwitchCanvasObject:
 
         self.disconnect_button.bind('<Enter>', self.disconnect_button_bg_enter)
         self.disconnect_button.bind('<Leave>', self.disconnect_button_bg_leave)
-        # self.disconnect_button.bind('<Button-1>', self.disconnect_cable)
+        self.disconnect_button.bind('<Button-1>', self.disconnect_cable)
 
         self.delete_button.bind('<Enter>', self.delete_button_bg_enter)
         self.delete_button.bind('<Leave>', self.delete_button_bg_leave)
@@ -274,38 +274,110 @@ class SwitchCanvasObject:
         # Hide menu
         self.hide_menu()
 
-    def disconnect_cable(self, event, cable_name):
+    def disconnect_cable(self, main_event):
 
-        ## menu of some kind
+        def button_enter(event):
+            button.config(background='gray89', relief=tk.SUNKEN)
+
+        def button_leave(event):
+            button.config(background='SystemButtonFace', relief=tk.GROOVE)
+
+        def enable_button(event):
+            button.config(state='normal')
+            button.bind('<Enter>', button_enter)
+            button.bind('<Leave>', button_leave)
+
+        def disconnect(event):
+            for selected_item in tree.selection():
+                items = tree.item(selected_item)['values']
+                try:
+                    self.class_object.get_interface_by_name(items[0]).get_canvas_cable().delete_canvas_cable()
+                    tree.delete(selected_item)
+                except (tk.TclError, AttributeError):
+                    pass
+
+        popup = tk.Toplevel(self.master)
+        popup.geometry("%dx%d+%d+%d" % (560, 300, 600, 300))
+        popup.wm_title("Disconnect Cable")
+        popup.wm_iconphoto(False, self.icons[2])
+        popup.focus_set()
+
+        frame = tk.LabelFrame(popup, padx=5, pady=5)
+        frame.place(x=10, y=10, height=245, width=541)
+
+        button = tk.Button(popup, text='Disconnect', relief=tk.GROOVE, width=76)
+        button.bind('<Button-1>', disconnect)
+        button.place(x=10, y=265)
+        button.config(state='disabled')  # Initially, the button is disabled. It is enabled when a row is pressed.
+
+        # Build tree
+        columns = ('l_interface', 'r_hostname', 'r_interface', 'operational')
+        tree = ttk.Treeview(frame, columns=columns, show='headings')
+        tree.heading('l_interface', text='Local Interface')
+        tree.column("l_interface", minwidth=0, width=100)
+        tree.heading('r_hostname', text='Remote Hostname')
+        tree.column("r_hostname", minwidth=0, width=150)
+        tree.heading('r_interface', text='Remote Interface')
+        tree.column("r_interface", minwidth=0, width=150)
+        tree.heading('operational', text='Status')
+        tree.column("operational", minwidth=0, width=110)
+
+        tree.bind('<<TreeviewSelect>>', enable_button)
+
+        # Insert connected interfaces
+        for i in self.class_object.get_interfaces():
+            if i.get_is_connected():
+                c1 = i.get_canvas_cable().get_cable_end_1().get_shortened_name()
+                c2 = i.get_canvas_cable().get_cable_end_2().get_shortened_name()
+                h1 = i.get_canvas_cable().get_class_object_1().get_host_name()
+                h2 = i.get_canvas_cable().get_class_object_2().get_host_name()
+
+                operational = 'Non-operational'
+                if i.get_is_operational():
+                    operational = 'Operational'
+
+                if c1 == i.get_shortened_name():
+                    tree.insert('', tk.END, values=(c1, h1, c2, operational))
+                else:
+                    tree.insert('', tk.END, values=(c2, h2, c1, operational))
+
+        tree.grid(row=0, column=0, sticky='nsew')
+
+        # add a scrollbar
+        scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)  # was yscroll=
+        scrollbar.grid(row=0, column=1, sticky='ns')
 
         self.hide_menu()
-
-        # Disable the hover area when disconnect cable is clicked because mouse lands on the hover area causing the menu
-        # to reappear instantly. It is re-enabled in self.on_end_hover()
-        self.canvas.itemconfigure(self.hover_area, state="hidden")
 
     def menu_delete(self, event):
-        self.hide_menu()
-        try:
-            for i in self.class_object.get_interfaces():
-                if i.get_is_connected():
-                    i.get_canvas_cable().delete_canvas_cable()
 
-        except (tk.TclError, AttributeError):
-            pass
+        answer = messagebox.askokcancel("Delete Switch", "Delete this Switch?")
 
-        self.hide_menu()
+        if answer:
+            self.hide_menu()
+            try:
+                for i in self.class_object.get_interfaces():
+                    if i.get_is_connected():
+                        i.get_canvas_cable().delete_canvas_cable()
 
-        self.canvas.delete(self.canvas_object)
-        self.canvas.delete(self.hover_area)
-        self.canvas.delete(self.menu_buttons)
-        self.canvas.delete()
-        self.class_object = None
+            except (tk.TclError, AttributeError):
+                pass
+
+            self.hide_menu()
+
+            self.canvas.delete(self.canvas_object)
+            self.canvas.delete(self.hover_area)
+            self.canvas.delete(self.menu_buttons)
+            self.canvas.delete()
+            self.class_object = None
 
     def menu_switch_cli(self, event):
         # Parent widget
         popup = tk.Toplevel(self.canvas)
         popup.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
+        popup.wm_iconphoto(False, self.icons[1])
+        popup.wm_title("Terminal")
         popup.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(popup))
         popup.focus_set()
         self.cli_object = SwitchCli(self, self.class_object, popup, self.cli_text, "Switch> ", self.cli_command_files)
@@ -353,7 +425,6 @@ class SwitchCanvasObject:
 
     def get_lights(self, line_obj):
         return self.line_connections[line_obj][2], self.line_connections[line_obj][3]
-        # TODO: Do i need to update [2] & [3] in the motion def?
 
     def on_start_hover(self, event):
         if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
@@ -368,17 +439,13 @@ class SwitchCanvasObject:
         self.terminal_button.place_forget()
         self.disconnect_button.place_forget()
         self.delete_button.place_forget()
-
-        # The hover area is disabled when a cable is disconnected because the mouse will land in the hove area and
-        # make the menu reappear instantly. This line re-enables it.
-        self.canvas.itemconfigure(self.hover_area, state="normal")
         return
 
     def terminal_button_bg_enter(self, event):
         self.on_start_hover(event)
         Tooltip(self.terminal_button, text="Open the Terminal", showheader=False, offset=(22, -18), background="#feffcd"
                 , timeout=0.5)
-        self.terminal_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
+        self.terminal_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def terminal_button_bg_leave(self, event):
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
@@ -387,7 +454,7 @@ class SwitchCanvasObject:
         self.on_start_hover(event)
         Tooltip(self.disconnect_button, text="Disconnect Connection", showheader=False, offset=(22, -18),
                 background="#feffcd", timeout=0.5)
-        self.disconnect_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
+        self.disconnect_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def disconnect_button_bg_leave(self, event):
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
@@ -396,7 +463,7 @@ class SwitchCanvasObject:
         self.on_start_hover(event)
         Tooltip(self.delete_button, text="Delete this Node", showheader=False, offset=(22, -18), background="#feffcd",
                 timeout=0.5)
-        self.delete_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
+        self.delete_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def delete_button_bg_leave(self, event):
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)

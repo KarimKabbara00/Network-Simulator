@@ -5,6 +5,14 @@ import button_handler
 global img
 
 
+def button_enter(event, btn):
+    btn.config(background='gray89', relief=SUNKEN)
+
+
+def button_leave(event, btn):
+    btn.config(background='SystemButtonFace', relief=GROOVE)
+
+
 def create_menu():
     menu_bar = Menu(tk)
     file_menu = Menu(menu_bar, tearoff=0)
@@ -58,6 +66,7 @@ cable_frame = LabelFrame(tk, text="Cables", padx=5, pady=5)
 cable_frame.place(x=225, y=625, height=175, width=82)
 # cable_frame.place(x=225, y=825, height=175, width=82)
 
+# TODO: Already done. Replace with loadIcons.py
 pc = Image.open("icons/desktop-computer.png")
 sw = Image.open("icons/switch.png")
 ro = Image.open("icons/router.png")
@@ -88,52 +97,74 @@ rectangle1 = ImageTk.PhotoImage(rectangle)
 label1 = ImageTk.PhotoImage(label)
 x1 = ImageTk.PhotoImage(x)
 
-Button(device_frame, image=pc1, width=60, height=60,
-       command=lambda: button_handler.handle_button_click(tk, canvas, "endhost")).grid(
-    column=0, row=0,
-    padx=10)
-Button(device_frame, image=sw1, width=60, height=60,
-       command=lambda: button_handler.handle_button_click(tk, canvas, "switch")).grid(
-    column=1,
-    row=0)
-Button(device_frame, image=ro1, width=60, height=60,
-       command=lambda: button_handler.handle_button_click(tk, canvas, "router")).grid(column=0,
-                                                                                      row=1,
-                                                                                      padx=10,
-                                                                                      pady=5)
-Button(device_frame, image=fw1, width=60, height=60,
-       command=lambda: button_handler.handle_button_click(tk, canvas, "firewall")).grid(column=1,
-                                                                                        row=1,
-                                                                                        pady=5)
+host_button = Button(device_frame, image=pc1, width=60, height=60, relief=GROOVE,
+                     command=lambda: button_handler.handle_button_click(tk, canvas, "endhost"))
+host_button.grid(column=0, row=0, padx=10)
+host_button.bind('<Enter>', lambda e, btn=host_button: button_enter(e, btn))
+host_button.bind('<Leave>', lambda e, btn=host_button: button_leave(e, btn))
 
-Button(cable_frame, image=eth_cable1, width=60, height=60,
-       command=lambda: button_handler.handle_button_click(tk, canvas, "Eth_cable")).grid(column=0, row=0)
+switch_button = Button(device_frame, image=sw1, width=60, height=60, relief=GROOVE,
+                       command=lambda: button_handler.handle_button_click(tk, canvas, "switch"))
+switch_button.grid(column=1, row=0)
+switch_button.bind('<Enter>', lambda e, btn=switch_button: button_enter(e, btn))
+switch_button.bind('<Leave>', lambda e, btn=switch_button: button_leave(e, btn))
 
+router_button = Button(device_frame, image=ro1, width=60, height=60, relief=GROOVE,
+                       command=lambda: button_handler.handle_button_click(tk, canvas, "router"))
+router_button.grid(column=0, row=1, padx=10, pady=5)
+router_button.bind('<Enter>', lambda e, btn=router_button: button_enter(e, btn))
+router_button.bind('<Leave>', lambda e, btn=router_button: button_leave(e, btn))
 
-Button(cable_frame, image=ser_cable1, width=60, height=60).grid(column=0, row=1, pady=5)
+fw_button = Button(device_frame, image=fw1, width=60, height=60, relief=GROOVE,
+                   command=lambda: button_handler.handle_button_click(tk, canvas, "firewall"))
+fw_button.grid(column=1, row=1, pady=5)
+fw_button.bind('<Enter>', lambda e, btn=fw_button: button_enter(e, btn))
+fw_button.bind('<Leave>', lambda e, btn=fw_button: button_leave(e, btn))
+
+eth_button = Button(cable_frame, image=eth_cable1, width=60, height=60, relief=GROOVE,
+                    command=lambda: button_handler.handle_button_click(tk, canvas, "Eth_cable"))
+eth_button.grid(column=0, row=0)
+eth_button.bind('<Enter>', lambda e, btn=eth_button: button_enter(e, btn))
+eth_button.bind('<Leave>', lambda e, btn=eth_button: button_leave(e, btn))
+
+ser_button = Button(cable_frame, image=ser_cable1, width=60, height=60, relief=GROOVE)
+ser_button.grid(column=0, row=1, pady=5)
+ser_button.bind('<Enter>', lambda e, btn=ser_button: button_enter(e, btn))
+ser_button.bind('<Leave>', lambda e, btn=ser_button: button_leave(e, btn))
 
 # Toggle Button Stuff
 toggle_frame = LabelFrame(tk, text="Toggle", padx=5, pady=5)
 toggle_frame.place(x=width - 230, y=825, height=175, width=200)
-b = Button(toggle_frame, command=button_handler.toggle_link_lights, text="Toggle Link Lights", width=25, height=3)
-b.grid(column=0, row=0, pady=5)
-b.config(state="disabled")
+light_button = Button(toggle_frame, command=button_handler.toggle_link_lights, text="Toggle Link Lights", width=25,
+                      height=3)
+light_button.grid(column=0, row=0, pady=5)
+light_button.config(state="disabled")  # TODO
+# light_button.bind('<Enter>', lambda e, btn=light_button: button_enter(e, btn))
+# light_button.bind('<Leave>', lambda e, btn=light_button: button_leave(e, btn))
 
-
-Button(toggle_frame, command=button_handler.toggle_labels, text="Toggle Labels", width=25, height=3).grid(column=0,
-                                                                                                          row=1,
-                                                                                                          pady=10)
+label_button = Button(toggle_frame, command=button_handler.toggle_labels, text="Toggle Labels", width=25, height=3,
+                      relief=GROOVE)
+label_button.grid(column=0, row=1, pady=10)
+label_button.bind('<Enter>', lambda e, btn=label_button: button_enter(e, btn))
+label_button.bind('<Leave>', lambda e, btn=label_button: button_leave(e, btn))
 # Toggle Button Stuff
 
 # Canvas Drawing Stuff
 canvas_drawing = LabelFrame(tk, text="Canvas", padx=5, pady=5)
 canvas_drawing.place(x=width - 475, y=825, height=175, width=225)
 
-Button(canvas_drawing, command=lambda: button_handler.create_rectangle(canvas), text="  Create Rectangle",
-       image=rectangle1, compound="left", width=175, height=50).grid(column=0, row=0, pady=5, padx=12)
+rect_button = Button(canvas_drawing, command=lambda: button_handler.create_rectangle(canvas), text="  Create Rectangle",
+                     image=rectangle1, compound="left", width=175, height=50, relief=GROOVE)
+rect_button.grid(column=0, row=0, pady=5, padx=12)
+rect_button.bind('<Enter>', lambda e, btn=rect_button: button_enter(e, btn))
+rect_button.bind('<Leave>', lambda e, btn=rect_button: button_leave(e, btn))
 
-Button(canvas_drawing, command=lambda: button_handler.handle_button_click(tk, canvas, "Label"),
-       text="       Create Label", image=label1, compound="left", width=175, height=50).grid(column=0, row=1, pady=10)
+new_label_button = Button(canvas_drawing, command=lambda: button_handler.handle_button_click(tk, canvas, "Label"),
+                          text="       Create Label", image=label1, compound="left", width=175, height=50,
+                          relief=GROOVE)
+new_label_button.grid(column=0, row=1, pady=10)
+new_label_button.bind('<Enter>', lambda e, btn=new_label_button: button_enter(e, btn))
+new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_leave(e, btn))
 # Canvas Drawing Stuff
 
 # Delete Button Stuff
@@ -141,8 +172,11 @@ canvas_delete = LabelFrame(tk, text="Delete", padx=12, pady=3)
 canvas_delete.place(x=width - 567, y=625, height=75, width=75)
 # canvas_delete.place(x=width - 567, y=925, height=75, width=75)
 
-Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
-       image=x1, width=40, height=40).grid(row=0, column=0)
+del_button = Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
+                    image=x1, width=40, height=40, relief=GROOVE)
+del_button.grid(row=0, column=0)
+del_button.bind('<Enter>', lambda e, btn=del_button: button_enter(e, btn))
+del_button.bind('<Leave>', lambda e, btn=del_button: button_leave(e, btn))
 # Delete Button Stuff
 
 # launch

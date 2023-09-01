@@ -34,7 +34,8 @@ class Switch:
         original_dst_mac = frame.get_dst_mac()
         src_dot1q = frame.get_dot1q()
 
-        forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface, src_dot1q)
+        forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface,
+                                                             src_dot1q)
 
         # Unicast
         if forwarding_interface and forwarding_interface.get_is_operational():
@@ -152,3 +153,6 @@ class Switch:
         for i in self.CAM_table:
             if self.CAM_table[i][3] == interface:
                 self.CAM_table[i][1] = vid
+
+    def at_least_one_connected_interface(self):
+        return any(i.get_is_connected() for i in self.interfaces)

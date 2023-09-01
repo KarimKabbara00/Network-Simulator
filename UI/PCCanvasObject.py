@@ -17,6 +17,7 @@ class PCCanvasObject(object):
         self.class_object = class_object
         self.class_object.set_canvas_object(self)
         self.master = master
+        self.icons = icons
 
         # Cursor Location when object is created
         x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
@@ -24,11 +25,11 @@ class PCCanvasObject(object):
         # Cursor Location when object is created
 
         # Icon Stuff
-        self.icon = icons[0]
-        self.config_icon = icons[1]
-        self.terminal_icon = icons[2]
-        self.ethernet_del_icon = icons[3]
-        self.x_node_icon = icons[4]
+        self.icon = self.icons[0]
+        self.config_icon = self.icons[1]
+        self.terminal_icon = self.icons[2]
+        self.ethernet_del_icon = self.icons[3]
+        self.x_node_icon = self.icons[4]
 
         # Assigned to canvas_object to allow to delete
         self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "PC"))
@@ -214,8 +215,7 @@ class PCCanvasObject(object):
         popup = tk.Toplevel(self.canvas)
         popup.geometry("%dx%d+%d+%d" % (700, 350, 600, 200))
 
-        icon = ImageTk.PhotoImage(Image.open('icons/gear.png'))
-        popup.wm_iconphoto(False, icon)
+        popup.wm_iconphoto(False, self.icons[1])
         popup.wm_title("Configure PC")
 
         configure_menu = ttk.Notebook(popup)
@@ -289,13 +289,17 @@ class PCCanvasObject(object):
         self.canvas.itemconfigure(self.hover_area, state="hidden")
 
     def menu_delete(self, event):
-        self.hide_menu()
-        self.disconnect_cable(event)
-        self.canvas.delete(self.canvas_object)
-        self.canvas.delete(self.hover_area)
-        self.canvas.delete(self.menu_buttons)
-        self.canvas.delete()
-        self.class_object = None
+
+        answer = messagebox.askokcancel("Delete PC", "Delete this PC?")
+
+        if answer:
+            self.hide_menu()
+            self.disconnect_cable(event)
+            self.canvas.delete(self.canvas_object)
+            self.canvas.delete(self.hover_area)
+            self.canvas.delete(self.menu_buttons)
+            self.canvas.delete()
+            self.class_object = None
 
     def save_general_parameters(self, hostname, mac_address, ipv4, netmask, ipv6, prefix, default_route, parent):
 
@@ -401,10 +405,10 @@ class PCCanvasObject(object):
         popup = tk.Toplevel(self.canvas)
         popup.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
         popup.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(popup))
-
-        icon = ImageTk.PhotoImage(Image.open('icons/terminal.png'))
-        popup.wm_iconphoto(False, icon)
+        popup.wm_iconphoto(False, self.icons[2])
         popup.wm_title("Terminal")
+        popup.focus_set()
+
 
         # Parent widget
 
@@ -427,7 +431,6 @@ class PCCanvasObject(object):
         self.cli.bind('<Down>', command_history_down)
         # Key bindings
 
-        popup.focus_set()
         self.hide_menu()
 
     def process_command(self, command):
@@ -571,7 +574,7 @@ class PCCanvasObject(object):
         self.on_start_hover(event)
         Tooltip(self.config_button, text="Configure this PC", showheader=False, offset=(22, -18), background="#feffcd",
                 timeout=0.5)
-        self.config_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
+        self.config_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def config_button_bg_leave(self, event):
         self.config_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
@@ -580,7 +583,7 @@ class PCCanvasObject(object):
         self.on_start_hover(event)
         Tooltip(self.terminal_button, text="Open the Terminal", showheader=False, offset=(22, -18), background="#feffcd"
                 , timeout=0.5)
-        self.terminal_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
+        self.terminal_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def terminal_button_bg_leave(self, event):
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
@@ -589,7 +592,7 @@ class PCCanvasObject(object):
         self.on_start_hover(event)
         Tooltip(self.disconnect_button, text="Disconnect Connection", showheader=False, offset=(22, -18),
                 background="#feffcd", timeout=0.5)
-        self.disconnect_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
+        self.disconnect_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def disconnect_button_bg_leave(self, event):
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
@@ -598,7 +601,7 @@ class PCCanvasObject(object):
         self.on_start_hover(event)
         Tooltip(self.delete_button, text="Delete this Node", showheader=False, offset=(22, -18), background="#feffcd",
                 timeout=0.5)
-        self.delete_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
+        self.delete_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def delete_button_bg_leave(self, event):
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
