@@ -29,7 +29,7 @@ class PCCanvasObject(object):
                                                      fill="")
         self.canvas.lower(self.hover_area)
         self.menu_buttons = self.canvas.create_polygon(x+40, y-5, x+50, y-5, x+50, y-72, x+92, y-72, x+92, y+72, x+50,
-                                                       y+72, x+50, y+5, outline="black", fill="gray80", width=1)
+                                                       y+72, x+50, y+5, outline="black", fill="navajo white", width=1)
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
 
         # TODO: Why declare these for every instance?
@@ -45,8 +45,7 @@ class PCCanvasObject(object):
         self.ethernet_del_icon = self.ethernet_del_icon.resize((25, 25))
         self.ethernet_del_icon1 = ImageTk.PhotoImage(self.ethernet_del_icon)
 
-        # TODO: https://www.flaticon.com/search?word=red%20trash%20can
-        self.x_node_icon = Image.open('icons/x_node.png')
+        self.x_node_icon = Image.open('icons/delete_node.png')
         self.x_node_icon = self.x_node_icon.resize((20, 20))
         self.x_node_icon1 = ImageTk.PhotoImage(self.x_node_icon)
 
@@ -55,7 +54,11 @@ class PCCanvasObject(object):
         self.disconnect_button = tk.Button(self.canvas, width=25, height=25, image=self.ethernet_del_icon1)
         self.delete_button = tk.Button(self.canvas, width=25, height=25, image=self.x_node_icon1)
 
-        self.disconnect_button.config(state="disabled")
+        self.config_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+
         # Submenu Stuff
 
         # Icon Stuff
@@ -295,9 +298,6 @@ class PCCanvasObject(object):
             pass
 
         self.hide_menu()
-
-        # For PC's, there will be only 1 connection, so disabled after clicked.
-        self.disconnect_button.config(state="disabled")
 
         # Disable the hover area when disconnect cable is clicked because mouse lands on the hover area causing the menu
         # to reappear instantly. It is re-enabled in self.on_end_hover()
@@ -587,37 +587,37 @@ class PCCanvasObject(object):
         self.on_start_hover(event)
         Tooltip(self.config_button, text="Configure this PC", showheader=False, offset=(22, -18), background="#feffcd",
                 timeout=0.5)
-        self.config_button.config(background='OrangeRed3', foreground="white")
+        self.config_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
 
     def config_button_bg_leave(self, event):
-        self.config_button.config(background='SystemButtonFace', foreground='black')
+        self.config_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
 
     def terminal_button_bg_enter(self, event):
         self.on_start_hover(event)
         Tooltip(self.terminal_button, text="Open the Terminal", showheader=False, offset=(22, -18), background="#feffcd"
                 , timeout=0.5)
-        self.terminal_button.config(background='OrangeRed3', foreground="white")
+        self.terminal_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
 
     def terminal_button_bg_leave(self, event):
-        self.terminal_button.config(background='SystemButtonFace', foreground='black')
+        self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
 
     def disconnect_button_bg_enter(self, event):
         self.on_start_hover(event)
         Tooltip(self.disconnect_button, text="Disconnect Connection", showheader=False, offset=(22, -18),
                 background="#feffcd", timeout=0.5)
-        self.disconnect_button.config(background='OrangeRed3', foreground="white")
+        self.disconnect_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
 
     def disconnect_button_bg_leave(self, event):
-        self.disconnect_button.config(background='SystemButtonFace', foreground='black')
+        self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
 
     def delete_button_bg_enter(self, event):
         self.on_start_hover(event)
         Tooltip(self.delete_button, text="Delete this Node", showheader=False, offset=(22, -18), background="#feffcd",
                 timeout=0.5)
-        self.delete_button.config(background='OrangeRed3', foreground="white")
+        self.delete_button.config(background='gray89', foreground="white", relief=tk.GROOVE)
 
     def delete_button_bg_leave(self, event):
-        self.delete_button.config(background='SystemButtonFace', foreground='black')
+        self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
 
     def enable_disconnect_button(self):
         self.disconnect_button.config(state="normal")
