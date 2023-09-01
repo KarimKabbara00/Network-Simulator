@@ -11,6 +11,7 @@ from RouterCanvasObject import RouterCanvasObject
 from RectangleCanvasObject import RectangleCanvasObject
 from LabelCanvasObject import LabelCanvasObject
 import helper_functions as hf
+from UI import loadIcons
 
 objects = []
 cable_objects = []
@@ -43,16 +44,15 @@ def get_next_label(canvas):
     return "Label_" + str(len(canvas.find_withtag('Label')) + 1)
 
 
-def create_pc(popup, canvas, pc_icon, generation, master):
-
-    pc = PCCanvasObject(canvas, get_next_pc(generation), pc_icon, network.PC.PC(generation), master)
+def create_pc(popup, canvas, generation, master, icons):
+    pc = PCCanvasObject(canvas, get_next_pc(generation), icons, network.PC.PC(generation), master)
     objects.append(pc)
     popup.destroy()
 
 
-def create_switch(popup, canvas, switch_icon, switch_type):
+def create_switch(popup, canvas, icons, switch_type, master):
     if switch_type == "TSA1000X":
-        switch = SwitchCanvasObject(canvas, get_next_switch(), switch_icon, network.Switch.Switch())
+        switch = SwitchCanvasObject(canvas, get_next_switch(), icons, network.Switch.Switch(), master)
         objects.append(switch)
     elif switch_type == "RTSA1000X":
         pass
@@ -68,6 +68,9 @@ def create_router(popup, canvas, router_icon):
 
 def handle_button_click(master, canvas, device_type):
     if device_type == "endhost":
+
+        pc_icons = loadIcons.get_pc_icons()
+
         popup = tk.Toplevel(master)
         popup.title("Add End Host")
 
@@ -77,14 +80,12 @@ def handle_button_click(master, canvas, device_type):
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=250, width=675)
 
-        pc_icon = "icons/desktop-computer.png"
-
         tk.Button(frame, width=10, height=5, text="First Gen",
-                  command=lambda: create_pc(popup, canvas, pc_icon, "FirstGen", master)).place(x=60, y=30)
+                  command=lambda: create_pc(popup, canvas, "FirstGen", master, pc_icons)).place(x=60, y=30)
         tk.Button(frame, width=10, height=5, text="Second Gen",
-                  command=lambda: create_pc(popup, canvas, pc_icon, "SecondGen", master)).place(x=280, y=30)
+                  command=lambda: create_pc(popup, canvas, "SecondGen", master, pc_icons)).place(x=280, y=30)
         tk.Button(frame, width=10, height=5, text="Third Gen",
-                  command=lambda: create_pc(popup, canvas, pc_icon, "ThirdGen", master)).place(x=520, y=30)
+                  command=lambda: create_pc(popup, canvas, "ThirdGen", master, pc_icons)).place(x=520, y=30)
 
         tk.Label(frame, text="One Fast Ethernet Interface\n(100 mbps)").place(x=25, y=150)
         tk.Label(frame, text="One Gigabit Ethernet Interface\n(1000 mbps)").place(x=245, y=150)
@@ -100,12 +101,12 @@ def handle_button_click(master, canvas, device_type):
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=300, width=525)
 
-        switch_icon = "icons/switch.png"
+        sw_icons = loadIcons.get_sw_icons()
 
         tk.Button(frame, width=10, height=5, text="TSA1000X",
-                  command=lambda: create_switch(popup, canvas, switch_icon, "TSA1000X")).place(x=100, y=30)
+                  command=lambda: create_switch(popup, canvas, sw_icons, "TSA1000X", master)).place(x=100, y=30)
         b = tk.Button(frame, width=10, height=5, text="RTSA1000X",
-                  command=lambda: create_switch(popup, canvas, switch_icon, "RTSA1000X"))
+                      command=lambda: create_switch(popup, canvas, sw_icons, "RTSA1000X", master))
         b.place(x=340, y=30)
         b.config(state="disabled")
 

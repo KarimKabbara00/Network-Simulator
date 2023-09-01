@@ -106,7 +106,7 @@ class EthernetCableCanvasObject:
 
     def delete_canvas_cable(self):
 
-        l1, l2 = self.canvas_object_1.get_lights()
+        l1, l2 = self.canvas_object_1.get_lights(self)
 
         self.canvas.delete(l1)
         self.canvas.delete(l2)
@@ -261,3 +261,7 @@ class EthernetCableCanvasObject:
 
     def get_obj_2(self):
         return self.canvas_object_2
+
+    def set_lights(self, l1, l2):
+        self.light_1 = l1
+        self.light_2 = l2
