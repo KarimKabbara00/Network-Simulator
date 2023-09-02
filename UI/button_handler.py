@@ -60,8 +60,8 @@ def create_switch(popup, canvas, icons, switch_type, master):
     popup.destroy()
 
 
-def create_router(popup, canvas, router_icon):
-    router = RouterCanvasObject(canvas, get_next_router(), router_icon, network.Router.Router())
+def create_router(popup, canvas, icons, master):
+    router = RouterCanvasObject(canvas, get_next_router(), icons, network.Router.Router(), master)
     objects.append(router)
     popup.destroy()
 
@@ -122,6 +122,9 @@ def handle_button_click(master, canvas, device_type):
         popup.focus_set()
 
     elif device_type == "router":
+
+        r_icons = loadIcons.get_router_icons()
+
         popup = tk.Toplevel(master)
         popup.title("Add Router")
         popup.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
@@ -130,10 +133,8 @@ def handle_button_click(master, canvas, device_type):
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=300, width=425)
 
-        router_icon = "icons/router.png"
-
         tk.Button(frame, width=10, height=5, text="R94X",
-                  command=lambda: create_router(popup, canvas, router_icon)).place(x=165, y=80)
+                  command=lambda: create_router(popup, canvas, r_icons, master)).place(x=165, y=80)
         tk.Label(frame, text="Standard Router").place(x=158, y=200)
 
         popup.focus_set()
@@ -171,12 +172,16 @@ def toggle_link_lights():
         i.toggle_lights()
 
 
-def toggle_labels():
-    # for i in objects:
-    #     i.toggle_label()
-
+def toggle_labels(canvas):
     for i in canvas_labels:
-        i.toggle_label()
+        i.toggle_label(False)
+
+    # Check if all labels are in the same state. If not, show them all to reset the state.
+    labels = canvas.find_withtag("Label")
+    if any(canvas.itemcget(i, 'state') == 'hidden' for i in labels) and any(
+            canvas.itemcget(i, 'state') == 'normal' for i in labels):
+        for i in canvas_labels:
+            i.toggle_label(True)
 
 
 def create_rectangle(canvas):

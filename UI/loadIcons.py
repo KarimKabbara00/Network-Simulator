@@ -43,3 +43,23 @@ def get_sw_icons():
     x_node_icon1 = ImageTk.PhotoImage(x_node_icon)
 
     return [sw_icon1, terminal_icon1, ethernet_del_icon1, x_node_icon1]
+
+
+def get_router_icons():
+    ro_icon = Image.open('icons/router.png')
+    ro_icon = ro_icon.resize((75, 75))
+    ro_icon1 = ImageTk.PhotoImage(ro_icon)
+
+    terminal_icon = Image.open('icons/terminal.png')
+    terminal_icon = terminal_icon.resize((25, 25))
+    terminal_icon1 = ImageTk.PhotoImage(terminal_icon)
+
+    ethernet_del_icon = Image.open('icons/ethernet_delete.png')
+    ethernet_del_icon = ethernet_del_icon.resize((25, 25))
+    ethernet_del_icon1 = ImageTk.PhotoImage(ethernet_del_icon)
+
+    x_node_icon = Image.open('icons/delete_node.png')
+    x_node_icon = x_node_icon.resize((20, 20))
+    x_node_icon1 = ImageTk.PhotoImage(x_node_icon)
+
+    return [ro_icon1, terminal_icon1, ethernet_del_icon1, x_node_icon1]

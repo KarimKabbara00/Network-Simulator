@@ -291,7 +291,6 @@ class PCCanvasObject(object):
     def menu_delete(self, event):
 
         answer = messagebox.askokcancel("Delete PC", "Delete this PC?")
-
         if answer:
             self.hide_menu()
             self.disconnect_cable(event)
@@ -300,6 +299,7 @@ class PCCanvasObject(object):
             self.canvas.delete(self.menu_buttons)
             self.canvas.delete()
             self.class_object = None
+        self.hide_menu()
 
     def save_general_parameters(self, hostname, mac_address, ipv4, netmask, ipv6, prefix, default_route, parent):
 

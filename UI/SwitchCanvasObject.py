@@ -329,17 +329,20 @@ class SwitchCanvasObject:
             if i.get_is_connected():
                 c1 = i.get_canvas_cable().get_cable_end_1().get_shortened_name()
                 c2 = i.get_canvas_cable().get_cable_end_2().get_shortened_name()
-                h1 = i.get_canvas_cable().get_class_object_1().get_host_name()
-                h2 = i.get_canvas_cable().get_class_object_2().get_host_name()
 
                 operational = 'Non-operational'
                 if i.get_is_operational():
                     operational = 'Operational'
 
+                remote_hostname = i.get_canvas_cable().get_class_object_1().get_host_name()
+                if remote_hostname == self.class_object.get_host_name():
+                    remote_hostname = i.get_canvas_cable().get_class_object_2().get_host_name()
+
+                # TODO: ADD REMOTE LINK STATUS
                 if c1 == i.get_shortened_name():
-                    tree.insert('', tk.END, values=(c1, h1, c2, operational))
+                    tree.insert('', tk.END, values=(c1, remote_hostname, c2, operational))
                 else:
-                    tree.insert('', tk.END, values=(c2, h2, c1, operational))
+                    tree.insert('', tk.END, values=(c2, remote_hostname, c1, operational))
 
         tree.grid(row=0, column=0, sticky='nsew')
 
@@ -351,11 +354,8 @@ class SwitchCanvasObject:
         self.hide_menu()
 
     def menu_delete(self, event):
-
         answer = messagebox.askokcancel("Delete Switch", "Delete this Switch?")
-
         if answer:
-            self.hide_menu()
             try:
                 for i in self.class_object.get_interfaces():
                     if i.get_is_connected():
@@ -364,13 +364,12 @@ class SwitchCanvasObject:
             except (tk.TclError, AttributeError):
                 pass
 
-            self.hide_menu()
-
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)
             self.canvas.delete()
             self.class_object = None
+        self.hide_menu()
 
     def menu_switch_cli(self, event):
         # Parent widget

@@ -59,14 +59,13 @@ action_frame.place(x=0, y=795, width=width, height=height - 840)
 
 # device buttons and logic
 device_frame = LabelFrame(tk, text="Devices", padx=5, pady=5)
-device_frame.place(x=30, y=625, height=175, width=175)
-# device_frame.place(x=30, y=825, height=175, width=175)
+# device_frame.place(x=30, y=625, height=175, width=175)
+device_frame.place(x=30, y=825, height=175, width=175)
 
 cable_frame = LabelFrame(tk, text="Cables", padx=5, pady=5)
-cable_frame.place(x=225, y=625, height=175, width=82)
-# cable_frame.place(x=225, y=825, height=175, width=82)
+# cable_frame.place(x=225, y=625, height=175, width=82)
+cable_frame.place(x=225, y=825, height=175, width=82)
 
-# TODO: Already done. Replace with loadIcons.py
 pc = Image.open("icons/desktop-computer.png")
 sw = Image.open("icons/switch.png")
 ro = Image.open("icons/router.png")
@@ -142,8 +141,8 @@ light_button.config(state="disabled")  # TODO
 # light_button.bind('<Enter>', lambda e, btn=light_button: button_enter(e, btn))
 # light_button.bind('<Leave>', lambda e, btn=light_button: button_leave(e, btn))
 
-label_button = Button(toggle_frame, command=button_handler.toggle_labels, text="Toggle Labels", width=25, height=3,
-                      relief=GROOVE)
+label_button = Button(toggle_frame, command=lambda c=canvas: button_handler.toggle_labels(c),
+                      text="Toggle Labels", width=25, height=3, relief=GROOVE)
 label_button.grid(column=0, row=1, pady=10)
 label_button.bind('<Enter>', lambda e, btn=label_button: button_enter(e, btn))
 label_button.bind('<Leave>', lambda e, btn=label_button: button_leave(e, btn))
@@ -169,8 +168,8 @@ new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_leave(e,
 
 # Delete Button Stuff
 canvas_delete = LabelFrame(tk, text="Delete", padx=12, pady=3)
-canvas_delete.place(x=width - 567, y=625, height=75, width=75)
-# canvas_delete.place(x=width - 567, y=925, height=75, width=75)
+# canvas_delete.place(x=width - 567, y=625, height=75, width=75)
+canvas_delete.place(x=width - 567, y=925, height=75, width=75)
 
 del_button = Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
                     image=x1, width=40, height=40, relief=GROOVE)

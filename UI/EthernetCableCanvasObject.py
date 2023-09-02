@@ -238,7 +238,7 @@ class EthernetCableCanvasObject:
             # Routers are down by default
             if self.class_object_1.get_model() == "R94X":
                 self.cable_end_1.set_operational(False)
-                self.cable_end_1.set_operational(True)
+                self.cable_end_2.set_operational(True)
             elif self.class_object_2.get_model() == "R94X":
                 self.cable_end_2.set_operational(False)
                 self.cable_end_1.set_operational(True)

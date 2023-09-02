@@ -14,7 +14,8 @@ class LabelCanvasObject:
         x2 = self.canvas.bbox(self.label)[2] + 10
         y2 = self.canvas.bbox(self.label)[3] + 8
 
-        self.label_bg = self.canvas.create_rectangle(x1, y1, x2, y2, fill="gray94", tag=self.block_name + "_bg")
+        self.label_bg = self.canvas.create_rectangle(x1, y1, x2, y2, fill="gray94",
+                                                     tags=(self.block_name + "_bg", "Label"))
         self.canvas.tag_lower(self.label_bg, self.label)
 
         self.hidden_label = False
@@ -44,12 +45,17 @@ class LabelCanvasObject:
             self.canvas.tag_unbind(self.block_name, "<Button-1>")
         return
 
-    def toggle_label(self):
-        self.hidden_label = not self.hidden_label
-        if self.hidden_label:
-            self.canvas.itemconfigure(self.block_name, state='hidden')
-            self.canvas.itemconfigure(self.block_name + "_bg", state='hidden')
+    def toggle_label(self, reset):
+        if not reset:
+            self.hidden_label = not self.hidden_label
+            if self.hidden_label:
+                self.canvas.itemconfigure(self.block_name, state='hidden')
+                self.canvas.itemconfigure(self.block_name + "_bg", state='hidden')
+            else:
+                self.canvas.itemconfigure(self.block_name, state='normal')
+                self.canvas.itemconfigure(self.block_name + "_bg", state='normal')
         else:
+            self.hidden_label = False
             self.canvas.itemconfigure(self.block_name, state='normal')
             self.canvas.itemconfigure(self.block_name + "_bg", state='normal')
 

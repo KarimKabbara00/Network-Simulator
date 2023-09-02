@@ -1,62 +1,72 @@
+import tkinter
 import tkinter as tk
-from PIL import Image, ImageTk
+from tkinter import ttk, messagebox
+
+from ttkwidgets.frames import Tooltip
+
 import UI.helper_functions as hf
 from RouterCLI import RouterCli
 from UI.PCCanvasObject import PCCanvasObject
 
 
 class RouterCanvasObject:
-    def __init__(self, canvas, block_name, icon, class_object):
+    def __init__(self, canvas, block_name, icons, class_object, master):
+        self._x = None
+        self._y = None
         self.canvas = canvas
         self.block_name = block_name
         self.class_object = class_object
         self.class_object.set_canvas_object(self)
-        self.delete_info = []  # Store information when line is created for when delete is needed
+        self.icons = icons
+        self.master = master
 
-        # Submenu Stuff
-        self.submenu = tk.Menu(self.canvas, tearoff=0)
-        self.disconnect_menu = tk.Menu(self.submenu, tearoff=0)  # Submenu for disconnecting interfaces
-        self.submenu.add_command(label="Terminal", command=self.menu_router_cli)
-        self.submenu.add_cascade(label="Disconnect", menu=self.disconnect_menu)
-        self.submenu.add_separator()
-        self.submenu.add_command(label="Delete Router", command=self.menu_delete)
-        # Submenu Stuff
-
-        # Current Cursor Location
-        # For placing the new widget under the mouse
+        # Cursor Location when object is created
         x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
         y = self.canvas.winfo_pointery() - self.canvas.winfo_rooty()
-        # Current Cursor Location
+        # Cursor Location when object is created
 
         # Icon Stuff
-        self.icon = icon
-        self.icon = Image.open(self.icon)
-        self.icon = self.icon.resize((70, 70))
-        self.icon = ImageTk.PhotoImage(self.icon)
+        self.icon = self.icons[0]
+        self.terminal_icon = self.icons[1]
+        self.ethernet_del_icon = self.icons[2]
+        self.x_node_icon = self.icons[3]
         # Assigned to canvas_object to allow delete
-        self.canvas_object = self.canvas.create_image(x, y, image=self.icon,
-                                                      tags=(self.block_name, "Router"))
+        self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "Router"))
         self.canvas.photo = self.icon
         # Icon Stuff
+
+        # Hover menu Stuff
+        self.hover_area = self.canvas.create_polygon(x - 50, y - 35, x + 50, y - 35, x + 50, y - 50, x + 90, y - 50,
+                                                     x + 90, y + 60,
+                                                     x + 50, y + 60, x + 50, y + 45, x - 50, y + 45, fill="")
+        self.canvas.lower(self.hover_area)
+        self.menu_buttons = self.canvas.create_polygon(x + 40, y - 5, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
+                                                       x + 92, y + 72, x + 50,
+                                                       y + 72, x + 50, y + 5, outline="black", fill="navajo white",
+                                                       width=1)
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+
+        self.terminal_button = tk.Button(self.canvas, width=25, height=25, image=self.terminal_icon)
+        self.disconnect_button = tk.Button(self.canvas, width=25, height=25, image=self.ethernet_del_icon)
+        self.delete_button = tk.Button(self.canvas, width=25, height=25, image=self.x_node_icon)
+
+        self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        # Hover menu Stuff
 
         # Button Bindings
         self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
         self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
         self.canvas.tag_bind(self.block_name, '<B1-Motion>', self.motion)  # When moving the object after it is created
-        self.canvas.tag_bind(self.block_name, '<Button-3>', self.sub_menu)  # For the object menu
+        self.canvas.tag_bind(self.block_name, '<ButtonRelease-1>',
+                             self.button_release)  # When moving the object after it is created
         # Button Bindings
 
         # CLI Stuff
         self.cli_object = None
         self.cli_command_files = ["commands/ro_general_command_list", "commands/ro_interface_command_list"]
         # CLI Stuff
-
-        # Device Label
-        # self.device_label = tk.Label(self.canvas, text="Router " + str(hf.increment_ro_id()), background="gray88",
-        #                              font=("Arial", 10))
-        # self.canvas_label = self.canvas.create_window(x, y + 60, window=self.device_label, tag=self.block_name + "_tag")
-        # self.hidden_label = False
-        # Device Label
 
         # Light Stuff
         self.line_connections = {}
@@ -78,6 +88,27 @@ class RouterCanvasObject:
         else:
             event_x = event.x
             event_y = event.y
+
+        # Hide the menu
+        self.unbind_menu_temporarily()
+
+        # Move the hover area and menu buttons
+        self.canvas.coords(self.hover_area, self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) - 35,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 35,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 50,
+                           self.canvas.canvasx(event_x) + 90, self.canvas.canvasy(event_y) - 50,
+                           self.canvas.canvasx(event_x) + 90, self.canvas.canvasy(event_y) + 60,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 60,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 45,
+                           self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) + 45)
+
+        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event_x) + 40, self.canvas.canvasy(event_y),
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 5,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 50,
+                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) - 50,
+                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) + 60,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 60,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 5)
 
         # Move the object
         self.canvas.coords(self.block_name, self.canvas.canvasx(event_x), self.canvas.canvasy(event_y))
@@ -160,6 +191,13 @@ class RouterCanvasObject:
                                                 self.line_connections[i][1] + "_light_" + self.line_connections[i][
                                                     0] + "_" + str(j))
 
+                            self.canvas.tag_lower(l1)
+                            self.canvas.tag_lower(l2)
+                            self.canvas.tag_lower(line)
+
+                            # COULD THIS CAUSE A LIGHT ISSUE (COLORS)
+                            i.set_lights(l1, l2)
+
                         if 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
                                 self.canvas.canvasy(event_y) - self.canvas.coords(line)[1]) <= 30:
 
@@ -189,40 +227,160 @@ class RouterCanvasObject:
         except StopIteration:
             pass
 
-        # Unbind after created
-        if event and str(event.type) == "4":
-            self.canvas.tag_unbind(self.block_name, "<Motion>")
-            self.canvas.tag_unbind(self.block_name, "<Button-1>")
+        self._x = event_x
+        self._y = event_y
         return
 
-    def sub_menu(self, event):
-        self.submenu.tk_popup(event.x_root, event.y_root)
+    def button_release(self, event):
 
-    def add_to_disconnect_menu(self, interface):
-        self.disconnect_menu.add_command(label=interface.get_shortened_name(),
-                                         command=lambda: self.disconnect_cable(interface))
+        self.canvas.tag_unbind(self.block_name, "<Motion>")
+        self.canvas.tag_unbind(self.block_name, "<Button-1>")
 
-    def disconnect_cable(self, interface):
-        try:
-            self.disconnect_menu.delete(interface.get_shortened_name())
-            interface.get_canvas_cable().delete()
-        except tk.TclError:
-            pass
+        # For the object menu
+        self.canvas.tag_bind(self.hover_area, '<Enter>', self.on_start_hover)
+        self.canvas.tag_bind(self.hover_area, '<Leave>', self.on_end_hover)
+        self.canvas.tag_bind(self.block_name, '<Enter>', self.on_start_hover)
+        self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
+        self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
+        self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
 
-    def menu_delete(self):
-        self.canvas.delete(self.canvas_object)
-        # self.canvas.delete(self.canvas_label)
+        self.terminal_button.bind('<Enter>', self.terminal_button_bg_enter)
+        self.terminal_button.bind('<Leave>', self.terminal_button_bg_leave)
+        self.terminal_button.bind('<Button-1>', self.menu_router_cli)
 
-        self.class_object = None
+        self.disconnect_button.bind('<Enter>', self.disconnect_button_bg_enter)
+        self.disconnect_button.bind('<Leave>', self.disconnect_button_bg_leave)
+        self.disconnect_button.bind('<Button-1>', self.disconnect_cable)
 
-    def menu_router_cli(self):
+        self.delete_button.bind('<Enter>', self.delete_button_bg_enter)
+        self.delete_button.bind('<Leave>', self.delete_button_bg_leave)
+        self.delete_button.bind('<Button-1>', self.menu_delete)
+
+        self.on_start_hover(event)
+
+    def hide_menu(self):
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+        self.terminal_button.place_forget()
+        self.disconnect_button.place_forget()
+        self.delete_button.place_forget()
+
+    def unbind_menu_temporarily(self):
+        self.canvas.tag_unbind(self.hover_area, '<Enter>')
+        self.canvas.tag_unbind(self.hover_area, '<Leave>')
+        self.canvas.tag_unbind(self.block_name, '<Enter>')
+        self.canvas.tag_unbind(self.block_name, '<Leave>')
+        self.terminal_button.unbind('<Enter>')
+        self.disconnect_button.unbind('<Enter>')
+        self.delete_button.unbind('<Enter>')
+        # Hide menu
+        self.hide_menu()
+
+    def disconnect_cable(self, main_event):
+
+        def button_enter(event):
+            button.config(background='gray89', relief=tk.SUNKEN)
+
+        def button_leave(event):
+            button.config(background='SystemButtonFace', relief=tk.GROOVE)
+
+        def enable_button(event):
+            button.config(state='normal')
+            button.bind('<Enter>', button_enter)
+            button.bind('<Leave>', button_leave)
+
+        def disconnect(event):
+            for selected_item in tree.selection():
+                items = tree.item(selected_item)['values']
+                try:
+                    self.class_object.get_interface_by_name(items[0]).get_canvas_cable().delete_canvas_cable()
+                    tree.delete(selected_item)
+                except (tk.TclError, AttributeError):
+                    pass
+
+        popup = tk.Toplevel(self.master)
+        popup.geometry("%dx%d+%d+%d" % (560, 300, 600, 300))
+        popup.wm_title("Disconnect Cable")
+        popup.wm_iconphoto(False, self.icons[2])
+        popup.focus_set()
+
+        frame = tk.LabelFrame(popup, padx=5, pady=5)
+        frame.place(x=10, y=10, height=245, width=541)
+
+        button = tk.Button(popup, text='Disconnect', relief=tk.GROOVE, width=76)
+        button.bind('<Button-1>', disconnect)
+        button.place(x=10, y=265)
+        button.config(state='disabled')  # Initially, the button is disabled. It is enabled when a row is pressed.
+
+        # Build tree
+        columns = ('l_interface', 'r_hostname', 'r_interface', 'operational')
+        tree = ttk.Treeview(frame, columns=columns, show='headings')
+        tree.heading('l_interface', text='Local Interface')
+        tree.column("l_interface", minwidth=0, width=100)
+        tree.heading('r_hostname', text='Remote Hostname')
+        tree.column("r_hostname", minwidth=0, width=150)
+        tree.heading('r_interface', text='Remote Interface')
+        tree.column("r_interface", minwidth=0, width=150)
+        tree.heading('operational', text='Status')
+        tree.column("operational", minwidth=0, width=110)
+
+        tree.bind('<<TreeviewSelect>>', enable_button)
+
+        # Insert connected interfaces
+        for i in self.class_object.get_interfaces():
+            if i.get_is_connected():
+                c1 = i.get_canvas_cable().get_cable_end_1().get_shortened_name()
+                c2 = i.get_canvas_cable().get_cable_end_2().get_shortened_name()
+                h1 = i.get_canvas_cable().get_class_object_1().get_host_name()
+                h2 = i.get_canvas_cable().get_class_object_2().get_host_name()
+
+                operational = 'Non-operational'
+                if i.get_is_operational():
+                    operational = 'Operational'
+
+                if c1 == i.get_shortened_name():
+                    tree.insert('', tk.END, values=(c1, h1, c2, operational))
+                else:
+                    tree.insert('', tk.END, values=(c2, h2, c1, operational))
+
+        tree.grid(row=0, column=0, sticky='nsew')
+
+        # add a scrollbar
+        scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)  # was yscroll=
+        scrollbar.grid(row=0, column=1, sticky='ns')
+
+        self.hide_menu()
+
+    def menu_delete(self, event):
+
+        answer = messagebox.askokcancel("Delete Router", "Delete this Router?")
+        if answer:
+            try:
+                for i in self.class_object.get_interfaces():
+                    if i.get_is_connected():
+                        i.get_canvas_cable().delete_canvas_cable()
+
+            except (tk.TclError, AttributeError):
+                pass
+
+            self.canvas.delete(self.canvas_object)
+            self.canvas.delete(self.hover_area)
+            self.canvas.delete(self.menu_buttons)
+            self.canvas.delete()
+            self.class_object = None
+
+        self.hide_menu()
+
+    def menu_router_cli(self, main_event):
         # Parent widget
         popup = tk.Toplevel(self.canvas)
         popup.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
+        popup.wm_iconphoto(False, self.icons[1])
+        popup.wm_title("Terminal")
         popup.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(popup))
-        # Parent widget
-
+        popup.focus_set()
         self.cli_object = RouterCli(self, self.class_object, popup, self.cli_text, "Router> ", self.cli_command_files)
+        self.hide_menu()
 
     def get_block_name(self):
         return self.block_name
@@ -235,15 +393,11 @@ class RouterCanvasObject:
         self.cli_text = self.cli_object.on_closing()
         popup.destroy()
 
-    # def toggle_label(self):
-        # self.hidden_label = not self.hidden_label
-        # if self.hidden_label:
-            # self.canvas.itemconfigure(self.canvas_label, state='hidden')
-        # else:
-            # self.canvas.itemconfigure(self.canvas_label, state='normal')
-
     def add_line_connection(self, tag1, tag2, light1, light2, canvas_cable_object):
         self.line_connections[canvas_cable_object] = [tag1, tag2, light1, light2]
+
+    def del_line_connection(self, cable):
+        self.line_connections.pop(cable)
 
     def get_line_connection_count(self, tag1, tag2):
 
@@ -267,3 +421,48 @@ class RouterCanvasObject:
 
     def set_interfaces(self, line, int1, int2):
         self.line_interface_relations[line] = [int1, int2]
+
+    def get_lights(self, line_obj):
+        return self.line_connections[line_obj][2], self.line_connections[line_obj][3]
+
+    def on_start_hover(self, event):
+        if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
+            self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
+            self.terminal_button.place(x=self._x + 57, y=self._y - 42)
+            self.disconnect_button.place(x=self._x + 57, y=self._y - 9)
+            self.delete_button.place(x=self._x + 57, y=self._y + 24)
+        return
+
+    def on_end_hover(self, event):
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+        self.terminal_button.place_forget()
+        self.disconnect_button.place_forget()
+        self.delete_button.place_forget()
+        return
+
+    def terminal_button_bg_enter(self, event):
+        self.on_start_hover(event)
+        Tooltip(self.terminal_button, text="Open the Terminal", showheader=False, offset=(22, -18), background="#feffcd"
+                , timeout=0.5)
+        self.terminal_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
+
+    def terminal_button_bg_leave(self, event):
+        self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+
+    def disconnect_button_bg_enter(self, event):
+        self.on_start_hover(event)
+        Tooltip(self.disconnect_button, text="Disconnect Connection", showheader=False, offset=(22, -18),
+                background="#feffcd", timeout=0.5)
+        self.disconnect_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
+
+    def disconnect_button_bg_leave(self, event):
+        self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+
+    def delete_button_bg_enter(self, event):
+        self.on_start_hover(event)
+        Tooltip(self.delete_button, text="Delete this Node", showheader=False, offset=(22, -18), background="#feffcd",
+                timeout=0.5)
+        self.delete_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
+
+    def delete_button_bg_leave(self, event):
+        self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
