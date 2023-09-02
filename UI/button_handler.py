@@ -19,6 +19,8 @@ canvas_rectangles = []
 canvas_labels = []
 number = 0
 
+light_state = False
+
 
 def get_next_pc(generation):
     return generation + "_PC_" + str(hf.get_next_number())
@@ -73,23 +75,21 @@ def handle_button_click(master, canvas, device_type):
 
         popup = tk.Toplevel(master)
         popup.title("Add End Host")
+        popup.iconphoto(False, pc_icons[0])
 
-        popup.geometry("%dx%d+%d+%d" % (700, 275, 600, 300))
-        popup.attributes('-toolwindow', True)
+        popup.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
+        # popup.attributes('-toolwindow', True)
 
         frame = tk.LabelFrame(popup, padx=5, pady=5)
-        frame.place(x=10, y=10, height=250, width=675)
+        frame.place(x=10, y=10, height=300, width=425)
 
-        tk.Button(frame, width=10, height=5, text="First Gen",
-                  command=lambda: create_pc(popup, canvas, "FirstGen", master, pc_icons)).place(x=60, y=30)
-        tk.Button(frame, width=10, height=5, text="Second Gen",
-                  command=lambda: create_pc(popup, canvas, "SecondGen", master, pc_icons)).place(x=280, y=30)
-        tk.Button(frame, width=10, height=5, text="Third Gen",
-                  command=lambda: create_pc(popup, canvas, "ThirdGen", master, pc_icons)).place(x=520, y=30)
+        pc_button = tk.Button(frame, width=10, height=5, text="PC", relief=tk.GROOVE,
+                              command=lambda: create_pc(popup, canvas, "SecondGen", master, pc_icons))
+        pc_button.place(x=165, y=80)
+        pc_button.bind('<Enter>', lambda e, btn=pc_button: hf.button_enter(e, btn))
+        pc_button.bind('<Leave>', lambda e, btn=pc_button: hf.button_leave(e, btn))
 
-        tk.Label(frame, text="One Fast Ethernet Interface\n(100 mbps)").place(x=25, y=150)
-        tk.Label(frame, text="One Gigabit Ethernet Interface\n(1000 mbps)").place(x=245, y=150)
-        tk.Label(frame, text="One 10G Ethernet Interface\n(10 Gbps)").place(x=485, y=150)
+        tk.Label(frame, text="One Gigabit Ethernet Interface\n(1000 mbps)").place(x=126, y=180)
         popup.focus_set()
 
     elif device_type == "switch":
@@ -99,17 +99,24 @@ def handle_button_click(master, canvas, device_type):
         popup = tk.Toplevel(master)
         popup.title("Add Switch")
         popup.geometry("%dx%d+%d+%d" % (550, 325, 675, 300))
-        popup.attributes('-toolwindow', True)
+        popup.iconphoto(False, sw_icons[0])
+        # popup.attributes('-toolwindow', True)
 
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=300, width=525)
 
-        tk.Button(frame, width=10, height=5, text="TSA1000X",
-                  command=lambda: create_switch(popup, canvas, sw_icons, "TSA1000X", master)).place(x=100, y=30)
-        b = tk.Button(frame, width=10, height=5, text="RTSA1000X",
-                      command=lambda: create_switch(popup, canvas, sw_icons, "RTSA1000X", master))
-        b.place(x=340, y=30)
-        b.config(state="disabled")
+        l2sw_btn = tk.Button(frame, width=10, height=5, text="TSA1000X", relief=tk.GROOVE,
+                             command=lambda: create_switch(popup, canvas, sw_icons, "TSA1000X", master))
+        l2sw_btn.place(x=100, y=30)
+        l2sw_btn.bind('<Enter>', lambda e, btn=l2sw_btn: hf.button_enter(e, btn))
+        l2sw_btn.bind('<Leave>', lambda e, btn=l2sw_btn: hf.button_leave(e, btn))
+
+        l3sw_btn = tk.Button(frame, width=10, height=5, text="RTSA1000X", relief=tk.GROOVE,
+                             command=lambda: create_switch(popup, canvas, sw_icons, "RTSA1000X", master))
+        l3sw_btn.place(x=340, y=30)
+        # l3sw_btn.bind('<Enter>', lambda e, btn=l3sw_btn: button_enter(e, btn))
+        # l3sw_btn.bind('<Leave>', lambda e, btn=l3sw_btn: button_leave(e, btn))
+        l3sw_btn.config(state="disabled")
 
         tk.Label(frame, text="10 Fast Ethernet Interfaces\n(100 mbps)").place(x=60, y=130)
         tk.Label(frame, text="12 Gigabit Ethernet Interface\n(1000 mbps)").place(x=60, y=180)
@@ -128,14 +135,19 @@ def handle_button_click(master, canvas, device_type):
         popup = tk.Toplevel(master)
         popup.title("Add Router")
         popup.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
-        popup.attributes('-toolwindow', True)
+        popup.iconphoto(False, r_icons[0])
+        # popup.attributes('-toolwindow', True)
 
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=300, width=425)
 
-        tk.Button(frame, width=10, height=5, text="R94X",
-                  command=lambda: create_router(popup, canvas, r_icons, master)).place(x=165, y=80)
-        tk.Label(frame, text="Standard Router").place(x=158, y=200)
+        ro_btn = tk.Button(frame, width=10, height=5, text="R94X", relief=tk.GROOVE,
+                           command=lambda: create_router(popup, canvas, r_icons, master))
+        ro_btn.place(x=165, y=80)
+        ro_btn.bind('<Enter>', lambda e, btn=ro_btn: hf.button_enter(e, btn))
+        ro_btn.bind('<Leave>', lambda e, btn=ro_btn: hf.button_leave(e, btn))
+
+        tk.Label(frame, text="Standard Router").place(x=158, y=180)
 
         popup.focus_set()
 
@@ -152,7 +164,8 @@ def handle_button_click(master, canvas, device_type):
         popup = tk.Toplevel(master)
         popup.title("Add Label")
         popup.geometry("%dx%d+%d+%d" % (250, 150, 825, 350))
-        popup.attributes('-toolwindow', True)
+        popup.iconphoto(False, loadIcons.get_label_icon()[0])
+        # popup.attributes('-toolwindow', True)
 
         frame = tk.LabelFrame(popup, padx=5, pady=5)
         frame.place(x=10, y=10, height=130, width=230)
@@ -161,15 +174,26 @@ def handle_button_click(master, canvas, device_type):
         text = tk.Entry(frame, width=19)
         text.place(x=80, y=30)
 
-        tk.Button(frame, width=10, height=1, text="Create Label",
-                  command=lambda: create_label(popup, canvas, text.get())).place(x=67, y=75)
+        label_btn = tk.Button(frame, width=10, height=1, text="Create Label", relief=tk.GROOVE,
+                              command=lambda: create_label(popup, canvas, text.get()))
+        label_btn.place(x=67, y=75)
+        label_btn.bind('<Enter>', lambda e, btn=label_btn: hf.button_enter(e, btn))
+        label_btn.bind('<Leave>', lambda e, btn=label_btn: hf.button_leave(e, btn))
 
         popup.focus_set()
 
 
-def toggle_link_lights():
-    for i in cable_objects:
-        i.toggle_lights()
+def toggle_link_lights(canvas):
+    global light_state
+
+    lights = canvas.find_withtag("light")
+    for i in lights:
+        if not light_state:
+            canvas.itemconfig(i, state='hidden')
+        else:
+            canvas.itemconfig(i, state='normal')
+
+    light_state = not light_state
 
 
 def toggle_labels(canvas):

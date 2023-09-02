@@ -58,9 +58,7 @@ class EthernetCableCanvasObject:
         # Link Lights
         self.light_1 = None
         self.light_2 = None
-        # self.hidden = False
-        # self.updated_l1 = None
-        # self.updated_l2 = None
+        self.hidden = False
         # Link Lights
 
     def motion(self, event):

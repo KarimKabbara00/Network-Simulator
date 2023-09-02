@@ -63,3 +63,11 @@ def get_router_icons():
     x_node_icon1 = ImageTk.PhotoImage(x_node_icon)
 
     return [ro_icon1, terminal_icon1, ethernet_del_icon1, x_node_icon1]
+
+
+def get_label_icon():
+    label_icon = Image.open('icons/label.png')
+    label_icon = label_icon.resize((75, 75))
+    label_icon1 = ImageTk.PhotoImage(label_icon)
+
+    return [label_icon1]

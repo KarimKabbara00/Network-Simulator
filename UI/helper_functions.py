@@ -13,6 +13,14 @@ sw_id = 0
 ro_id = 0
 
 
+def button_enter(event, btn):
+    btn.config(background='gray89', relief=tk.SUNKEN)
+
+
+def button_leave(event, btn):
+    btn.config(background='SystemButtonFace', relief=tk.GROOVE)
+
+
 def get_next_number():
     global number
     number += 1
@@ -72,7 +80,7 @@ def draw_circle(x, y, a, b, r, canvas, tag):  # center coordinates, radius
     x1 = x + r
     y1 = y + r
 
-    return canvas.create_oval(x0, y0, x1, y1, tag=tag)
+    return canvas.create_oval(x0, y0, x1, y1, tags=(tag, 'light'))
 
 
 def get_color_from_op(op):

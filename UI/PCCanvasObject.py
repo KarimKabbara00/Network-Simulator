@@ -1,7 +1,6 @@
 import threading
 import tkinter
 import tkinter as tk
-from PIL import Image, ImageTk
 from tkinter import ttk
 from tkinter import messagebox
 from UI import helper_functions as hf
@@ -266,11 +265,13 @@ class PCCanvasObject(object):
         # Interface Tab
 
         # Save Button
-        tk.Button(configure_menu, width=10, height=1, text="Save",
-                  command=lambda: self.save_general_parameters(hostname.get(), mac_address.get(), ipv4.get(),
-                                                               netmask.get(),
-                                                               ipv6.get(), prefix.get(), gateway.get(), popup)).place(
-            x=590, y=300)
+        save_btn = tk.Button(configure_menu, width=10, height=1, text="Save", relief=tk.GROOVE,
+                             command=lambda: self.save_general_parameters(hostname.get(), mac_address.get(), ipv4.get(),
+                                                                          netmask.get(), ipv6.get(), prefix.get(),
+                                                                          gateway.get(), popup))
+        save_btn.place(x=590, y=300)
+        save_btn.bind('<Enter>', lambda e, btn=save_btn: hf.button_enter(e, btn))
+        save_btn.bind('<Leave>', lambda e, btn=save_btn: hf.button_leave(e, btn))
         # Save Button
 
         popup.focus_set()
@@ -408,7 +409,6 @@ class PCCanvasObject(object):
         popup.wm_iconphoto(False, self.icons[2])
         popup.wm_title("Terminal")
         popup.focus_set()
-
 
         # Parent widget
 
