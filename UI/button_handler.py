@@ -12,14 +12,13 @@ from RectangleCanvasObject import RectangleCanvasObject
 from LabelCanvasObject import LabelCanvasObject
 import helper_functions as hf
 from UI import loadIcons
+import globalVars as globalVars
 
 objects = []
 cable_objects = []
 canvas_rectangles = []
 canvas_labels = []
 number = 0
-
-light_state = False
 
 
 def get_next_pc(generation):
@@ -50,6 +49,7 @@ def create_pc(popup, canvas, generation, master, icons):
     pc = PCCanvasObject(canvas, get_next_pc(generation), icons, network.PC.PC(generation), master)
     objects.append(pc)
     popup.destroy()
+    globalVars.open_TL_pc = False
 
 
 def create_switch(popup, canvas, icons, switch_type, master):
@@ -60,152 +60,14 @@ def create_switch(popup, canvas, icons, switch_type, master):
         pass
 
     popup.destroy()
+    globalVars.open_TL_sw = False
 
 
 def create_router(popup, canvas, icons, master):
     router = RouterCanvasObject(canvas, get_next_router(), icons, network.Router.Router(), master)
     objects.append(router)
     popup.destroy()
-
-
-def handle_button_click(master, canvas, device_type):
-    if device_type == "endhost":
-
-        pc_icons = loadIcons.get_pc_icons()
-
-        popup = tk.Toplevel(master)
-        popup.title("Add End Host")
-        popup.iconphoto(False, pc_icons[0])
-
-        popup.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
-        # popup.attributes('-toolwindow', True)
-
-        frame = tk.LabelFrame(popup, padx=5, pady=5)
-        frame.place(x=10, y=10, height=300, width=425)
-
-        pc_button = tk.Button(frame, width=10, height=5, text="PC", relief=tk.GROOVE,
-                              command=lambda: create_pc(popup, canvas, "SecondGen", master, pc_icons))
-        pc_button.place(x=165, y=80)
-        pc_button.bind('<Enter>', lambda e, btn=pc_button: hf.button_enter(e, btn))
-        pc_button.bind('<Leave>', lambda e, btn=pc_button: hf.button_leave(e, btn))
-
-        tk.Label(frame, text="One Gigabit Ethernet Interface\n(1000 mbps)").place(x=126, y=180)
-        popup.focus_set()
-
-    elif device_type == "switch":
-
-        sw_icons = loadIcons.get_sw_icons()
-
-        popup = tk.Toplevel(master)
-        popup.title("Add Switch")
-        popup.geometry("%dx%d+%d+%d" % (550, 325, 675, 300))
-        popup.iconphoto(False, sw_icons[0])
-        # popup.attributes('-toolwindow', True)
-
-        frame = tk.LabelFrame(popup, padx=5, pady=5)
-        frame.place(x=10, y=10, height=300, width=525)
-
-        l2sw_btn = tk.Button(frame, width=10, height=5, text="TSA1000X", relief=tk.GROOVE,
-                             command=lambda: create_switch(popup, canvas, sw_icons, "TSA1000X", master))
-        l2sw_btn.place(x=100, y=30)
-        l2sw_btn.bind('<Enter>', lambda e, btn=l2sw_btn: hf.button_enter(e, btn))
-        l2sw_btn.bind('<Leave>', lambda e, btn=l2sw_btn: hf.button_leave(e, btn))
-
-        l3sw_btn = tk.Button(frame, width=10, height=5, text="RTSA1000X", relief=tk.GROOVE,
-                             command=lambda: create_switch(popup, canvas, sw_icons, "RTSA1000X", master))
-        l3sw_btn.place(x=340, y=30)
-        # l3sw_btn.bind('<Enter>', lambda e, btn=l3sw_btn: button_enter(e, btn))
-        # l3sw_btn.bind('<Leave>', lambda e, btn=l3sw_btn: button_leave(e, btn))
-        l3sw_btn.config(state="disabled")
-
-        tk.Label(frame, text="10 Fast Ethernet Interfaces\n(100 mbps)").place(x=60, y=130)
-        tk.Label(frame, text="12 Gigabit Ethernet Interface\n(1000 mbps)").place(x=60, y=180)
-        tk.Label(frame, text="2 10G Ethernet Interface\n(1000 mbps)").place(x=70, y=230)
-
-        tk.Label(frame, text="20 Gigabit Ethernet Interfaces\n(1000 mbps)").place(x=300, y=130)
-        tk.Label(frame, text="4 10G Ethernet Interfaces\n(10 gbps)").place(x=315, y=180)
-        tk.Label(frame, text="Routing Capabilities\n(Multilayer Switch)").place(x=325, y=230)
-
-        popup.focus_set()
-
-    elif device_type == "router":
-
-        r_icons = loadIcons.get_router_icons()
-
-        popup = tk.Toplevel(master)
-        popup.title("Add Router")
-        popup.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
-        popup.iconphoto(False, r_icons[0])
-        # popup.attributes('-toolwindow', True)
-
-        frame = tk.LabelFrame(popup, padx=5, pady=5)
-        frame.place(x=10, y=10, height=300, width=425)
-
-        ro_btn = tk.Button(frame, width=10, height=5, text="R94X", relief=tk.GROOVE,
-                           command=lambda: create_router(popup, canvas, r_icons, master))
-        ro_btn.place(x=165, y=80)
-        ro_btn.bind('<Enter>', lambda e, btn=ro_btn: hf.button_enter(e, btn))
-        ro_btn.bind('<Leave>', lambda e, btn=ro_btn: hf.button_leave(e, btn))
-
-        tk.Label(frame, text="Standard Router").place(x=158, y=180)
-
-        popup.focus_set()
-
-    # elif device_type == "l3sw":
-    #     pass
-
-    elif device_type == "Eth_cable":
-        eth_icon = "icons/ethernet.png"
-        cable = EthernetCableCanvasObject(canvas, get_next_cable(canvas), eth_icon,
-                                          network.Ethernet_Cable.EthernetCable())
-        cable_objects.append(cable)
-
-    elif device_type == "Label":
-        popup = tk.Toplevel(master)
-        popup.title("Add Label")
-        popup.geometry("%dx%d+%d+%d" % (250, 150, 825, 350))
-        popup.iconphoto(False, loadIcons.get_label_icon()[0])
-        # popup.attributes('-toolwindow', True)
-
-        frame = tk.LabelFrame(popup, padx=5, pady=5)
-        frame.place(x=10, y=10, height=130, width=230)
-
-        tk.Label(frame, text="Label Text:").place(x=10, y=30)
-        text = tk.Entry(frame, width=19)
-        text.place(x=80, y=30)
-
-        label_btn = tk.Button(frame, width=10, height=1, text="Create Label", relief=tk.GROOVE,
-                              command=lambda: create_label(popup, canvas, text.get()))
-        label_btn.place(x=67, y=75)
-        label_btn.bind('<Enter>', lambda e, btn=label_btn: hf.button_enter(e, btn))
-        label_btn.bind('<Leave>', lambda e, btn=label_btn: hf.button_leave(e, btn))
-
-        popup.focus_set()
-
-
-def toggle_link_lights(canvas):
-    global light_state
-
-    lights = canvas.find_withtag("light")
-    for i in lights:
-        if not light_state:
-            canvas.itemconfig(i, state='hidden')
-        else:
-            canvas.itemconfig(i, state='normal')
-
-    light_state = not light_state
-
-
-def toggle_labels(canvas):
-    for i in canvas_labels:
-        i.toggle_label(False)
-
-    # Check if all labels are in the same state. If not, show them all to reset the state.
-    labels = canvas.find_withtag("Label")
-    if any(canvas.itemcget(i, 'state') == 'hidden' for i in labels) and any(
-            canvas.itemcget(i, 'state') == 'normal' for i in labels):
-        for i in canvas_labels:
-            i.toggle_label(True)
+    globalVars.open_TL_ro = False
 
 
 def create_rectangle(canvas):
@@ -221,6 +83,168 @@ def create_label(popup, canvas, text):
         popup.destroy()
     else:
         messagebox.showerror('Invalid Parameter', 'Please Enter Some Text', parent=popup)
+    globalVars.open_TL_lb = False
+
+
+def handle_button_click(master, canvas, device_type):
+    if device_type == "endhost":
+
+        if not globalVars.open_TL_pc:
+
+            globalVars.open_TL_pc = True
+
+            pc_icons = loadIcons.get_pc_icons()
+
+            globalVars.TL_pc = tk.Toplevel(master)
+            globalVars.TL_pc.title("Add End Host")
+            globalVars.TL_pc.iconphoto(False, pc_icons[0])
+
+            globalVars.TL_pc.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
+
+            frame = tk.LabelFrame(globalVars.TL_pc, padx=5, pady=5)
+            frame.place(x=10, y=10, height=300, width=425)
+
+            pc_button = tk.Button(frame, width=10, height=5, text="PC", relief=tk.GROOVE,
+                                  command=lambda: create_pc(globalVars.TL_pc, canvas, "SecondGen", master, pc_icons))
+            pc_button.place(x=165, y=80)
+            pc_button.bind('<Enter>', lambda e, btn=pc_button: hf.button_enter(e, btn))
+            pc_button.bind('<Leave>', lambda e, btn=pc_button: hf.button_leave(e, btn))
+
+            tk.Label(frame, text="One Gigabit Ethernet Interface\n(1000 mbps)").place(x=126, y=180)
+            globalVars.TL_pc.focus_set()
+        else:
+            globalVars.TL_pc.focus_set()
+
+    elif device_type == "switch":
+
+        if not globalVars.open_TL_sw:
+
+            globalVars.open_TL_sw = True
+
+            sw_icons = loadIcons.get_sw_icons()
+
+            globalVars.TL_sw = tk.Toplevel(master)
+            globalVars.TL_sw.title("Add Switch")
+            globalVars.TL_sw.geometry("%dx%d+%d+%d" % (550, 325, 675, 300))
+            globalVars.TL_sw.iconphoto(False, sw_icons[0])
+
+            frame = tk.LabelFrame(globalVars.TL_sw, padx=5, pady=5)
+            frame.place(x=10, y=10, height=300, width=525)
+
+            l2sw_btn = tk.Button(frame, width=10, height=5, text="TSA1000X", relief=tk.GROOVE,
+                                 command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "TSA1000X", master))
+            l2sw_btn.place(x=100, y=30)
+            l2sw_btn.bind('<Enter>', lambda e, btn=l2sw_btn: hf.button_enter(e, btn))
+            l2sw_btn.bind('<Leave>', lambda e, btn=l2sw_btn: hf.button_leave(e, btn))
+
+            l3sw_btn = tk.Button(frame, width=10, height=5, text="RTSA1000X", relief=tk.GROOVE,
+                                 command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "RTSA1000X", master))
+            l3sw_btn.place(x=340, y=30)
+            # l3sw_btn.bind('<Enter>', lambda e, btn=l3sw_btn: button_enter(e, btn))
+            # l3sw_btn.bind('<Leave>', lambda e, btn=l3sw_btn: button_leave(e, btn))
+            l3sw_btn.config(state="disabled")
+
+            tk.Label(frame, text="10 Fast Ethernet Interfaces\n(100 mbps)").place(x=60, y=130)
+            tk.Label(frame, text="12 Gigabit Ethernet Interface\n(1000 mbps)").place(x=60, y=180)
+            tk.Label(frame, text="2 10G Ethernet Interface\n(1000 mbps)").place(x=70, y=230)
+
+            tk.Label(frame, text="20 Gigabit Ethernet Interfaces\n(1000 mbps)").place(x=300, y=130)
+            tk.Label(frame, text="4 10G Ethernet Interfaces\n(10 gbps)").place(x=315, y=180)
+            tk.Label(frame, text="Routing Capabilities\n(Multilayer Switch)").place(x=325, y=230)
+
+            globalVars.TL_sw.focus_set()
+        else:
+            globalVars.TL_sw.focus_set()
+
+    elif device_type == "router":
+
+        if not globalVars.open_TL_ro:
+
+            globalVars.open_TL_ro = True
+
+            r_icons = loadIcons.get_router_icons()
+
+            globalVars.TL_ro = tk.Toplevel(master)
+            globalVars.TL_ro.title("Add Router")
+            globalVars.TL_ro.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
+            globalVars.TL_ro.iconphoto(False, r_icons[0])
+            # popup.attributes('-toolwindow', True)
+
+            frame = tk.LabelFrame(globalVars.TL_ro, padx=5, pady=5)
+            frame.place(x=10, y=10, height=300, width=425)
+
+            ro_btn = tk.Button(frame, width=10, height=5, text="R94X", relief=tk.GROOVE,
+                               command=lambda: create_router(globalVars.TL_ro, canvas, r_icons, master))
+            ro_btn.place(x=165, y=80)
+            ro_btn.bind('<Enter>', lambda e, btn=ro_btn: hf.button_enter(e, btn))
+            ro_btn.bind('<Leave>', lambda e, btn=ro_btn: hf.button_leave(e, btn))
+
+            tk.Label(frame, text="Standard Router").place(x=158, y=180)
+
+            globalVars.TL_ro.focus_set()
+        else:
+            globalVars.TL_ro.focus_set()
+
+    # elif device_type == "l3sw":
+    #     pass
+
+    elif device_type == "Eth_cable":
+        eth_icon = "icons/ethernet.png"
+        cable = EthernetCableCanvasObject(canvas, get_next_cable(canvas), eth_icon,
+                                          network.Ethernet_Cable.EthernetCable())
+        cable_objects.append(cable)
+
+    elif device_type == "Label":
+
+        if not globalVars.open_TL_lb:
+
+            globalVars.open_TL_lb = True
+
+            globalVars.tl_lb = tk.Toplevel(master)
+            globalVars.tl_lb.title("Add Label")
+            globalVars.tl_lb.geometry("%dx%d+%d+%d" % (250, 150, 825, 350))
+            globalVars.tl_lb.iconphoto(False, loadIcons.get_label_icon()[0])
+
+            frame = tk.LabelFrame(globalVars.tl_lb, padx=5, pady=5)
+            frame.place(x=10, y=10, height=130, width=230)
+
+            tk.Label(frame, text="Label Text:").place(x=10, y=30)
+            text = tk.Entry(frame, width=19)
+            text.place(x=80, y=30)
+
+            label_btn = tk.Button(frame, width=10, height=1, text="Create Label", relief=tk.GROOVE,
+                                  command=lambda: create_label(globalVars.tl_lb, canvas, text.get()))
+            label_btn.place(x=67, y=75)
+            label_btn.bind('<Enter>', lambda e, btn=label_btn: hf.button_enter(e, btn))
+            label_btn.bind('<Leave>', lambda e, btn=label_btn: hf.button_leave(e, btn))
+
+            globalVars.tl_lb.focus_set()
+
+        else:
+            globalVars.tl_lb.focus_set()
+
+
+def toggle_link_lights(canvas):
+    lights = canvas.find_withtag("light")
+    for i in lights:
+        if not globalVars.light_state:
+            canvas.itemconfig(i, state='hidden')
+        else:
+            canvas.itemconfig(i, state='normal')
+
+    globalVars.light_state = not globalVars.light_state
+
+
+def toggle_labels(canvas):
+    for i in canvas_labels:
+        i.toggle_label(False)
+
+    # Check if all labels are in the same state. If not, show them all to reset the state.
+    labels = canvas.find_withtag("Label")
+    if any(canvas.itemcget(i, 'state') == 'hidden' for i in labels) and any(
+            canvas.itemcget(i, 'state') == 'normal' for i in labels):
+        for i in canvas_labels:
+            i.toggle_label(True)
 
 
 def delete_object(canvas, icon):
@@ -287,3 +311,100 @@ def delete_object(canvas, icon):
 
     canvas.tag_bind(canvas_object, "<Motion>", motion)
     canvas.tag_bind(canvas_object, "<Button-1>", delete)
+
+
+def preferences_menu(master):
+
+    preferences_popup = tk.Toplevel(master)
+    preferences_popup.title("Preferences")
+    preferences_popup.iconphoto(False, loadIcons.get_preferences_icon()[0])
+
+    preferences_popup.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
+    preferences_popup.focus_set()
+
+    frame = tk.LabelFrame(preferences_popup, padx=5, pady=5)
+    frame.place(x=10, y=10, height=305, width=430)
+
+    ok_button = tk.Button(frame, text="OK", command=preferences_popup.destroy, relief=tk.GROOVE, width=10)
+    ok_button.bind('<Enter>', lambda e, b=ok_button: hf.button_enter(e, b))
+    ok_button.bind('<Leave>', lambda e, b=ok_button: hf.button_leave(e, b))
+    ok_button.place(x=330, y=260)
+
+    # Ask before Delete #
+    ask_b4_del_var = tk.BooleanVar()
+    ask_b4_del_check = tk.Checkbutton(frame, text='Ask before deleting node', variable=ask_b4_del_var, onvalue=True,
+                                      offvalue=False,
+                                      command=lambda i="ask_before_delete", j=ask_b4_del_var: set_preferences(i, j))
+    ask_b4_del_check.grid(row=0, column=0, sticky=tk.W)
+    # Ask before Delete #
+
+    # Ask before Quick Delete #
+    ask_b4_quick_del_var = tk.BooleanVar()
+    ask_b4_quick_del_check = tk.Checkbutton(frame, text='Ask before quick deleting node', variable=ask_b4_quick_del_var,
+                                            onvalue=True, offvalue=False,
+                                            command=lambda i="ask_before_quick_delete",
+                                                           j=ask_b4_quick_del_var: set_preferences(i, j))
+    ask_b4_quick_del_check.grid(row=1, column=0, sticky=tk.W)
+    # Ask before Quick Delete #
+
+    # Show link lights by default #
+    show_link_lights_var = tk.BooleanVar()
+    show_link_lights_check = tk.Checkbutton(frame, text='Show link lights', variable=show_link_lights_var,
+                                            onvalue=True, offvalue=False,
+                                            command=lambda i="show_link_lights",
+                                                           j=show_link_lights_var: set_preferences(i, j))
+    show_link_lights_check.grid(row=2, column=0, sticky=tk.W)
+    # Show link lights by default #
+
+    # Persistent Cable Connect #
+    persistent_cable_conn_var = tk.BooleanVar()
+    persistent_cable_conn_check = tk.Checkbutton(frame, text='Persistent cable connection',
+                                                 variable=persistent_cable_conn_var,
+                                                 onvalue=True, offvalue=False,
+                                                 command=lambda i="persistent_cable_con",
+                                                                j=persistent_cable_conn_var: set_preferences(i, j))
+    persistent_cable_conn_check.grid(row=3, column=0, sticky=tk.W)
+    # Persistent Cable Connect #
+
+    # Check buttons that were previously set
+    if globalVars.ask_before_delete:
+        ask_b4_del_check.select()
+
+    if globalVars.ask_before_quick_delete:
+        ask_b4_quick_del_check.select()
+
+    if globalVars.show_link_lights:
+        show_link_lights_check.select()
+
+    if globalVars.persistent_cable_connect:
+        persistent_cable_conn_check.select()
+
+
+def set_preferences(option, value):
+    match option:
+        case "ask_before_delete":
+            if value.get():
+                globalVars.ask_before_delete = True
+            else:
+                globalVars.ask_before_delete = False
+
+        case "ask_before_quick_delete":
+            if value.get():
+                globalVars.ask_before_quick_delete = True
+            else:
+                globalVars.ask_before_quick_delete = False
+
+        case "show_link_lights":
+            if value.get():
+                globalVars.show_link_lights = True
+            else:
+                globalVars.show_link_lights = False
+
+        case "persistent_cable_con":
+            if value.get():
+                globalVars.persistent_cable_connect = True
+            else:
+                globalVars.persistent_cable_connect = False
+
+        case _:
+            raise Exception()

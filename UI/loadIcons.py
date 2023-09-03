@@ -71,3 +71,19 @@ def get_label_icon():
     label_icon1 = ImageTk.PhotoImage(label_icon)
 
     return [label_icon1]
+
+
+def get_tooltip_icon():
+    tooltip_icon = Image.open('icons/tooltip.png')
+    tooltip_icon = tooltip_icon.resize((20, 20))
+    tooltip_icon1 = ImageTk.PhotoImage(tooltip_icon)
+
+    return [tooltip_icon1]
+
+
+def get_preferences_icon():
+    preferences_icon = Image.open('icons/preferences.png')
+    preferences_icon = preferences_icon.resize((25, 25))
+    preferences_icon1 = ImageTk.PhotoImage(preferences_icon)
+
+    return [preferences_icon1]

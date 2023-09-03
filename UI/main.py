@@ -1,7 +1,6 @@
 from tkinter import *
 from PIL import Image, ImageTk
 import button_handler
-import helper_functions as hf
 global img
 
 
@@ -16,7 +15,7 @@ def create_menu():
     menu_bar.add_cascade(label="File", menu=file_menu)
 
     preferences_menu = Menu(menu_bar, tearoff=0)
-    preferences_menu.add_command(label="Edit Preferences")
+    preferences_menu.add_command(label="Edit Preferences", command=lambda m=tk: button_handler.preferences_menu(tk))
     menu_bar.add_cascade(label="Preferences", menu=preferences_menu)
 
     help_menu = Menu(menu_bar, tearoff=0)
@@ -163,7 +162,7 @@ new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_handler.
 # Canvas Drawing Stuff
 
 # Delete Button Stuff
-canvas_delete = LabelFrame(tk, text="Delete", padx=12, pady=3)
+canvas_delete = LabelFrame(tk, text="Quick Delete", padx=12, pady=3)
 # canvas_delete.place(x=width - 567, y=625, height=75, width=75)
 canvas_delete.place(x=width - 567, y=925, height=75, width=75)
 

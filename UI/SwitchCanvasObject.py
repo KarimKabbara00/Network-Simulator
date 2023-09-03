@@ -1,10 +1,10 @@
 import tkinter
 import tkinter as tk
 from tkinter import messagebox, ttk
-from ttkwidgets.frames import Tooltip
 import UI.helper_functions as hf
 from PCCanvasObject import PCCanvasObject
 from SwitchCLI import SwitchCli
+import globalVars
 
 
 class SwitchCanvasObject:
@@ -35,9 +35,9 @@ class SwitchCanvasObject:
         # Icon Stuff
 
         # Hover menu Stuff
-        self.hover_area = self.canvas.create_polygon(x - 50, y - 35, x + 50, y - 35, x + 50, y - 50, x + 90, y - 50,
-                                                     x + 90, y + 60,
-                                                     x + 50, y + 60, x + 50, y + 45, x - 50, y + 45, fill="")
+        self.hover_area = self.canvas.create_polygon(x - 50, y - 35, x + 45, y - 35, x + 45, y - 55, x + 97, y - 55,
+                                                     x + 97, y + 65,
+                                                     x + 45, y + 65, x + 45, y + 45, x - 50, y + 45, fill="")
         self.canvas.lower(self.hover_area)
         self.menu_buttons = self.canvas.create_polygon(x + 40, y - 5, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50,
@@ -76,6 +76,8 @@ class SwitchCanvasObject:
 
         # To save CLI text
         self.cli_text = "Switch> "
+        self.cli_window = None
+        self.created_terminal = False
         # To save CLI text
 
     def motion(self, event=None):
@@ -93,12 +95,12 @@ class SwitchCanvasObject:
 
         # Move the hover area and menu buttons
         self.canvas.coords(self.hover_area, self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) - 35,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 35,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 50,
-                           self.canvas.canvasx(event_x) + 90, self.canvas.canvasy(event_y) - 50,
-                           self.canvas.canvasx(event_x) + 90, self.canvas.canvasy(event_y) + 60,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 60,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 45,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 35,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 55,
+                           self.canvas.canvasx(event_x) + 97, self.canvas.canvasy(event_y) - 55,
+                           self.canvas.canvasx(event_x) + 97, self.canvas.canvasy(event_y) + 65,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 65,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 45,
                            self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) + 45)
 
         self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event_x) + 40, self.canvas.canvasy(event_y),
@@ -241,7 +243,6 @@ class SwitchCanvasObject:
         self.canvas.tag_bind(self.block_name, '<Enter>', self.on_start_hover)
         self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
         self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
-        self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
 
         self.terminal_button.bind('<Enter>', self.terminal_button_bg_enter)
         self.terminal_button.bind('<Leave>', self.terminal_button_bg_leave)
@@ -354,7 +355,12 @@ class SwitchCanvasObject:
         self.hide_menu()
 
     def menu_delete(self, event):
-        answer = messagebox.askokcancel("Delete Switch", "Delete this Switch?")
+
+        if globalVars.ask_before_delete:
+            answer = messagebox.askokcancel("Delete Switch", "Delete this Switch?")
+        else:
+            answer = True
+
         if answer:
             try:
                 for i in self.class_object.get_interfaces():
@@ -369,17 +375,33 @@ class SwitchCanvasObject:
             self.canvas.delete(self.menu_buttons)
             self.canvas.delete()
             self.class_object = None
+
+            # In case, remove all tooltips
+            [self.canvas.delete(i) for i in self.canvas.find_withtag("Terminal_Tooltip")]
+            [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
+            [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
+
         self.hide_menu()
 
     def menu_switch_cli(self, event):
-        # Parent widget
-        popup = tk.Toplevel(self.canvas)
-        popup.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
-        popup.wm_iconphoto(False, self.icons[1])
-        popup.wm_title("Terminal")
-        popup.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(popup))
-        popup.focus_set()
-        self.cli_object = SwitchCli(self, self.class_object, popup, self.cli_text, "Switch> ", self.cli_command_files)
+
+        def hide_window():
+            self.cli_window.withdraw()
+
+        if not self.created_terminal:
+            self.cli_window = tk.Toplevel(self.canvas)
+            self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
+            self.cli_window.wm_iconphoto(False, self.icons[1])
+            self.cli_window.wm_title("Terminal")
+            self.cli_window.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(self.cli_window))
+            self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
+            self.cli_window.focus_set()
+            self.cli_object = SwitchCli(self, self.class_object, self.cli_window, self.cli_text,
+                                        "Switch> ", self.cli_command_files)
+            self.created_terminal = True
+        else:
+            self.cli_window.deiconify()
+
         self.hide_menu()
 
     def on_closing(self, popup):
@@ -442,27 +464,34 @@ class SwitchCanvasObject:
 
     def terminal_button_bg_enter(self, event):
         self.on_start_hover(event)
-        Tooltip(self.terminal_button, text="Open the Terminal", showheader=False, offset=(22, -18), background="#feffcd"
-                , timeout=0.5)
+        self.canvas.after(600, lambda c=self.canvas, b=self.terminal_button, text="Open the Terminal",
+                                      tag="Terminal_Tooltip", p=(self._x + 57, self._y - 42),
+                                      offset=(1, 0): hf.create_tooltip(c, b, text, tag, p, offset))
         self.terminal_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def terminal_button_bg_leave(self, event):
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        [self.canvas.delete(i) for i in self.canvas.find_withtag("Terminal_Tooltip")]
 
     def disconnect_button_bg_enter(self, event):
         self.on_start_hover(event)
-        Tooltip(self.disconnect_button, text="Disconnect Connection", showheader=False, offset=(22, -18),
-                background="#feffcd", timeout=0.5)
+        self.canvas.after(600, lambda c=self.canvas, b=self.disconnect_button, text="Disconnect Connections",
+                                      tag="Disconnect_Tooltip", p=(self._x + 57, self._y - 9),
+                                      offset=(20, 0): hf.create_tooltip(c, b, text, tag, p, offset))
         self.disconnect_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def disconnect_button_bg_leave(self, event):
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
 
     def delete_button_bg_enter(self, event):
         self.on_start_hover(event)
-        Tooltip(self.delete_button, text="Delete this Node", showheader=False, offset=(22, -18), background="#feffcd",
-                timeout=0.5)
+        self.canvas.after(600, lambda c=self.canvas, b=self.delete_button, text="Delete PC", tag="Delete_Tooltip",
+                                      p=(self._x + 57, self._y + 24), offset=(-20, 0): hf.create_tooltip(c, b, text,
+                                                                                                         tag, p,
+                                                                                                         offset))
         self.delete_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def delete_button_bg_leave(self, event):
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]

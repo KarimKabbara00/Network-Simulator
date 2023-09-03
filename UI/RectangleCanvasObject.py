@@ -17,6 +17,8 @@ class RectangleCanvasObject:
         self.b = None
         # Rectangle coordinates
 
+        self.canvas.config(cursor="pencil")
+
         # Button Bindings
         self.canvas.bind('<B1-Motion>', self.start)  # When creating the object
         self.canvas.bind('<ButtonRelease-1>', self.end)  # When creating the object
@@ -49,6 +51,7 @@ class RectangleCanvasObject:
                                                              outline="black", fill=self.color_code, width=1.2,
                                                              tags=(self.block_name, "Rectangle"))
         self.canvas.tag_lower(self.block_name)
+        self.canvas.config(cursor="")
         return
 
     def delete(self):

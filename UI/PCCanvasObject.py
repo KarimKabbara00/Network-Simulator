@@ -1,14 +1,15 @@
 import threading
 import tkinter
 import tkinter as tk
-from tkinter import ttk
 from tkinter import messagebox
+from tkinter import ttk
 from UI import helper_functions as hf
-from ttkwidgets.frames import Tooltip
+import globalVars
 
 
 class PCCanvasObject(object):
     def __init__(self, canvas, block_name, icons, class_object, master):
+
         self._x = None
         self._y = None
         self.canvas = canvas
@@ -36,14 +37,13 @@ class PCCanvasObject(object):
         # Icon Stuff
 
         # Hover menu Stuff
-        self.hover_area = self.canvas.create_polygon(x - 50, y - 50, x + 50, y - 50, x + 50, y - 75, x + 90, y - 75,
-                                                     x + 90, y + 65, x + 50, y + 65, x + 50, y + 50, x - 50, y + 50,
+        self.hover_area = self.canvas.create_polygon(x - 50, y - 50, x + 45, y - 50, x + 45, y - 75, x + 95, y - 75,
+                                                     x + 95, y + 75, x + 45, y + 75, x + 45, y + 50, x - 50, y + 50,
                                                      fill="")
         self.canvas.lower(self.hover_area)
-        self.menu_buttons = self.canvas.create_polygon(x + 40, y - 5, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
-                                                       x + 92, y + 72, x + 50,
-                                                       y + 72, x + 50, y + 5, outline="black", fill="navajo white",
-                                                       width=1)
+        self.menu_buttons = self.canvas.create_polygon(x + 40, y + 0, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
+                                                       x + 92, y + 72, x + 50, y + 72, x + 50, y + 5,
+                                                       outline="black", fill="navajo white", width=1)
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
 
         self.config_button = tk.Button(self.canvas, width=25, height=25, image=self.config_icon)
@@ -66,9 +66,11 @@ class PCCanvasObject(object):
         # Button Bindings
 
         # CLI Stuff
+        self.cli_window = None
         self.cli = None
         self.cli_busy = False
         self.cli_text = "PC> "
+        self.created_terminal = False
         self.command_history = []
         self.command_history_index = -1
         # CLI Stuff
@@ -93,12 +95,12 @@ class PCCanvasObject(object):
 
         # Move the hover area and menu buttons
         self.canvas.coords(self.hover_area, self.canvas.canvasx(event.x) - 50, self.canvas.canvasy(event.y) - 50,
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) - 50,
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) - 75,
-                           self.canvas.canvasx(event.x) + 90, self.canvas.canvasy(event.y) - 75,
-                           self.canvas.canvasx(event.x) + 90, self.canvas.canvasy(event.y) + 65,
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 65,
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 50,
+                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) - 50,
+                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) - 75,
+                           self.canvas.canvasx(event.x) + 95, self.canvas.canvasy(event.y) - 75,
+                           self.canvas.canvasx(event.x) + 95, self.canvas.canvasy(event.y) + 75,
+                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) + 75,
+                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) + 50,
                            self.canvas.canvasx(event.x) - 50, self.canvas.canvasy(event.y) + 50)
 
         self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x) + 40, self.canvas.canvasy(event.y),
@@ -168,7 +170,6 @@ class PCCanvasObject(object):
         self.canvas.tag_bind(self.block_name, '<Enter>', self.on_start_hover)
         self.canvas.tag_bind(self.block_name, '<Leave>', self.on_end_hover)
         self.canvas.tag_bind(self.menu_buttons, '<Enter>', self.on_start_hover)
-        self.canvas.tag_bind(self.menu_buttons, '<Leave>', self.on_end_hover)
 
         self.config_button.bind('<Enter>', self.config_button_bg_enter)
         self.config_button.bind('<Leave>', self.config_button_bg_leave)
@@ -291,7 +292,11 @@ class PCCanvasObject(object):
 
     def menu_delete(self, event):
 
-        answer = messagebox.askokcancel("Delete PC", "Delete this PC?")
+        if globalVars.ask_before_delete:
+            answer = messagebox.askokcancel("Delete PC", "Delete this PC?")
+        else:
+            answer = True
+
         if answer:
             self.hide_menu()
             self.disconnect_cable(event)
@@ -300,6 +305,13 @@ class PCCanvasObject(object):
             self.canvas.delete(self.menu_buttons)
             self.canvas.delete()
             self.class_object = None
+
+            # In case, remove all tooltips
+            [self.canvas.delete(i) for i in self.canvas.find_withtag("Config_Tooltip")]
+            [self.canvas.delete(i) for i in self.canvas.find_withtag("Terminal_Tooltip")]
+            [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
+            [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
+
         self.hide_menu()
 
     def save_general_parameters(self, hostname, mac_address, ipv4, netmask, ipv6, prefix, default_route, parent):
@@ -402,34 +414,39 @@ class PCCanvasObject(object):
                 self.cli.insert(tk.END, "")
             return "break"
 
-        # Parent widget
-        popup = tk.Toplevel(self.canvas)
-        popup.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
-        popup.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(popup))
-        popup.wm_iconphoto(False, self.icons[2])
-        popup.wm_title("Terminal")
-        popup.focus_set()
+        def hide_window():
+            self.cli_window.withdraw()
 
-        # Parent widget
+        if not self.created_terminal:
+            self.cli_window = tk.Toplevel(self.canvas)
+            self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
+            self.cli_window.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(self.cli_window))
+            self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
+            self.cli_window.wm_iconphoto(False, self.icons[2])
+            self.cli_window.wm_title("Terminal")
+            self.cli_window.focus_set()
+            self.created_terminal = True
 
-        # CLI initial config
-        self.cli = tk.Text(popup, height=100, width=600, background="black", foreground="white",
-                           insertbackground="white")
-        self.cli.pack(padx=20, pady=10)
-        self.cli.insert(tk.END, "Welcome\n")
-        self.cli.insert(tk.END, self.cli_text)
-        pos = self.cli.index(tk.END)
-        self.cli.mark_set("insert", pos)
-        self.cli.see(tk.END)
-        # CLI initial config
+            # CLI initial config
+            self.cli = tk.Text(self.cli_window, height=100, width=600, background="black", foreground="white",
+                               insertbackground="white")
+            self.cli.pack(padx=20, pady=10)
+            self.cli.insert(tk.END, "Welcome\n")
+            self.cli.insert(tk.END, self.cli_text)
+            pos = self.cli.index(tk.END)
+            self.cli.mark_set("insert", pos)
+            self.cli.see(tk.END)
+            # CLI initial config
 
-        # Key bindings
-        self.cli.bind('<BackSpace>', no_del_mov_illegal)
-        self.cli.bind('<Left>', no_del_mov_illegal)
-        self.cli.bind('<Return>', carriage_return)
-        self.cli.bind('<Up>', command_history_up)
-        self.cli.bind('<Down>', command_history_down)
-        # Key bindings
+            # Key bindings
+            self.cli.bind('<BackSpace>', no_del_mov_illegal)
+            self.cli.bind('<Left>', no_del_mov_illegal)
+            self.cli.bind('<Return>', carriage_return)
+            self.cli.bind('<Up>', command_history_up)
+            self.cli.bind('<Down>', command_history_down)
+            # Key bindings
+        else:
+            self.cli_window.deiconify()
 
         self.hide_menu()
 
@@ -571,37 +588,47 @@ class PCCanvasObject(object):
         return self.l1, self.l2
 
     def config_button_bg_enter(self, event):
+
         self.on_start_hover(event)
-        Tooltip(self.config_button, text="Configure this PC", showheader=False, offset=(22, -18), background="#feffcd",
-                timeout=0.5)
+        self.canvas.after(600, lambda c=self.canvas, b=self.config_button, text="Configure this PC",
+                                      tag="Config_Tooltip",
+                                      p=(self._x + 57, self._y - 65): hf.create_tooltip(c, b, text, tag, p))
         self.config_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def config_button_bg_leave(self, event):
         self.config_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        [self.canvas.delete(i) for i in self.canvas.find_withtag("Config_Tooltip")]
 
     def terminal_button_bg_enter(self, event):
         self.on_start_hover(event)
-        Tooltip(self.terminal_button, text="Open the Terminal", showheader=False, offset=(22, -18), background="#feffcd"
-                , timeout=0.5)
+        self.canvas.after(600, lambda c=self.canvas, b=self.terminal_button, text="Open the Terminal",
+                                      tag="Terminal_Tooltip", p=(self._x + 57, self._y - 31),
+                                      offset=(1, 0): hf.create_tooltip(c, b, text, tag, p, offset))
         self.terminal_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def terminal_button_bg_leave(self, event):
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        [self.canvas.delete(i) for i in self.canvas.find_withtag("Terminal_Tooltip")]
 
     def disconnect_button_bg_enter(self, event):
         self.on_start_hover(event)
-        Tooltip(self.disconnect_button, text="Disconnect Connection", showheader=False, offset=(22, -18),
-                background="#feffcd", timeout=0.5)
+        self.canvas.after(600, lambda c=self.canvas, b=self.disconnect_button, text="Disconnect Connections",
+                                      tag="Disconnect_Tooltip", p=(self._x + 57, self._y + 3),
+                                      offset=(20, 0): hf.create_tooltip(c, b, text, tag, p, offset))
         self.disconnect_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def disconnect_button_bg_leave(self, event):
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
 
     def delete_button_bg_enter(self, event):
         self.on_start_hover(event)
-        Tooltip(self.delete_button, text="Delete this Node", showheader=False, offset=(22, -18), background="#feffcd",
-                timeout=0.5)
+        self.canvas.after(600, lambda c=self.canvas, b=self.delete_button, text="Delete PC", tag="Delete_Tooltip",
+                                      p=(self._x + 57, self._y + 37), offset=(-20, 0): hf.create_tooltip(c, b, text,
+                                                                                                         tag, p,
+                                                                                                         offset))
         self.delete_button.config(background='gray89', foreground="white", relief=tk.SUNKEN)
 
     def delete_button_bg_leave(self, event):
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+        [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]

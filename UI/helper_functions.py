@@ -6,6 +6,7 @@ import tkinter as tk
 from itertools import groupby
 import numpy as np
 from operator import itemgetter
+from UI import loadIcons
 
 number = 0
 pc_id = 0
@@ -413,3 +414,25 @@ def compute_ping_stats(ping_rtt_times, dest_ipv4_address, count, received_ping_c
     canvas.get_info(info=ping_stats + ping_rtt_stats, linebreak=True, last=True)
     canvas.toggle_cli_busy()
     host.reset_ping_count(0)
+
+
+def create_tooltip(canvas, button, text, tag, pos=(0, 0), text_offset=(0, 0)):
+
+    if button.cget('relief') == 'sunken':
+        x = pos[0]
+        y = pos[1]
+
+        tooltip_icon = loadIcons.get_tooltip_icon()[0]
+
+        tooltip_text = canvas.create_text(x + 105 + text_offset[0], y + 12 + text_offset[1], text=text, fill="black",
+                                          font=("Arial", 10), tags=tag)
+        tooltip_bg = canvas.create_polygon(x + 40, y + 13, x + 50, y + 8, x + 50, y - 1, x + 162 + (text_offset[0] * 2),
+                                           y - 1 + (text_offset[1] * 2),
+                                           x + 162 + (text_offset[0] * 2), y + 24 + (text_offset[1] * 2), x + 50, y + 24,
+                                           x + 50, y + 16,
+                                           fill="#fefec3", tags=tag, outline="black")
+
+        canvas.create_image(x + 167 + (text_offset[0] * 2), y - 1 + (text_offset[1] * 2), image=tooltip_icon, tag=tag)
+        canvas.photo = tooltip_icon
+
+        canvas.tag_lower(tooltip_bg, tooltip_text)
