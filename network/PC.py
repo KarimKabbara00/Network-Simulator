@@ -15,7 +15,7 @@ def generate_ip_address():
 
 class PC:
 
-    def __init__(self, model, host_name="PC"):
+    def __init__(self, model="SecondGen", host_name="PC"):
 
         self.Host_Name = host_name
         self.MAC_Address = hf.generate_mac_address()
@@ -40,14 +40,7 @@ class PC:
         # ICMP Control
 
     def set_interface(self):
-        if self.Model_Number == 'FirstGen':
-            return [PhysicalInterface('0/0', 100, self)]
-
-        elif self.Model_Number == 'SecondGen':
-            return [PhysicalInterface('0/0', 1000, self)]
-
-        elif self.Model_Number == 'ThirdGen':
-            return [PhysicalInterface('0/0', 10000, self)]
+        return [PhysicalInterface('0/0', 1000, self)]
 
     def send_message(self, message, destination_mac):
 
@@ -113,7 +106,7 @@ class PC:
 
                 time_taken = round(time_taken, 3)
 
-                if time_taken == 0.001:
+                if time_taken <= 0.001:
                     time_taken = "<1ms"
                 else:
                     time_taken = str(int(str(time_taken)[2:5])) + "ms"
@@ -217,3 +210,16 @@ class PC:
     def reset_ping_count(self, n):
         self.received_ping_count = n
         self.ping_rtt_times.clear()
+
+    # -------------------------- Save & Load Methods -------------------------- #
+    def get_save_info(self):
+        return [self.Host_Name, self.MAC_Address, self.Model_Number, self.ipv4_address,
+                self.netmask, self.ipv6_address, self.prefix, self.default_gateway, self.ARP_table,
+                self.interface[0].get_save_info()]
+
+    def set_arp_table(self, arp):
+        self.ARP_table = arp
+
+    def set_interfaces_on_load(self, interfaces):
+        self.interface = [interfaces]
+    # -------------------------- Save & Load Methods -------------------------- #

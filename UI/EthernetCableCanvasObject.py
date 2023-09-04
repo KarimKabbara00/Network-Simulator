@@ -1,29 +1,27 @@
 import tkinter as tk
 from tkinter import messagebox
-from PIL import Image, ImageTk
-import button_handler
 from UI import helper_functions as hf
+import globalVars
+from network import Ethernet_Cable
 
 
 class EthernetCableCanvasObject:
 
-    def __init__(self, canvas, block_name, icon, class_object):
+    def __init__(self, canvas, block_name, icon, class_object, master, cursor_pos=(350, 800)):
         self.canvas = canvas
+        self.master = master
         self.block_name = block_name
         self.class_object = class_object
 
         # Current Cursor Location
         # For placing the new widget under the mouse
-        hf.move_mouse_to(350, 800)
+        hf.move_mouse_to(cursor_pos[0], cursor_pos[1])
         x = self.canvas.canvasx(self.canvas.winfo_pointerx() - self.canvas.winfo_rootx())
         y = self.canvas.canvasy(self.canvas.winfo_pointery() - self.canvas.winfo_rooty())
         # Current Cursor Location
 
         # Icon Stuff
         self.icon = icon
-        self.icon = Image.open(self.icon)
-        self.icon = self.icon.resize((50, 50))
-        self.icon = ImageTk.PhotoImage(self.icon)
         # Assigned to canvas_object to allow delete
         self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "Ethernet"))
         self.canvas.photo = self.icon
@@ -58,8 +56,12 @@ class EthernetCableCanvasObject:
         # Link Lights
         self.light_1 = None
         self.light_2 = None
-        self.hidden = False
         # Link Lights
+
+    @classmethod
+    def persistent_cable_connect(cls, c, icon, master, cursor_position):
+        cable = cls(c, hf.get_next_cable(c), icon, Ethernet_Cable.EthernetCable(), master, cursor_position)
+        globalVars.cable_objects.append(cable)
 
     def motion(self, event):
 
@@ -90,7 +92,7 @@ class EthernetCableCanvasObject:
                 self.cable_end_2 = None
                 return
 
-            for i in button_handler.objects:
+            for i in globalVars.objects:
                 if i.get_block_name() == canvas_object_tag:
                     if not self.obj1_coords:
                         self.obj1_coords = self.canvas.coords(canvas_object_tag)  # obj 1 coords
@@ -193,7 +195,7 @@ class EthernetCableCanvasObject:
                                                            self.obj1_canvas_tag + "_line_" + self.obj2_canvas_tag +
                                                            "_" + str(self.existing_line_count),
                                                            self.obj2_canvas_tag + "_line_" + self.obj1_canvas_tag +
-                                                           "_" + str(self.existing_line_count)))
+                                                           "_" + str(self.existing_line_count), 'line'))
 
             self.light_1 = hf.draw_circle(self.obj1_coords[0] + x_shift, self.obj1_coords[1] + y_shift,
                                           self.obj2_coords[0] + x_shift, self.obj2_coords[1] + y_shift, 4,
@@ -206,10 +208,14 @@ class EthernetCableCanvasObject:
                                           "_" + str(self.existing_line_count))
 
             # Lower line and lights one layer to underlap the hover menu and canvas object
+            for light in self.canvas.find_withtag('light'):
+                self.canvas.tag_lower(light)
 
-            self.canvas.tag_lower(self.light_1)
-            self.canvas.tag_lower(self.light_2)
-            self.canvas.tag_lower(self.canvas_line)
+            for line in self.canvas.find_withtag('line'):
+                self.canvas.tag_lower(line)
+
+            for rectangle in self.canvas.find_withtag('Rectangle'):
+                self.canvas.tag_lower(rectangle)
 
             # Add each light to the cable class
             self.cable_end_1.set_canvas_object(self)
@@ -244,7 +250,18 @@ class EthernetCableCanvasObject:
                 self.cable_end_1.set_operational(True)
                 self.cable_end_2.set_operational(True)
 
+            if not globalVars.show_link_lights:
+                self.canvas.itemconfig(self.light_1, state='hidden')
+                self.canvas.itemconfig(self.light_2, state='hidden')
+
             self.canvas.delete(self.canvas_object)
+
+            # If persistent cable connect, create a new instance of this class
+            if globalVars.persistent_cable_connect:
+                cursor_x = self.master.winfo_pointerx() - self.master.winfo_rootx()
+                cursor_y = self.master.winfo_pointery() - self.master.winfo_rooty()
+                EthernetCableCanvasObject.persistent_cable_connect(self.canvas, self.icon, self.master,
+                                                                   (cursor_x, cursor_y + 45))
 
     def set_light(self, color, side):
         if self.canvas.find_withtag(side + "_light_" + self.obj1_canvas_tag + "_" + str(self.existing_line_count)):

@@ -8,7 +8,7 @@ import globalVars
 
 
 class PCCanvasObject(object):
-    def __init__(self, canvas, block_name, icons, class_object, master):
+    def __init__(self, canvas, block_name, icons, class_object, master, load=False):
 
         self._x = None
         self._y = None
@@ -32,7 +32,7 @@ class PCCanvasObject(object):
         self.x_node_icon = self.icons[4]
 
         # Assigned to canvas_object to allow to delete
-        self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "PC"))
+        self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "PC", "Node"))
         self.canvas.photo = self.icon
         # Icon Stuff
 
@@ -43,13 +43,19 @@ class PCCanvasObject(object):
         self.canvas.lower(self.hover_area)
         self.menu_buttons = self.canvas.create_polygon(x + 40, y + 0, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50, y + 72, x + 50, y + 5,
-                                                       outline="black", fill="navajo white", width=1)
+                                                       outline="black", fill="navajo white", width=1,
+                                                       tags=('Hover_Menus'))
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
 
         self.config_button = tk.Button(self.canvas, width=25, height=25, image=self.config_icon)
         self.terminal_button = tk.Button(self.canvas, width=25, height=25, image=self.terminal_icon)
         self.disconnect_button = tk.Button(self.canvas, width=25, height=25, image=self.ethernet_del_icon)
         self.delete_button = tk.Button(self.canvas, width=25, height=25, image=self.x_node_icon)
+
+        globalVars.node_buttons.append(self.config_button)
+        globalVars.node_buttons.append(self.terminal_button)
+        globalVars.node_buttons.append(self.disconnect_button)
+        globalVars.node_buttons.append(self.delete_button)
 
         self.config_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
@@ -58,8 +64,9 @@ class PCCanvasObject(object):
         # Hover menu Stuff
 
         # Button Bindings
-        self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
-        self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
+        if not load:
+            self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
+            self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
         self.canvas.tag_bind(self.block_name, '<B1-Motion>', self.motion)  # When moving the object after it is created
         self.canvas.tag_bind(self.block_name, '<ButtonRelease-1>',
                              self.button_release)  # When moving the object after it is created
@@ -112,7 +119,7 @@ class PCCanvasObject(object):
                            self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 5)
 
         # Move the Label
-        self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event.x), self.canvas.canvasy(event.y) + 60)
+        # self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event.x), self.canvas.canvasy(event.y) + 60)
 
         try:
             line = self.canvas.find_withtag(self.tag_1 + "_line_" + self.tag_2 + "_0")
@@ -132,9 +139,18 @@ class PCCanvasObject(object):
                                          self.canvas.coords(line)[1], 4, self.canvas,
                                          self.tag_2 + "_light_" + self.tag_1 + "_0")
 
-                self.canvas.tag_lower(self.l1)
-                self.canvas.tag_lower(self.l2)
-                self.canvas.tag_lower(line)
+                # Set appropriate layers
+                for lt in self.canvas.find_withtag('light'):
+                    self.canvas.tag_lower(lt)
+                # Nested loop :(
+                for ln in self.canvas.find_withtag('line'):
+                    self.canvas.tag_lower(ln)
+                    for rectangle in self.canvas.find_withtag('Rectangle'):
+                        self.canvas.tag_lower(rectangle, ln)
+
+                if not globalVars.show_link_lights:
+                    self.canvas.itemconfig(self.l1, state='hidden')
+                    self.canvas.itemconfig(self.l2, state='hidden')
 
                 if 0 <= abs(self.canvas.canvasx(event.x) - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
                         self.canvas.canvasy(event.y) - self.canvas.coords(line)[1]) <= 30:
@@ -185,9 +201,10 @@ class PCCanvasObject(object):
 
         self.delete_button.bind('<Enter>', self.delete_button_bg_enter)
         self.delete_button.bind('<Leave>', self.delete_button_bg_leave)
-        self.delete_button.bind('<Button-1>', self.menu_delete)
+        self.delete_button.bind('<Button-1>', lambda e, q=False: self.menu_delete(e, q))
 
-        self.on_start_hover(event)
+        if event:
+            self.on_start_hover(event)
 
     def hide_menu(self):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
@@ -290,9 +307,9 @@ class PCCanvasObject(object):
         # to reappear instantly. It is re-enabled in self.on_end_hover()
         self.canvas.itemconfigure(self.hover_area, state="hidden")
 
-    def menu_delete(self, event):
+    def menu_delete(self, event, is_quick_del):
 
-        if globalVars.ask_before_delete:
+        if (not is_quick_del and globalVars.ask_before_delete) or (is_quick_del and globalVars.ask_before_quick_delete):
             answer = messagebox.askokcancel("Delete PC", "Delete this PC?")
         else:
             answer = True
@@ -632,3 +649,36 @@ class PCCanvasObject(object):
     def delete_button_bg_leave(self, event):
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
+
+    # -------------------------- Save & Load Methods -------------------------- #
+    def get_save_info(self):
+
+        return [self._x, self._y, self.block_name, self.cli_text, self.command_history, self.command_history_index,
+                self.line_connections, self.tag_1, self.tag_2, self.interface_1, self.interface_2, self.l1, self.l2,
+                self.class_object.get_save_info()]
+
+    def set_pos(self, x_pos, y_pos):
+        self._x = x_pos
+        self._y = y_pos
+        self.canvas.coords(self.canvas_object, x_pos, y_pos)
+
+        # Move the hover area and menu buttons
+        self.canvas.coords(self.hover_area, self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) - 50,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 50,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 75,
+                           self.canvas.canvasx(self._x) + 95, self.canvas.canvasy(self._y) - 75,
+                           self.canvas.canvasx(self._x) + 95, self.canvas.canvasy(self._y) + 75,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 75,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 50,
+                           self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) + 50)
+
+        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(self._x) + 40, self.canvas.canvasy(self._y),
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 5,
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 72,
+                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) - 72,
+                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) + 72,
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 72,
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 5)
+
+        self.button_release(None)
+    # -------------------------- Save & Load Methods -------------------------- #

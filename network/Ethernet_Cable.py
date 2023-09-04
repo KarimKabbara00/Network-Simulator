@@ -1,6 +1,3 @@
-import threading
-
-
 class EthernetCable:
 
     def __init__(self):

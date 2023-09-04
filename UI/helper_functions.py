@@ -1,17 +1,13 @@
-import re
 import math
 import random
-from textwrap import wrap
+import re
 import tkinter as tk
 from itertools import groupby
-import numpy as np
 from operator import itemgetter
+from textwrap import wrap
+import numpy as np
 from UI import loadIcons
-
-number = 0
-pc_id = 0
-sw_id = 0
-ro_id = 0
+import globalVars
 
 
 def button_enter(event, btn):
@@ -23,27 +19,32 @@ def button_leave(event, btn):
 
 
 def get_next_number():
-    global number
-    number += 1
-    return number
+    globalVars.node_number += 1
+    return globalVars.node_number
 
 
-def increment_pc_id():
-    global pc_id
-    pc_id += 1
-    return pc_id
+def get_next_pc(generation):
+    return generation + "_PC_" + str(get_next_number())
 
 
-def increment_sw_id():
-    global sw_id
-    sw_id += 1
-    return sw_id
+def get_next_switch():
+    return "SW_" + str(get_next_number())
 
 
-def increment_ro_id():
-    global ro_id
-    ro_id += 1
-    return ro_id
+def get_next_router():
+    return "Router_" + str(get_next_number())
+
+
+def get_next_cable(canvas):
+    return "Eth_" + str(len(canvas.find_withtag('Ethernet')) + 1)
+
+
+def get_next_rectangle(canvas):
+    return "Rectangle_" + str(len(canvas.find_withtag('Rectangle')) + 1)
+
+
+def get_next_label(canvas):
+    return "Label_" + str(len(canvas.find_withtag('Label')) + 1)
 
 
 def create_circle(x, y, r, canvas):  # center coordinates, radius
@@ -417,7 +418,6 @@ def compute_ping_stats(ping_rtt_times, dest_ipv4_address, count, received_ping_c
 
 
 def create_tooltip(canvas, button, text, tag, pos=(0, 0), text_offset=(0, 0)):
-
     if button.cget('relief') == 'sunken':
         x = pos[0]
         y = pos[1]
@@ -428,7 +428,8 @@ def create_tooltip(canvas, button, text, tag, pos=(0, 0), text_offset=(0, 0)):
                                           font=("Arial", 10), tags=tag)
         tooltip_bg = canvas.create_polygon(x + 40, y + 13, x + 50, y + 8, x + 50, y - 1, x + 162 + (text_offset[0] * 2),
                                            y - 1 + (text_offset[1] * 2),
-                                           x + 162 + (text_offset[0] * 2), y + 24 + (text_offset[1] * 2), x + 50, y + 24,
+                                           x + 162 + (text_offset[0] * 2), y + 24 + (text_offset[1] * 2), x + 50,
+                                           y + 24,
                                            x + 50, y + 16,
                                            fill="#fefec3", tags=tag, outline="black")
 

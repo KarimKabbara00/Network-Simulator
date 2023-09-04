@@ -156,3 +156,19 @@ class Switch:
 
     def at_least_one_connected_interface(self):
         return any(i.get_is_connected() for i in self.interfaces)
+
+    # -------------------------- Save & Load Methods -------------------------- #
+    def get_save_info(self):
+
+        interfaces = []
+        for interface in self.interfaces:
+            interfaces.append(interface.get_save_info())
+
+        return [self.Host_Name, self.MAC_Address, self.Model_Number, self.CAM_table, interfaces]
+
+    def set_cam_table(self, cam):
+        self.CAM_table = cam
+
+    def set_interfaces_on_load(self, interfaces):
+        self.interfaces = interfaces
+    # -------------------------- Save & Load Methods -------------------------- #

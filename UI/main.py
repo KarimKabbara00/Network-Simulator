@@ -1,21 +1,24 @@
 from tkinter import *
 from PIL import Image, ImageTk
 import button_handler
+import load_save as ls
+
 global img
 
 
-def create_menu():
+def create_menu(canvas_obj, master):
     menu_bar = Menu(tk)
     file_menu = Menu(menu_bar, tearoff=0)
     file_menu.add_command(label="New")
-    file_menu.add_command(label="Open", )
-    file_menu.add_command(label="Save", )
+    file_menu.add_command(label="Open", command=lambda c=canvas_obj, m=master: ls.load_file(c, m))
+    file_menu.add_command(label="Save", command=ls.save_file)
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=tk.quit)
     menu_bar.add_cascade(label="File", menu=file_menu)
 
     preferences_menu = Menu(menu_bar, tearoff=0)
-    preferences_menu.add_command(label="Edit Preferences", command=lambda m=tk: button_handler.preferences_menu(tk))
+    preferences_menu.add_command(label="Edit Preferences",
+                                 command=lambda m=tk, c=canvas_obj: button_handler.preferences_menu(m, c))
     menu_bar.add_cascade(label="Preferences", menu=preferences_menu)
 
     help_menu = Menu(menu_bar, tearoff=0)
@@ -33,12 +36,12 @@ width = tk.winfo_screenwidth()
 height = tk.winfo_screenheight()
 tk.geometry("%dx%d" % (width - 10, height - 10))
 
-# create top menu
-menubar = create_menu()
-
 # Canvas
 canvas = Canvas(tk, bg="white", height=height * 2, width=width * 2, scrollregion=(0, 0, width * 2, height * 2))
 canvas.pack(expand=YES, fill=BOTH)
+
+# create top menu
+menubar = create_menu(canvas, tk)
 
 scroll_x = Scrollbar(tk, orient="horizontal", command=canvas.xview)
 scroll_x.place(x=0, y=778, width=width)
@@ -162,9 +165,9 @@ new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_handler.
 # Canvas Drawing Stuff
 
 # Delete Button Stuff
-canvas_delete = LabelFrame(tk, text="Quick Delete", padx=12, pady=3)
+canvas_delete = LabelFrame(tk, text="Quick Delete", padx=16, pady=3)
 # canvas_delete.place(x=width - 567, y=625, height=75, width=75)
-canvas_delete.place(x=width - 567, y=925, height=75, width=75)
+canvas_delete.place(x=width - 567, y=925, height=75, width=82)
 
 del_button = Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
                     image=x1, width=40, height=40, relief=GROOVE)

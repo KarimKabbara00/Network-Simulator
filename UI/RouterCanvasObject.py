@@ -191,12 +191,20 @@ class RouterCanvasObject:
                                                 self.line_connections[i][1] + "_light_" + self.line_connections[i][
                                                     0] + "_" + str(j))
 
-                            self.canvas.tag_lower(l1)
-                            self.canvas.tag_lower(l2)
-                            self.canvas.tag_lower(line)
+                            # Set appropriate layers
+                            for lt in self.canvas.find_withtag('light'):
+                                self.canvas.tag_lower(lt)
+                            # Nested loop :(
+                            for ln in self.canvas.find_withtag('line'):
+                                self.canvas.tag_lower(ln)
+                                for rectangle in self.canvas.find_withtag('Rectangle'):
+                                    self.canvas.tag_lower(rectangle, ln)
 
-                            # COULD THIS CAUSE A LIGHT ISSUE (COLORS)
                             i.set_lights(l1, l2)
+
+                            if not globalVars.show_link_lights:
+                                self.canvas.itemconfig(l1, state='hidden')
+                                self.canvas.itemconfig(l2, state='hidden')
 
                         if 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
                                 self.canvas.canvasy(event_y) - self.canvas.coords(line)[1]) <= 30:
@@ -253,7 +261,7 @@ class RouterCanvasObject:
 
         self.delete_button.bind('<Enter>', self.delete_button_bg_enter)
         self.delete_button.bind('<Leave>', self.delete_button_bg_leave)
-        self.delete_button.bind('<Button-1>', self.menu_delete)
+        self.delete_button.bind('<Button-1>', lambda e, q=False: self.menu_delete(e, q))
 
         self.on_start_hover(event)
 
@@ -297,30 +305,32 @@ class RouterCanvasObject:
                     pass
 
         popup = tk.Toplevel(self.master)
-        popup.geometry("%dx%d+%d+%d" % (560, 300, 600, 300))
+        popup.geometry("%dx%d+%d+%d" % (672, 300, 600, 300))
         popup.wm_title("Disconnect Cable")
         popup.wm_iconphoto(False, self.icons[2])
         popup.focus_set()
 
         frame = tk.LabelFrame(popup, padx=5, pady=5)
-        frame.place(x=10, y=10, height=245, width=541)
+        frame.place(x=10, y=10, height=245, width=653)
 
-        button = tk.Button(popup, text='Disconnect', relief=tk.GROOVE, width=76)
+        button = tk.Button(popup, text='Disconnect', relief=tk.GROOVE, width=92)
         button.bind('<Button-1>', disconnect)
         button.place(x=10, y=265)
         button.config(state='disabled')  # Initially, the button is disabled. It is enabled when a row is pressed.
 
         # Build tree
-        columns = ('l_interface', 'r_hostname', 'r_interface', 'operational')
+        columns = ('l_interface', 'l_status', 'r_hostname', 'r_interface', 'r_status')
         tree = ttk.Treeview(frame, columns=columns, show='headings')
         tree.heading('l_interface', text='Local Interface')
         tree.column("l_interface", minwidth=0, width=100)
+        tree.heading('l_status', text='Local Status')
+        tree.column("l_status", minwidth=0, width=110)
         tree.heading('r_hostname', text='Remote Hostname')
         tree.column("r_hostname", minwidth=0, width=150)
         tree.heading('r_interface', text='Remote Interface')
         tree.column("r_interface", minwidth=0, width=150)
-        tree.heading('operational', text='Status')
-        tree.column("operational", minwidth=0, width=110)
+        tree.heading('r_status', text='Remote Status')
+        tree.column("r_status", minwidth=0, width=110)
 
         tree.bind('<<TreeviewSelect>>', enable_button)
 
@@ -329,17 +339,26 @@ class RouterCanvasObject:
             if i.get_is_connected():
                 c1 = i.get_canvas_cable().get_cable_end_1().get_shortened_name()
                 c2 = i.get_canvas_cable().get_cable_end_2().get_shortened_name()
-                h1 = i.get_canvas_cable().get_class_object_1().get_host_name()
-                h2 = i.get_canvas_cable().get_class_object_2().get_host_name()
 
-                operational = 'Non-operational'
+                remote_hostname = i.get_canvas_cable().get_class_object_1().get_host_name()
+                remote_status = i.get_canvas_cable().get_cable_end_1().get_is_operational()
+                if remote_hostname == self.class_object.get_host_name():
+                    remote_hostname = i.get_canvas_cable().get_class_object_2().get_host_name()
+                    remote_status = i.get_canvas_cable().get_cable_end_2().get_is_operational()
+
+                local_status = 'Non-operational'
                 if i.get_is_operational():
-                    operational = 'Operational'
+                    local_status = 'Operational'
+
+                if remote_status:
+                    remote_status = 'Operational'
+                else:
+                    remote_status = 'Non-operational'
 
                 if c1 == i.get_shortened_name():
-                    tree.insert('', tk.END, values=(c1, h1, c2, operational))
+                    tree.insert('', tk.END, values=(c1, local_status, remote_hostname, c2, remote_status))
                 else:
-                    tree.insert('', tk.END, values=(c2, h2, c1, operational))
+                    tree.insert('', tk.END, values=(c2, local_status, remote_hostname, c1, remote_status))
 
         tree.grid(row=0, column=0, sticky='nsew')
 
@@ -350,9 +369,9 @@ class RouterCanvasObject:
 
         self.hide_menu()
 
-    def menu_delete(self, event):
+    def menu_delete(self, event, is_quick_del):
 
-        if globalVars.ask_before_delete:
+        if (not is_quick_del and globalVars.ask_before_delete) or (is_quick_del and globalVars.ask_before_quick_delete):
             answer = messagebox.askokcancel("Delete Router", "Delete this Router?")
         else:
             answer = True

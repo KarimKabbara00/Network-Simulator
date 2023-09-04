@@ -1,61 +1,34 @@
 import tkinter as tk
 from tkinter import colorchooser, messagebox
-import network.PC
-import network.Switch
-import network.Ethernet_Cable
-import network.Router
-from PCCanvasObject import PCCanvasObject
-from SwitchCanvasObject import SwitchCanvasObject
-from EthernetCableCanvasObject import EthernetCableCanvasObject
-from RouterCanvasObject import RouterCanvasObject
-from RectangleCanvasObject import RectangleCanvasObject
-from LabelCanvasObject import LabelCanvasObject
-import helper_functions as hf
-from UI import loadIcons
 import globalVars as globalVars
+import helper_functions as hf
+import network.Ethernet_Cable
+import network.PC
+import network.Router
+import network.Switch
+from EthernetCableCanvasObject import EthernetCableCanvasObject
+from LabelCanvasObject import LabelCanvasObject
+from PCCanvasObject import PCCanvasObject
+from RectangleCanvasObject import RectangleCanvasObject
+from RouterCanvasObject import RouterCanvasObject
+from SwitchCanvasObject import SwitchCanvasObject
+from UI import loadIcons
 
-objects = []
-cable_objects = []
-canvas_rectangles = []
-canvas_labels = []
+
 number = 0
 
 
-def get_next_pc(generation):
-    return generation + "_PC_" + str(hf.get_next_number())
-
-
-def get_next_switch():
-    return "SW_" + str(hf.get_next_number())
-
-
-def get_next_router():
-    return "Router_" + str(hf.get_next_number())
-
-
-def get_next_cable(canvas):
-    return "Eth_" + str(len(canvas.find_withtag('Ethernet')) + 1)
-
-
-def get_next_rectangle(canvas):
-    return "Rectangle_" + str(len(canvas.find_withtag('Rectangle')) + 1)
-
-
-def get_next_label(canvas):
-    return "Label_" + str(len(canvas.find_withtag('Label')) + 1)
-
-
 def create_pc(popup, canvas, generation, master, icons):
-    pc = PCCanvasObject(canvas, get_next_pc(generation), icons, network.PC.PC(generation), master)
-    objects.append(pc)
+    pc = PCCanvasObject(canvas, hf.get_next_pc(generation), icons, network.PC.PC(generation), master)
+    globalVars.objects.append(pc)
     popup.destroy()
     globalVars.open_TL_pc = False
 
 
 def create_switch(popup, canvas, icons, switch_type, master):
     if switch_type == "TSA1000X":
-        switch = SwitchCanvasObject(canvas, get_next_switch(), icons, network.Switch.Switch(), master)
-        objects.append(switch)
+        switch = SwitchCanvasObject(canvas, hf.get_next_switch(), icons, network.Switch.Switch(), master)
+        globalVars.objects.append(switch)
     elif switch_type == "RTSA1000X":
         pass
 
@@ -64,22 +37,22 @@ def create_switch(popup, canvas, icons, switch_type, master):
 
 
 def create_router(popup, canvas, icons, master):
-    router = RouterCanvasObject(canvas, get_next_router(), icons, network.Router.Router(), master)
-    objects.append(router)
+    router = RouterCanvasObject(canvas, hf.get_next_router(), icons, network.Router.Router(), master)
+    globalVars.objects.append(router)
     popup.destroy()
     globalVars.open_TL_ro = False
 
 
 def create_rectangle(canvas):
     color_code = colorchooser.askcolor(title="Choose Box Color")
-    rectangle = RectangleCanvasObject(canvas, color_code, get_next_rectangle(canvas))
-    canvas_rectangles.append(rectangle)
+    rectangle = RectangleCanvasObject(canvas, color_code, hf.get_next_rectangle(canvas))
+    globalVars.canvas_rectangles.append(rectangle)
 
 
 def create_label(popup, canvas, text):
     if text:
-        label = LabelCanvasObject(canvas, get_next_label(canvas), text)
-        canvas_labels.append(label)
+        label = LabelCanvasObject(canvas, hf.get_next_label(canvas), text)
+        globalVars.canvas_labels.append(label)
         popup.destroy()
     else:
         messagebox.showerror('Invalid Parameter', 'Please Enter Some Text', parent=popup)
@@ -189,10 +162,10 @@ def handle_button_click(master, canvas, device_type):
     #     pass
 
     elif device_type == "Eth_cable":
-        eth_icon = "icons/ethernet.png"
-        cable = EthernetCableCanvasObject(canvas, get_next_cable(canvas), eth_icon,
-                                          network.Ethernet_Cable.EthernetCable())
-        cable_objects.append(cable)
+        eth_icon = loadIcons.get_ethernet_icon()[0]
+        cable = EthernetCableCanvasObject(canvas, hf.get_next_cable(canvas), eth_icon,
+                                          network.Ethernet_Cable.EthernetCable(), master)
+        globalVars.cable_objects.append(cable)
 
     elif device_type == "Label":
 
@@ -224,26 +197,30 @@ def handle_button_click(master, canvas, device_type):
             globalVars.tl_lb.focus_set()
 
 
-def toggle_link_lights(canvas):
-    lights = canvas.find_withtag("light")
-    for i in lights:
-        if not globalVars.light_state:
-            canvas.itemconfig(i, state='hidden')
-        else:
-            canvas.itemconfig(i, state='normal')
+def toggle_link_lights(canvas, checkbox=False):
+    if canvas:
 
-    globalVars.light_state = not globalVars.light_state
+        # Only not the variable this function is called from the toggle button, not the preferences menu
+        if not checkbox:
+            globalVars.light_state = not globalVars.light_state
+
+        lights = canvas.find_withtag("light")
+        for i in lights:
+            if not globalVars.light_state:
+                canvas.itemconfig(i, state='hidden')
+            else:
+                canvas.itemconfig(i, state='normal')
 
 
 def toggle_labels(canvas):
-    for i in canvas_labels:
+    for i in globalVars.canvas_labels:
         i.toggle_label(False)
 
     # Check if all labels are in the same state. If not, show them all to reset the state.
     labels = canvas.find_withtag("Label")
     if any(canvas.itemcget(i, 'state') == 'hidden' for i in labels) and any(
             canvas.itemcget(i, 'state') == 'normal' for i in labels):
-        for i in canvas_labels:
+        for i in globalVars.canvas_labels:
             i.toggle_label(True)
 
 
@@ -281,9 +258,9 @@ def delete_object(canvas, icon):
                 canvas.delete(canvas_object)
                 return
 
-            for i in objects:
+            for i in globalVars.objects:
                 if i.get_block_name() == canvas_object_tag:
-                    i.menu_delete(None)
+                    i.menu_delete(None, True)
                     return
 
             # for i in cable_objects:
@@ -291,12 +268,12 @@ def delete_object(canvas, icon):
             #         i.menu_delete()
             #         return
 
-            for i in canvas_rectangles:
+            for i in globalVars.canvas_rectangles:
                 if i.get_block_name() == canvas_object_tag:
                     i.delete()
                     return
 
-            for i in canvas_labels:
+            for i in globalVars.canvas_labels:
                 if i.get_block_name() == canvas_object_tag:
                     i.delete()
                     return
@@ -313,8 +290,7 @@ def delete_object(canvas, icon):
     canvas.tag_bind(canvas_object, "<Button-1>", delete)
 
 
-def preferences_menu(master):
-
+def preferences_menu(master, canvas):
     preferences_popup = tk.Toplevel(master)
     preferences_popup.title("Preferences")
     preferences_popup.iconphoto(False, loadIcons.get_preferences_icon()[0])
@@ -352,7 +328,7 @@ def preferences_menu(master):
     show_link_lights_check = tk.Checkbutton(frame, text='Show link lights', variable=show_link_lights_var,
                                             onvalue=True, offvalue=False,
                                             command=lambda i="show_link_lights",
-                                                           j=show_link_lights_var: set_preferences(i, j))
+                                                           j=show_link_lights_var, c=canvas: set_preferences(i, j, c))
     show_link_lights_check.grid(row=2, column=0, sticky=tk.W)
     # Show link lights by default #
 
@@ -380,7 +356,7 @@ def preferences_menu(master):
         persistent_cable_conn_check.select()
 
 
-def set_preferences(option, value):
+def set_preferences(option, value, canvas=None):
     match option:
         case "ask_before_delete":
             if value.get():
@@ -397,8 +373,12 @@ def set_preferences(option, value):
         case "show_link_lights":
             if value.get():
                 globalVars.show_link_lights = True
+                globalVars.light_state = True
             else:
                 globalVars.show_link_lights = False
+                globalVars.light_state = False
+
+            toggle_link_lights(canvas, checkbox=True)
 
         case "persistent_cable_con":
             if value.get():

@@ -1,23 +1,9 @@
-
-def set_name(speed):
-    if speed == 10:
-        return 'Eth'
-    elif speed == 100:
-        return 'Fa'
-    elif speed == 1000:
-        return 'G'
-    elif speed == 10000:
-        return '10G'
-    else:
-        raise Exception("Invalid Speed")
-
-
 class PhysicalInterface:
 
     def __init__(self, name, speed, device):
         self.speed = speed
         self.bandwidth = speed
-        self.name = set_name(speed) + name
+        self.name = PhysicalInterface.set_name(speed) + name
         self.host = device
         self.host_mac_address = device.get_mac_address()
         self.is_connected = False
@@ -35,6 +21,19 @@ class PhysicalInterface:
             self.switchport_type = None  # If none, then all vlan traffic is allowed
             self.access_vlan_id = 1
             self.trunk_vlan_ids = []
+
+    @staticmethod
+    def set_name(speed):
+        if speed == 10:
+            return 'Eth'
+        elif speed == 100:
+            return 'Fa'
+        elif speed == 1000:
+            return 'G'
+        elif speed == 10000:
+            return '10G'
+        else:
+            raise Exception("Invalid Speed")
 
     def send(self, frame):
         self.cable.send(self, frame)
@@ -138,24 +137,25 @@ class PhysicalInterface:
     def set_canvas_object(self, obj):
         self.canvas_cable = obj
 
-    def set_operational(self, state):
+    def set_operational(self, state, load=False):
         self.operational = state
+        if not load:
+            if self.operational:
+                self.canvas_cable.set_light("Green", self.host.get_canvas_object().get_block_name())
+            else:
+                self.canvas_cable.set_light("Red", self.host.get_canvas_object().get_block_name())
 
-        if self.operational:
-            self.canvas_cable.set_light("Green", self.host.get_canvas_object().get_block_name())
-        else:
-            self.canvas_cable.set_light("Red", self.host.get_canvas_object().get_block_name())
-
-    def set_administratively_down(self, is_down):
+    def set_administratively_down(self, is_down, load=False):
         self.administratively_down = is_down
-        if is_down:
-            self.set_operational(False)
+        if not load:
+            if is_down:
+                self.set_operational(False)
 
-        elif not is_down and self.is_connected:
-            self.set_operational(True)
+            elif not is_down and self.is_connected:
+                self.set_operational(True)
 
-        elif not is_down and not self.is_connected:
-            self.set_operational(False)
+            elif not is_down and not self.is_connected:
+                self.set_operational(False)
 
     def set_access_vlan_id(self, v_id):
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
@@ -169,3 +169,7 @@ class PhysicalInterface:
 
     def add_allowed_trunk_vlan(self, vlan_id):
         self.trunk_vlan_ids.append(vlan_id)
+
+    def get_save_info(self):
+        return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected, self.connected_to,
+                self.operational, self.administratively_down]

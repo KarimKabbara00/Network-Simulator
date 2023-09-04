@@ -65,6 +65,13 @@ def get_router_icons():
     return [ro_icon1, terminal_icon1, ethernet_del_icon1, x_node_icon1]
 
 
+def get_ethernet_icon():
+    eth_icon = Image.open("icons/ethernet.png")
+    eth_icon = eth_icon.resize((50, 50))
+    eth_icon1 = ImageTk.PhotoImage(eth_icon)
+    return [eth_icon1]
+
+
 def get_label_icon():
     label_icon = Image.open('icons/label.png')
     label_icon = label_icon.resize((75, 75))

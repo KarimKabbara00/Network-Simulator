@@ -1,5 +1,21 @@
+file_directory = "C:/Users/karim/PycharmProjects/pythonProject1/save_files"
+
+# ------------ Object Lists ------------ #
+objects = []
+cable_objects = []
+canvas_rectangles = []
+canvas_labels = []
+node_number = 0
+# ------------ Object Lists ------------ #
+
+
+# ------------ Node Button List ------------ #
+node_buttons = []
+# ------------ Node Button List ------------ #
+
+
 # ------------ Link Light State ------------ #
-light_state = False
+light_state = True
 # ------------ Link Light State ------------ #
 
 # ------------ Pop up variables to ensure only 1 of the same is open at a time ------------ #
@@ -24,4 +40,5 @@ ask_before_delete = True
 ask_before_quick_delete = True
 show_link_lights = True
 persistent_cable_connect = True
+test = True
 # ------------ Variables for appropriate classes to acquire them ------------ #
