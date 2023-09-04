@@ -292,3 +292,6 @@ class EthernetCableCanvasObject:
 
     def get_class_object_2(self):
         return self.class_object_2
+
+    def get_save_info(self):
+        return [self.block_name, self.obj1_coords, self.obj2_coords, self.obj1_canvas_tag, self.obj2_canvas_tag]

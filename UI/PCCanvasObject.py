@@ -652,10 +652,8 @@ class PCCanvasObject(object):
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
-
         return [self._x, self._y, self.block_name, self.cli_text, self.command_history, self.command_history_index,
-                self.line_connections, self.tag_1, self.tag_2, self.interface_1, self.interface_2, self.l1, self.l2,
-                self.class_object.get_save_info()]
+                self.tag_1, self.tag_2, self.l1, self.l2, self.class_object.get_save_info()]
 
     def set_pos(self, x_pos, y_pos):
         self._x = x_pos

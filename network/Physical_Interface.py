@@ -8,6 +8,7 @@ class PhysicalInterface:
         self.host_mac_address = device.get_mac_address()
         self.is_connected = False
         self.connected_to = None
+        self.connected_to_MAC = None
         self.cable = None
         self.operational = False
         self.administratively_down = False
@@ -134,6 +135,13 @@ class PhysicalInterface:
     def set_cable(self, cable):
         self.cable = cable
 
+        m1 = self.cable.get_rj45_side_1().get_host_mac_address()
+        m2 = self.cable.get_rj45_side_2().get_host_mac_address()
+
+        self.connected_to_MAC = m1
+        if self.connected_to_MAC == self.get_host_mac_address():
+            self.connected_to_MAC = m2
+
     def set_canvas_object(self, obj):
         self.canvas_cable = obj
 
@@ -171,5 +179,5 @@ class PhysicalInterface:
         self.trunk_vlan_ids.append(vlan_id)
 
     def get_save_info(self):
-        return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected, self.connected_to,
+        return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected, self.connected_to_MAC,
                 self.operational, self.administratively_down]

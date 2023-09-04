@@ -15,12 +15,10 @@ from SwitchCanvasObject import SwitchCanvasObject
 from UI import loadIcons
 
 
-number = 0
-
-
 def create_pc(popup, canvas, generation, master, icons):
     pc = PCCanvasObject(canvas, hf.get_next_pc(generation), icons, network.PC.PC(generation), master)
     globalVars.objects.append(pc)
+    globalVars.pc_objects.append(pc)
     popup.destroy()
     globalVars.open_TL_pc = False
 
@@ -29,6 +27,7 @@ def create_switch(popup, canvas, icons, switch_type, master):
     if switch_type == "TSA1000X":
         switch = SwitchCanvasObject(canvas, hf.get_next_switch(), icons, network.Switch.Switch(), master)
         globalVars.objects.append(switch)
+        globalVars.sw_objects.append(switch)
     elif switch_type == "RTSA1000X":
         pass
 
@@ -45,8 +44,9 @@ def create_router(popup, canvas, icons, master):
 
 def create_rectangle(canvas):
     color_code = colorchooser.askcolor(title="Choose Box Color")
-    rectangle = RectangleCanvasObject(canvas, color_code, hf.get_next_rectangle(canvas))
-    globalVars.canvas_rectangles.append(rectangle)
+    if color_code[0]:
+        rectangle = RectangleCanvasObject(canvas, color_code, hf.get_next_rectangle(canvas))
+        globalVars.canvas_rectangles.append(rectangle)
 
 
 def create_label(popup, canvas, text):
@@ -260,6 +260,14 @@ def delete_object(canvas, icon):
 
             for i in globalVars.objects:
                 if i.get_block_name() == canvas_object_tag:
+                    globalVars.objects.remove(i)
+                    try:
+                        globalVars.pc_objects.remove(i)
+                        globalVars.sw_objects.remove(i)
+                        globalVars.ro_objects.remove(i)
+                        globalVars.fw_objects.remove(i)
+                    except ValueError:
+                        pass
                     i.menu_delete(None, True)
                     return
 
@@ -270,11 +278,13 @@ def delete_object(canvas, icon):
 
             for i in globalVars.canvas_rectangles:
                 if i.get_block_name() == canvas_object_tag:
+                    globalVars.canvas_rectangles.remove(i)
                     i.delete()
                     return
 
             for i in globalVars.canvas_labels:
                 if i.get_block_name() == canvas_object_tag:
+                    globalVars.canvas_labels.remove(i)
                     i.delete()
                     return
             return

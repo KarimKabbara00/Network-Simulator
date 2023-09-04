@@ -149,6 +149,9 @@ class Switch:
     def set_canvas_object(self, obj):
         self.canvas_object = obj
 
+    def set_mac_address(self, mac):
+        self.MAC_Address = mac
+
     def update_cam_table_vid(self, interface, vid):
         for i in self.CAM_table:
             if self.CAM_table[i][3] == interface:
@@ -164,11 +167,11 @@ class Switch:
         for interface in self.interfaces:
             interfaces.append(interface.get_save_info())
 
-        return [self.Host_Name, self.MAC_Address, self.Model_Number, self.CAM_table, interfaces]
+        return [self.Host_Name, self.MAC_Address, self.CAM_table, interfaces]
 
     def set_cam_table(self, cam):
         self.CAM_table = cam
 
-    def set_interfaces_on_load(self, interfaces):
-        self.interfaces = interfaces
+    def set_interfaces_on_load(self, interface):
+        self.interfaces.append(interface)
     # -------------------------- Save & Load Methods -------------------------- #

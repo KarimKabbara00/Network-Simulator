@@ -20,7 +20,7 @@ class EthernetCable:
 
                 i.set_is_connected(True)
                 i.set_connected_to(device_2.get_host_name())
-                i.set_cable(self)
+                # i.set_cable(self)
                 self.rj45_side_1 = i
 
         for i in device_2.get_interfaces():
@@ -32,13 +32,16 @@ class EthernetCable:
 
                 i.set_is_connected(True)
                 i.set_connected_to(device_1.get_host_name())
-                i.set_cable(self)
+                # i.set_cable(self)
                 self.rj45_side_2 = i
 
         if not self.rj45_side_1 or not self.rj45_side_2:
             self.rj45_side_1 = None
             self.rj45_side_2 = None
             raise Exception("Error Connecting Devices")
+        else:
+            self.rj45_side_1.set_cable(self)
+            self.rj45_side_2.set_cable(self)
 
     def send(self, source_interface, frame):
         if source_interface == self.rj45_side_1:
