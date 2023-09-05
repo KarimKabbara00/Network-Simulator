@@ -63,9 +63,14 @@ class SwitchCanvasObject:
                              self.button_release)  # When moving the object after it is created
         # Button Bindings
 
+        self.disconnect_menu = None
+
         # CLI Stuff
         self.cli_object = None
+        self.cli_window = None
         self.cli_command_files = ['commands/sw_general_command_list', 'commands/sw_interface_command_list']
+        self.cli_text = "Switch> "
+        self.created_terminal = False
         # CLI Stuff
 
         # Light & Line Stuff
@@ -74,12 +79,6 @@ class SwitchCanvasObject:
         self.y_flag = None
         self.line_interface_relations = {}
         # Light & Line Stuff
-
-        # To save CLI text
-        self.cli_text = "Switch> "
-        self.cli_window = None
-        self.created_terminal = False
-        # To save CLI text
 
     def motion(self, event=None):
 
@@ -91,8 +90,8 @@ class SwitchCanvasObject:
             event_x = event.x
             event_y = event.y
 
-        # Hide the menu
-        self.unbind_menu_temporarily()
+            # Hide the menu
+            self.unbind_menu_temporarily()
 
         # Move the hover area and menu buttons
         self.canvas.coords(self.hover_area, self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) - 35,
@@ -114,9 +113,6 @@ class SwitchCanvasObject:
 
         # Move the object
         self.canvas.coords(self.block_name, self.canvas.canvasx(event_x), self.canvas.canvasy(event_y))
-
-        # Move the Label
-        self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event_x), self.canvas.canvasy(event_y) + 60)
 
         try:
             for i in self.line_connections:
@@ -312,16 +308,16 @@ class SwitchCanvasObject:
                 except (tk.TclError, AttributeError):
                     pass
 
-        popup = tk.Toplevel(self.master)
-        popup.geometry("%dx%d+%d+%d" % (672, 300, 600, 300))
-        popup.wm_title("Disconnect Cable")
-        popup.wm_iconphoto(False, self.icons[2])
-        popup.focus_set()
+        self.disconnect_menu = tk.Toplevel(self.master)
+        self.disconnect_menu.geometry("%dx%d+%d+%d" % (672, 300, 600, 300))
+        self.disconnect_menu.wm_title("Disconnect Cable")
+        self.disconnect_menu.wm_iconphoto(False, self.icons[2])
+        self.disconnect_menu.focus_set()
 
-        frame = tk.LabelFrame(popup, padx=5, pady=5)
+        frame = tk.LabelFrame(self.disconnect_menu, padx=5, pady=5)
         frame.place(x=10, y=10, height=245, width=653)
 
-        button = tk.Button(popup, text='Disconnect', relief=tk.GROOVE, width=92)
+        button = tk.Button(self.disconnect_menu, text='Disconnect', relief=tk.GROOVE, width=92)
         button.bind('<Button-1>', disconnect)
         button.place(x=10, y=265)
         button.config(state='disabled')  # Initially, the button is disabled. It is enabled when a row is pressed.
@@ -377,9 +373,10 @@ class SwitchCanvasObject:
 
         self.hide_menu()
 
-    def menu_delete(self, event, is_quick_del):
+    def menu_delete(self, event, is_quick_del, reset=False):
 
-        if (not is_quick_del and globalVars.ask_before_delete) or (is_quick_del and globalVars.ask_before_quick_delete):
+        if ((not is_quick_del and globalVars.ask_before_delete) or (is_quick_del and globalVars.ask_before_quick_delete)
+                and not reset):
             answer = messagebox.askokcancel("Delete Switch", "Delete this Switch?")
         else:
             answer = True
@@ -399,6 +396,13 @@ class SwitchCanvasObject:
             self.canvas.delete()
             self.class_object = None
 
+            # Destroy windows when deleting node
+            if self.cli_window:
+                self.cli_window.destroy()
+
+            if self.disconnect_menu:
+                self.disconnect_menu.destroy()
+
             # In case, remove all tooltips
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Terminal_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
@@ -416,7 +420,7 @@ class SwitchCanvasObject:
             self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
             self.cli_window.wm_iconphoto(False, self.icons[1])
             self.cli_window.wm_title("Terminal")
-            self.cli_window.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(self.cli_window))
+            self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.focus_set()
             self.cli_object = SwitchCli(self, self.class_object, self.cli_window, self.cli_text,
@@ -427,10 +431,10 @@ class SwitchCanvasObject:
 
         self.hide_menu()
 
-    def on_closing(self, popup):
+    def on_closing(self):
         # Save CLI text
         self.cli_text = self.cli_object.on_closing()
-        popup.destroy()
+        self.cli_window.destroy()
 
     def get_block_name(self):
         return self.block_name

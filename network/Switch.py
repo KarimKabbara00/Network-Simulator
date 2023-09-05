@@ -169,10 +169,19 @@ class Switch:
         for interface in self.interfaces:
             interfaces.append(interface.get_save_info())
 
-        return [self.Host_Name, self.MAC_Address, self.CAM_table, interfaces]
+        return [self.Host_Name, self.MAC_Address, self.save_cam_table(), interfaces]
 
     def set_cam_table(self, cam):
         self.CAM_table = cam
+
+    def save_cam_table(self):
+        # self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface]
+        cam_table = {}
+        for entry in self.CAM_table:
+            cam_table[entry] = [self.CAM_table[entry][0], self.CAM_table[entry][1],
+                                self.CAM_table[entry][2], self.CAM_table[entry][3].get_shortened_name()]
+
+        return cam_table
 
     def set_interfaces_on_load(self, interface):
         self.interfaces.append(interface)

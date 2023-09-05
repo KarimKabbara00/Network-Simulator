@@ -29,7 +29,11 @@ def load_file(canvas, master):
 
 
 def save(file_name):
-    save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': []}
+    save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
+                 'preferences': [globalVars.file_directory, globalVars.ask_before_delete,
+                                 globalVars.ask_before_quick_delete, globalVars.show_link_lights,
+                                 globalVars.persistent_cable_connect]}
+
     for i in globalVars.pc_objects:
         temp = i.get_save_info()
         save_info['PC'].append({'x_coord': temp[0], 'y_coord': temp[1], 'block_name': temp[2], 'cli_text': temp[3],
@@ -69,15 +73,26 @@ def save(file_name):
 
 
 def load(canvas, master, file):
+
     # Clear everything first
+    globalVars.clear_all_objects()
     canvas.delete("all")
 
     with open(file, 'r') as F:
-        # Use the json dumps method to write the list to disk
+        # Use the json dumps method to write data to file
         configuration = json.load(F)
 
     globalVars.node_number = configuration['node_number']
 
+    # Set preferences
+    globalVars.file_directory = configuration['preferences'][0]
+    globalVars.ask_before_delete = configuration['preferences'][1]
+    globalVars.ask_before_quick_delete = configuration['preferences'][2]
+    globalVars.show_link_lights = configuration['preferences'][3]
+    globalVars.persistent_cable_connect = configuration['preferences'][4]
+
+    # Load All Nodes
+    pc_interface_to_light_mapping = {}
     pc_icons = loadIcons.get_pc_icons()
     for pc in configuration['PC']:
         pc_class_info = pc['class_info']
@@ -97,11 +112,8 @@ def load(canvas, master, file):
         # ----- Rebuild Interfaces ----- #
         intf = PhysicalInterface(pc_interface_info[2][1:], pc_interface_info[0], pc_obj)
         intf.set_bandwidth(pc_interface_info[1])
-        # intf.set_is_connected(pc_interface_info[4])
-        # intf.set_connected_to(pc_interface_info[5])
-        # intf.set_operational(pc_interface_info[6], load=True)
-        intf.set_administratively_down(pc_interface_info[7], load=True)
         pc_obj.set_interfaces_on_load(intf)
+        pc_interface_to_light_mapping[intf] = [pc_interface_info[6], pc_interface_info[7]]
         # ----- Rebuild Interfaces ----- #
 
         # ----- Rebuild Canvas PC ----- #
@@ -112,6 +124,7 @@ def load(canvas, master, file):
         globalVars.objects.append(pc_canvas_obj)
         globalVars.pc_objects.append(pc_canvas_obj)
 
+    sw_interface_to_light_mapping = {}
     sw_icons = loadIcons.get_sw_icons()
     for sw in configuration['SW']:
 
@@ -121,7 +134,6 @@ def load(canvas, master, file):
         # ----- Rebuild SW ----- #
         sw_obj = Switch(sw_class_info[0], load=True)
         sw_obj.set_mac_address(sw_class_info[1])
-        sw_obj.set_cam_table(sw_class_info[2])
         # ----- Rebuild SW ----- #
 
         # ----- Rebuild Interfaces ----- #
@@ -129,15 +141,20 @@ def load(canvas, master, file):
             t = interface[2].split('/')  # Split the name of the interface to pass it in next line
             intf = PhysicalInterface(t[0][-1] + '/' + t[-1], interface[0], sw_obj)
             intf.set_bandwidth(interface[1])
-            # intf.set_is_connected(interface[4])
-            # intf.set_connected_to(interface[5])
-            # intf.set_operational(interface[6], load=True)
-            intf.set_administratively_down(interface[7], load=True)
             intf.set_switchport_type(interface[8])
             intf.set_access_vlan_id(interface[9])
             intf.set_allowed_trunk_vlans(interface[10])
             sw_obj.set_interfaces_on_load(intf)
+            sw_interface_to_light_mapping[intf] = [interface[6], interface[7]]
         # ----- Rebuild Interfaces ----- #
+
+        # ----- Rebuild CAM Table ----- #
+        cam_table = {}
+        for entry in sw_class_info[2]:
+            cam_table[int(entry)] = [sw_class_info[2][entry][0], sw_class_info[2][entry][1], sw_class_info[2][entry][2],
+                                     sw_obj.get_interface_by_name(sw_class_info[2][entry][3])]
+        sw_obj.set_cam_table(cam_table)
+        # ----- Rebuild CAM Table ----- #
 
         # ----- Rebuild Canvas SW ----- #
         sw_canvas_object = SwitchCanvasObject(canvas, sw['block_name'], sw_icons, sw_obj, master, load=True)
@@ -147,12 +164,9 @@ def load(canvas, master, file):
         globalVars.objects.append(sw_canvas_object)
         globalVars.sw_objects.append(sw_canvas_object)
 
+    ro_interface_to_light_mapping = {}
     ro_icons = loadIcons.get_router_icons()
     for ro in configuration['RO']:
-        # save_info['RO'].append({'x': temp[0], 'y': temp[1], 'block_name': temp[2], 'cli_text': temp[3],
-        # 'class_info': temp[4]})
-        # CANVAS: return [self._x, self._y, self.block_name, self.cli_text, self.class_object.get_save_info()]
-        # ROUTER: return [self.Host_Name, self.MAC_Address, self.ARP_table, self.routing_table, interfaces]
 
         ro_class_info = ro['class_info']
         ro_interface_info = ro['class_info'][4]
@@ -161,7 +175,6 @@ def load(canvas, master, file):
         ro_obj = Router(ro_class_info[0], True)
         ro_obj.set_mac_address(ro_class_info[1])
         ro_obj.set_arp_table(ro_class_info[2])
-        ro_obj.set_routing_table(ro_class_info[3])
         # ----- Rebuild RO ----- #
 
         # ----- Rebuild Interfaces ----- #
@@ -169,14 +182,21 @@ def load(canvas, master, file):
             t = interface[2].split('/')  # Split the name of the interface to pass it in next line
             intf = PhysicalInterface(t[0][-1] + '/' + t[-1], interface[0], ro_obj)
             intf.set_bandwidth(interface[1])
-            # intf.set_is_connected(interface[4])
-            # intf.set_connected_to(interface[5])
-            # intf.set_operational(interface[6], load=True)
-            intf.set_administratively_down(interface[7], load=True)
             intf.set_ipv4_address(interface[8])
             intf.set_netmask(interface[9])
             ro_obj.set_interfaces_on_load(intf)
+            ro_interface_to_light_mapping[intf] = [interface[6], interface[7]]
         # ----- Rebuild Interfaces ----- #
+
+        # ----- Rebuild Routing Table ----- #
+        routing_table = {}
+        for intf in ro_class_info[3]:
+            interface_name = ro_obj.get_interface_by_name(intf)
+            routing_table[interface_name] = []
+            for route in ro_class_info[3][intf]:
+                routing_table[interface_name].append([route[0], route[1], route[2]])
+        ro_obj.set_routing_table(routing_table)
+        # ----- Rebuild Routing Table ----- #
 
         # ----- Rebuild Canvas RO ----- #
         ro_canvas_object = RouterCanvasObject(canvas, ro['block_name'], ro_icons, ro_obj, master, load=True)
@@ -208,3 +228,20 @@ def load(canvas, master, file):
         label_canvas_object.set_coords(label['x'], label['y'], label['a'], label['b'],
                                        label['label_x'], label['label_y'])
         globalVars.canvas_labels.append(label_canvas_object)
+
+    # ----- Set Lights ----- #
+    for i in pc_interface_to_light_mapping:
+        if i.get_is_connected():
+            i.set_operational(pc_interface_to_light_mapping[i][0])
+            i.set_administratively_down(pc_interface_to_light_mapping[i][1])
+
+    for i in sw_interface_to_light_mapping:
+        if i.get_is_connected():
+            i.set_operational(sw_interface_to_light_mapping[i][0])
+            i.set_administratively_down(sw_interface_to_light_mapping[i][1])
+
+    for i in ro_interface_to_light_mapping:
+        if i.get_is_connected():
+            i.set_operational(ro_interface_to_light_mapping[i][0])
+            i.set_administratively_down(ro_interface_to_light_mapping[i][1])
+    # ----- Set Lights ----- #

@@ -261,7 +261,6 @@ def delete_object(canvas, icon):
 
             for i in globalVars.objects:
                 if i.get_block_name() == canvas_object_tag:
-                    globalVars.objects.remove(i)
                     try:
                         globalVars.pc_objects.remove(i)
                         globalVars.sw_objects.remove(i)
@@ -269,6 +268,8 @@ def delete_object(canvas, icon):
                         globalVars.fw_objects.remove(i)
                     except ValueError:
                         pass
+
+                    globalVars.objects.remove(i)
                     i.menu_delete(None, True)
                     return
 
@@ -306,16 +307,16 @@ def preferences_menu(master, canvas):
     preferences_popup.title("Preferences")
     preferences_popup.iconphoto(False, loadIcons.get_preferences_icon()[0])
 
-    preferences_popup.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
+    preferences_popup.geometry("%dx%d+%d+%d" % (830, 600, 740, 300))
     preferences_popup.focus_set()
 
     frame = tk.LabelFrame(preferences_popup, padx=5, pady=5)
-    frame.place(x=10, y=10, height=305, width=430)
+    frame.place(x=10, y=10, width=810, height=580)
 
     ok_button = tk.Button(frame, text="OK", command=preferences_popup.destroy, relief=tk.GROOVE, width=10)
     ok_button.bind('<Enter>', lambda e, b=ok_button: hf.button_enter(e, b))
     ok_button.bind('<Leave>', lambda e, b=ok_button: hf.button_leave(e, b))
-    ok_button.place(x=330, y=260)
+    ok_button.place(x=705, y=535)
 
     # Ask before Delete #
     ask_b4_del_var = tk.BooleanVar()
@@ -352,6 +353,22 @@ def preferences_menu(master, canvas):
                                                                 j=persistent_cable_conn_var: set_preferences(i, j))
     persistent_cable_conn_check.grid(row=3, column=0, sticky=tk.W)
     # Persistent Cable Connect #
+
+    # Save/Load file directory
+    label = tk.Label(frame, text='Save Directory', font=('Arial', 10, 'bold'))
+    label.grid(row=4, column=0, sticky=tk.W, pady=(10, 0))
+
+    folder_path = tk.Text(frame, width=75, height=1)
+    folder_path.grid(row=5, column=0, sticky=tk.W, padx=(4, 10))
+    folder_path.insert('end', globalVars.file_directory)
+    folder_path.configure(state='disabled')
+
+    browse_button = tk.Button(frame, text='Browse', command=hf.open_folder_dialogue)
+    browse_button.grid(row=5, column=1, sticky=tk.W)
+
+    # Change label contents
+
+    # Save/Load file directory
 
     # Check buttons that were previously set
     if globalVars.ask_before_delete:

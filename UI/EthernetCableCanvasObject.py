@@ -388,4 +388,4 @@ class EthernetCableCanvasObject:
         if not globalVars.show_link_lights:
             self.canvas.itemconfig(self.light_1, state='hidden')
             self.canvas.itemconfig(self.light_2, state='hidden')
-# -------------------------- Save & Load Methods -------------------------- #
+    # -------------------------- Save & Load Methods -------------------------- #

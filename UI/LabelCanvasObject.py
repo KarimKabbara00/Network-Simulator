@@ -1,3 +1,5 @@
+import globalVars
+
 class LabelCanvasObject:
     def __init__(self, canvas, label_id, text, load=False):
         self.canvas = canvas

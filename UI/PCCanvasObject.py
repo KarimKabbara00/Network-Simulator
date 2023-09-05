@@ -52,11 +52,6 @@ class PCCanvasObject(object):
         self.disconnect_button = tk.Button(self.canvas, width=25, height=25, image=self.ethernet_del_icon)
         self.delete_button = tk.Button(self.canvas, width=25, height=25, image=self.x_node_icon)
 
-        globalVars.node_buttons.append(self.config_button)
-        globalVars.node_buttons.append(self.terminal_button)
-        globalVars.node_buttons.append(self.disconnect_button)
-        globalVars.node_buttons.append(self.delete_button)
-
         self.config_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
@@ -71,6 +66,8 @@ class PCCanvasObject(object):
         self.canvas.tag_bind(self.block_name, '<ButtonRelease-1>',
                              self.button_release)  # When moving the object after it is created
         # Button Bindings
+
+        self.config_window = None
 
         # CLI Stuff
         self.cli_window = None
@@ -118,8 +115,6 @@ class PCCanvasObject(object):
                            self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 72,
                            self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 5)
 
-        # Move the Label
-        # self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event.x), self.canvas.canvasy(event.y) + 60)
 
         try:
             line = self.canvas.find_withtag(self.tag_1 + "_line_" + self.tag_2 + "_0")
@@ -229,13 +224,13 @@ class PCCanvasObject(object):
 
     def open_config_menu(self, event):
 
-        popup = tk.Toplevel(self.canvas)
-        popup.geometry("%dx%d+%d+%d" % (700, 350, 600, 200))
+        self.config_window = tk.Toplevel(self.canvas)
+        self.config_window.geometry("%dx%d+%d+%d" % (700, 350, 600, 200))
 
-        popup.wm_iconphoto(False, self.icons[1])
-        popup.wm_title("Configure PC")
+        self.config_window.wm_iconphoto(False, self.icons[1])
+        self.config_window.wm_title("Configure PC")
 
-        configure_menu = ttk.Notebook(popup)
+        configure_menu = ttk.Notebook(self.config_window)
         general_tab = ttk.Frame(configure_menu)
         interface_tab = ttk.Frame(configure_menu)
 
@@ -286,19 +281,18 @@ class PCCanvasObject(object):
         save_btn = tk.Button(configure_menu, width=10, height=1, text="Save", relief=tk.GROOVE,
                              command=lambda: self.save_general_parameters(hostname.get(), mac_address.get(), ipv4.get(),
                                                                           netmask.get(), ipv6.get(), prefix.get(),
-                                                                          gateway.get(), popup))
+                                                                          gateway.get(), self.config_window))
         save_btn.place(x=590, y=300)
         save_btn.bind('<Enter>', lambda e, btn=save_btn: hf.button_enter(e, btn))
         save_btn.bind('<Leave>', lambda e, btn=save_btn: hf.button_leave(e, btn))
         # Save Button
 
-        popup.focus_set()
+        self.config_window.focus_set()
         self.hide_menu()
 
     def disconnect_cable(self, event):
         try:
             cable = self.class_object.get_interfaces()[0].get_canvas_cable()
-            globalVars.cable_objects.remove(cable)
             cable.delete_canvas_cable()
         except (tk.TclError, AttributeError):
             pass
@@ -309,14 +303,16 @@ class PCCanvasObject(object):
         # to reappear instantly. It is re-enabled in self.on_end_hover()
         self.canvas.itemconfigure(self.hover_area, state="hidden")
 
-    def menu_delete(self, event, is_quick_del):
+    def menu_delete(self, event, is_quick_del, reset=False):
 
-        if (not is_quick_del and globalVars.ask_before_delete) or (is_quick_del and globalVars.ask_before_quick_delete):
+        if ((not is_quick_del and globalVars.ask_before_delete) or (is_quick_del and globalVars.ask_before_quick_delete)
+                and not reset):
             answer = messagebox.askokcancel("Delete PC", "Delete this PC?")
         else:
             answer = True
 
         if answer:
+
             self.hide_menu()
             self.disconnect_cable(event)
             self.canvas.delete(self.canvas_object)
@@ -325,14 +321,19 @@ class PCCanvasObject(object):
             self.canvas.delete()
             self.class_object = None
 
+            # Destroy windows when deleting node
+            print(self.cli_window, self.config_window)
+            if self.cli_window:
+                self.cli_window.destroy()
+
+            if self.config_window:
+                self.config_window.destroy()
+
             # In case, remove all tooltips
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Config_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Terminal_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
-
-            globalVars.pc_objects.remove(self)
-            globalVars.objects.remove(self)
 
         self.hide_menu()
 
@@ -442,7 +443,7 @@ class PCCanvasObject(object):
         if not self.created_terminal:
             self.cli_window = tk.Toplevel(self.canvas)
             self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
-            self.cli_window.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(self.cli_window))
+            self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.wm_iconphoto(False, self.icons[2])
             self.cli_window.wm_title("Terminal")
@@ -562,10 +563,10 @@ class PCCanvasObject(object):
             self.cli.unbind("<Key>")
             self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
 
-    def on_closing(self, popup):
+    def on_closing(self):
         # Save CLI text
         self.cli_text = self.cli.get("2.0", "end-1c")
-        popup.destroy()
+        self.config_window.destroy()
 
     def add_line_connection(self, tag1, tag2, ignored_1, ignored_2, canvas_cable_object):
         self.line_connections[canvas_cable_object] = [tag1, tag2]

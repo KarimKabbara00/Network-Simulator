@@ -37,7 +37,8 @@ class PhysicalInterface:
             raise Exception("Invalid Speed")
 
     def send(self, frame):
-        self.cable.send(self, frame)
+        if self.operational:
+            self.cable.send(self, frame)
 
     def disconnect(self):
         self.canvas_cable = None
@@ -143,27 +144,26 @@ class PhysicalInterface:
             self.connected_to_MAC = m2
 
     def set_canvas_object(self, obj):
-        self.canvas_cable = obj
+        if obj:
+            self.canvas_cable = obj
 
-    def set_operational(self, state, load=False):
+    def set_operational(self, state):
         self.operational = state
-        if not load:
-            if self.operational:
-                self.canvas_cable.set_light("Green", self.host.get_canvas_object().get_block_name())
-            else:
-                self.canvas_cable.set_light("Red", self.host.get_canvas_object().get_block_name())
+        if self.operational:
+            self.canvas_cable.set_light("Green", self.host.get_canvas_object().get_block_name())
+        else:
+            self.canvas_cable.set_light("Red", self.host.get_canvas_object().get_block_name())
 
-    def set_administratively_down(self, is_down, load=False):
+    def set_administratively_down(self, is_down):
         self.administratively_down = is_down
-        if not load:
-            if is_down:
-                self.set_operational(False)
+        if is_down:
+            self.set_operational(False)
 
-            elif not is_down and self.is_connected:
-                self.set_operational(True)
+        elif not is_down and self.is_connected:
+            self.set_operational(True)
 
-            elif not is_down and not self.is_connected:
-                self.set_operational(False)
+        elif not is_down and not self.is_connected:
+            self.set_operational(False)
 
     def set_access_vlan_id(self, v_id):
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
@@ -181,8 +181,6 @@ class PhysicalInterface:
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
         if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
-            self.ip_address = None
-            self.netmask = None
             return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
                     self.connected_to_MAC, self.operational, self.administratively_down,
                     self.ip_address, self.netmask]

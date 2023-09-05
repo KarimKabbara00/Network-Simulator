@@ -40,9 +40,6 @@ tk.geometry("%dx%d" % (width - 10, height - 10))
 canvas = Canvas(tk, bg="white", height=height * 2, width=width * 2, scrollregion=(0, 0, width * 2, height * 2))
 canvas.pack(expand=YES, fill=BOTH)
 
-# create top menu
-menubar = create_menu(canvas, tk)
-
 scroll_x = Scrollbar(tk, orient="horizontal", command=canvas.xview)
 scroll_x.place(x=0, y=778, width=width)
 scroll_y = Scrollbar(tk, orient="vertical", command=canvas.yview)
@@ -50,6 +47,9 @@ scroll_y.place(x=width - 17, y=0, height=777)
 
 canvas.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
 canvas.configure(scrollregion=canvas.bbox("all"))
+
+# create top menu
+menubar = create_menu(canvas, tk)
 
 # bottom frame
 action_frame = Frame(tk, highlightbackground="grey22", highlightthickness=1.5)
@@ -148,7 +148,8 @@ label_button.bind('<Leave>', lambda e, btn=label_button: button_handler.hf.butto
 
 # Canvas Drawing Stuff
 canvas_drawing = LabelFrame(tk, text="Canvas", padx=5, pady=5)
-canvas_drawing.place(x=width - 475, y=825, height=175, width=225)
+canvas_drawing.place(x=width - 475, y=625, height=175, width=225)
+# canvas_drawing.place(x=width - 475, y=825, height=175, width=225)
 
 rect_button = Button(canvas_drawing, command=lambda: button_handler.create_rectangle(canvas), text="  Create Rectangle",
                      image=rectangle1, compound="left", width=175, height=50, relief=GROOVE)
@@ -181,9 +182,6 @@ tk.config(menu=menubar)
 tk.mainloop()
 
 # TODO Order:
-#   1. Save routing table
-#   2. Delete after loading (And before)
-#   3. Properly wipe canvas
 #   4. Set save directory in preferences
 #   5. Save preferences
 #   6. UI on different screens

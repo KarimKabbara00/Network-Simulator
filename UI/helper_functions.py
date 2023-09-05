@@ -5,6 +5,8 @@ import tkinter as tk
 from itertools import groupby
 from operator import itemgetter
 from textwrap import wrap
+from tkinter import filedialog
+
 import numpy as np
 from UI import loadIcons
 import globalVars
@@ -443,3 +445,7 @@ def create_tooltip(canvas, button, text, tag, pos=(0, 0), text_offset=(0, 0)):
         canvas.photo = tooltip_icon
 
         canvas.tag_lower(tooltip_bg, tooltip_text)
+
+
+def open_folder_dialogue():
+    globalVars.file_directory = filedialog.askdirectory(initialdir=globalVars.file_directory, title="Select a File")

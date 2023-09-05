@@ -217,7 +217,15 @@ class Router:
         for interface in self.interfaces:
             interfaces.append(interface.get_save_info())
 
-        return [self.Host_Name, self.MAC_Address, self.ARP_table, self.routing_table, interfaces]
+        return [self.Host_Name, self.MAC_Address, self.ARP_table, self.save_routing_table(), interfaces]
+
+    def save_routing_table(self):
+        routing_table = {}
+        for interface in self.routing_table:                        # For every interface
+            routing_table[interface.get_shortened_name()] = []      # Create a dict entry with the interface's name
+            for route in self.routing_table[interface]:             # For every route associated with the interface
+                routing_table[interface.get_shortened_name()].append([route[0], route[1], route[2]])    # Append
+        return routing_table
 
     def set_arp_table(self, arp):
         self.ARP_table = arp
