@@ -178,6 +178,24 @@ class PhysicalInterface:
     def add_allowed_trunk_vlan(self, vlan_id):
         self.trunk_vlan_ids.append(vlan_id)
 
+    # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
-        return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected, self.connected_to_MAC,
-                self.operational, self.administratively_down]
+        if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
+            self.ip_address = None
+            self.netmask = None
+            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
+                    self.connected_to_MAC, self.operational, self.administratively_down,
+                    self.ip_address, self.netmask]
+
+        elif self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
+            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
+                    self.connected_to_MAC, self.operational, self.administratively_down, self.switchport_type,
+                    self.access_vlan_id, self.trunk_vlan_ids]
+
+        else:
+            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
+                    self.connected_to_MAC, self.operational, self.administratively_down]
+
+    def set_allowed_trunk_vlans(self, vlans):
+        self.trunk_vlan_ids = vlans
+    # -------------------------- Save & Load Methods -------------------------- #

@@ -7,7 +7,7 @@ from network import Ethernet_Cable
 
 class EthernetCableCanvasObject:
 
-    def __init__(self, canvas, block_name, icon, class_object, master, cursor_pos=(350, 800)):
+    def __init__(self, canvas, block_name, icon, class_object, master, cursor_pos=(350, 800), load=False):
         self.canvas = canvas
         self.master = master
         self.block_name = block_name
@@ -20,17 +20,18 @@ class EthernetCableCanvasObject:
         y = self.canvas.canvasy(self.canvas.winfo_pointery() - self.canvas.winfo_rooty())
         # Current Cursor Location
 
-        # Icon Stuff
-        self.icon = icon
-        # Assigned to canvas_object to allow delete
-        self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "Ethernet"))
-        self.canvas.photo = self.icon
-        # Icon Stuff
+        if not load:
+            # Icon Stuff
+            self.icon = icon
+            # Assigned to canvas_object to allow delete
+            self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "Ethernet"))
+            self.canvas.photo = self.icon
+            # Icon Stuff
 
-        # Button Bindings
-        self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
-        self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
-        # Button Bindings
+            # Button Bindings
+            self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
+            self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
+            # Button Bindings
 
         # Objects to connect to
         self.canvas_line = None
@@ -195,7 +196,7 @@ class EthernetCableCanvasObject:
                                                            self.obj1_canvas_tag + "_line_" + self.obj2_canvas_tag +
                                                            "_" + str(self.existing_line_count),
                                                            self.obj2_canvas_tag + "_line_" + self.obj1_canvas_tag +
-                                                           "_" + str(self.existing_line_count), 'line'))
+                                                           "_" + str(self.existing_line_count), 'line', 'Ethernet'))
 
             self.light_1 = hf.draw_circle(self.obj1_coords[0] + x_shift, self.obj1_coords[1] + y_shift,
                                           self.obj2_coords[0] + x_shift, self.obj2_coords[1] + y_shift, 4,
@@ -228,7 +229,6 @@ class EthernetCableCanvasObject:
                                                      self.light_2, self)
 
             # Pass the interfaces that are connected to each canvas object
-
             self.canvas_object_1.set_interfaces(self.canvas_line, self.cable_end_1, self.cable_end_2)
             self.canvas_object_2.set_interfaces(self.canvas_line, self.cable_end_2, self.cable_end_1)
 
@@ -293,5 +293,99 @@ class EthernetCableCanvasObject:
     def get_class_object_2(self):
         return self.class_object_2
 
+    # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
-        return [self.block_name, self.obj1_coords, self.obj2_coords, self.obj1_canvas_tag, self.obj2_canvas_tag]
+        try:
+            interface_1_name = self.cable_end_1.get_shortened_name()
+            interface_2_name = self.cable_end_2.get_shortened_name()
+            return [self.block_name, self.canvas_object_1.get_coords(), self.canvas_object_2.get_coords(),
+                    self.obj1_canvas_tag, self.obj2_canvas_tag, interface_1_name, interface_2_name,
+                    self.existing_line_count]
+        except (TypeError, AttributeError):
+            return [None, None]
+
+    def set_pos(self, x1, y1, x2, y2, obj1_tag, obj2_tag, intf_1_name, intf_2_name, line_count):
+
+        self.canvas_object_1 = hf.get_node_by_name(obj1_tag)
+        self.canvas_object_2 = hf.get_node_by_name(obj2_tag)
+
+        self.class_object_1 = self.canvas_object_1.get_class_object()
+        self.class_object_2 = self.canvas_object_2.get_class_object()
+
+        self.obj1_coords = [x1, y1]
+        self.obj2_coords = [x2, y2]
+
+        self.obj1_canvas_tag = obj1_tag
+        self.obj2_canvas_tag = obj2_tag
+
+        self.cable_end_1 = self.class_object_1.get_interface_by_name(intf_1_name)
+        self.cable_end_2 = self.class_object_2.get_interface_by_name(intf_2_name)
+
+        self.existing_line_count = line_count
+
+        # Draw Line
+        self.canvas_line = self.canvas.create_line(self.obj1_coords[0], self.obj1_coords[1],
+                                                   self.obj2_coords[0],
+                                                   self.obj2_coords[1], fill="black", width=2,
+                                                   tags=(
+                                                       self.obj1_canvas_tag + "_line_" + self.obj2_canvas_tag +
+                                                       "_" + str(self.existing_line_count),
+                                                       self.obj2_canvas_tag + "_line_" + self.obj1_canvas_tag +
+                                                       "_" + str(self.existing_line_count), 'line', 'Ethernet'))
+
+        self.light_1 = hf.draw_circle(self.obj1_coords[0], self.obj1_coords[1],
+                                      self.obj2_coords[0], self.obj2_coords[1], 4,
+                                      self.canvas, self.obj1_canvas_tag + "_light_" + self.obj2_canvas_tag +
+                                      "_" + str(self.existing_line_count))
+
+        self.light_2 = hf.draw_circle(self.obj2_coords[0], self.obj2_coords[1],
+                                      self.obj1_coords[0], self.obj1_coords[1], 4,
+                                      self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
+                                      "_" + str(self.existing_line_count))
+
+        # Lower line and lights one layer to underlap the hover menu and canvas object
+        for light in self.canvas.find_withtag('light'):
+            self.canvas.tag_lower(light)
+
+        for line in self.canvas.find_withtag('line'):
+            self.canvas.tag_lower(line)
+
+        for rectangle in self.canvas.find_withtag('Rectangle'):
+            self.canvas.tag_lower(rectangle)
+
+        # Add each light to the cable class
+        self.cable_end_1.set_canvas_object(self)
+        self.cable_end_2.set_canvas_object(self)
+
+        # Each canvas object adds this connection to their own dictionary of connections
+        self.canvas_object_1.add_line_connection(self.obj1_canvas_tag, self.obj2_canvas_tag, self.light_1,
+                                                 self.light_2, self)
+        self.canvas_object_2.add_line_connection(self.obj1_canvas_tag, self.obj2_canvas_tag, self.light_1,
+                                                 self.light_2, self)
+
+        # Pass the interfaces that are connected to each canvas object
+        self.canvas_object_1.set_interfaces(self.canvas_line, self.cable_end_1, self.cable_end_2)
+        self.canvas_object_2.set_interfaces(self.canvas_line, self.cable_end_2, self.cable_end_1)
+
+        # Logically connect the nodes
+        self.class_object.connect(self.class_object_1, self.cable_end_1, self.class_object_2, self.cable_end_2)
+
+        # Set interfaces as connected and operational
+        self.cable_end_1.set_is_connected(True)
+        self.cable_end_2.set_is_connected(True)
+
+        # Routers are down by default
+        if self.class_object_1.get_model() == "R94X":
+            self.cable_end_1.set_operational(False)
+            self.cable_end_2.set_operational(True)
+        elif self.class_object_2.get_model() == "R94X":
+            self.cable_end_2.set_operational(False)
+            self.cable_end_1.set_operational(True)
+        else:
+            self.cable_end_1.set_operational(True)
+            self.cable_end_2.set_operational(True)
+
+        if not globalVars.show_link_lights:
+            self.canvas.itemconfig(self.light_1, state='hidden')
+            self.canvas.itemconfig(self.light_2, state='hidden')
+# -------------------------- Save & Load Methods -------------------------- #

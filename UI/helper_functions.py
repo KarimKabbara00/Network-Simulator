@@ -47,6 +47,12 @@ def get_next_label(canvas):
     return "Label_" + str(len(canvas.find_withtag('Label')) + 1)
 
 
+def get_node_by_name(name):
+    for node in globalVars.objects:
+        if node.get_block_name() == name:
+            return node
+
+
 def create_circle(x, y, r, canvas):  # center coordinates, radius
     x0 = x - r
     y0 = y - r

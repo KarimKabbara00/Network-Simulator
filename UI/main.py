@@ -57,12 +57,12 @@ action_frame.place(x=0, y=795, width=width, height=height - 840)
 
 # device buttons and logic
 device_frame = LabelFrame(tk, text="Devices", padx=5, pady=5)
-# device_frame.place(x=30, y=625, height=175, width=175)
-device_frame.place(x=30, y=825, height=175, width=175)
+device_frame.place(x=30, y=625, height=175, width=175)
+# device_frame.place(x=30, y=825, height=175, width=175)
 
 cable_frame = LabelFrame(tk, text="Cables", padx=5, pady=5)
-# cable_frame.place(x=225, y=625, height=175, width=82)
-cable_frame.place(x=225, y=825, height=175, width=82)
+cable_frame.place(x=225, y=625, height=175, width=82)
+# cable_frame.place(x=225, y=825, height=175, width=82)
 
 pc = Image.open("icons/desktop-computer.png")
 sw = Image.open("icons/switch.png")
@@ -166,8 +166,8 @@ new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_handler.
 
 # Delete Button Stuff
 canvas_delete = LabelFrame(tk, text="Quick Delete", padx=16, pady=3)
-# canvas_delete.place(x=width - 567, y=625, height=75, width=75)
-canvas_delete.place(x=width - 567, y=925, height=75, width=82)
+canvas_delete.place(x=width - 567, y=625, height=75, width=75)
+# canvas_delete.place(x=width - 567, y=925, height=75, width=82)
 
 del_button = Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
                     image=x1, width=40, height=40, relief=GROOVE)
@@ -179,3 +179,16 @@ del_button.bind('<Leave>', lambda e, btn=del_button: button_handler.hf.button_le
 # launch
 tk.config(menu=menubar)
 tk.mainloop()
+
+# TODO Order:
+#   1. Save routing table
+#   2. Delete after loading (And before)
+#   3. Properly wipe canvas
+#   4. Set save directory in preferences
+#   5. Save preferences
+#   6. UI on different screens
+#   7. Add help menu
+#   8. Add Changelog menu
+#   9. Reboot devices (Introduce startup/running configs)
+#   10. Disconnect menu button
+#   11. Other TODOs

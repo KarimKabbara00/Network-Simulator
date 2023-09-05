@@ -5,11 +5,13 @@ from network.Physical_Interface import PhysicalInterface
 
 class Switch:
 
-    def __init__(self, host_name="Switch"):
+    def __init__(self, host_name="Switch", load=False):
         self.MAC_Address = hf.generate_mac_address()
         self.Model_Number = "TSA1000X"
         self.Host_Name = host_name
-        self.interfaces = self.set_interfaces()
+        self.interfaces = []
+        if not load:
+            self.interfaces = self.set_interfaces()
         self.CAM_table = {}
         self.canvas_object = None
 

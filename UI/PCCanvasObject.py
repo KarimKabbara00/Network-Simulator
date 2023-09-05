@@ -297,7 +297,9 @@ class PCCanvasObject(object):
 
     def disconnect_cable(self, event):
         try:
-            self.class_object.get_interfaces()[0].get_canvas_cable().delete_canvas_cable()
+            cable = self.class_object.get_interfaces()[0].get_canvas_cable()
+            globalVars.cable_objects.remove(cable)
+            cable.delete_canvas_cable()
         except (tk.TclError, AttributeError):
             pass
 
@@ -328,6 +330,9 @@ class PCCanvasObject(object):
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Terminal_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
+
+            globalVars.pc_objects.remove(self)
+            globalVars.objects.remove(self)
 
         self.hide_menu()
 
@@ -679,4 +684,7 @@ class PCCanvasObject(object):
                            self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 5)
 
         self.button_release(None)
+
+    def get_coords(self):
+        return [self._x, self._y]
     # -------------------------- Save & Load Methods -------------------------- #

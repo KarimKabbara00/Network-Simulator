@@ -3,6 +3,8 @@ import globalVars
 import json
 from PCCanvasObject import PCCanvasObject
 from SwitchCanvasObject import SwitchCanvasObject
+from RouterCanvasObject import RouterCanvasObject
+from EthernetCableCanvasObject import EthernetCableCanvasObject
 from RectangleCanvasObject import RectangleCanvasObject
 from LabelCanvasObject import LabelCanvasObject
 from UI import loadIcons
@@ -10,6 +12,7 @@ from network.Physical_Interface import PhysicalInterface
 from network.Switch import Switch
 from network.Ethernet_Cable import EthernetCable
 from network.PC import PC
+from network.Router import Router
 
 
 def save_file():
@@ -38,10 +41,17 @@ def save(file_name):
         save_info['SW'].append({'x': temp[0], 'y': temp[1], 'block_name': temp[2], 'cli_text': temp[3],
                                 'class_info': temp[4]})
 
+    for i in globalVars.ro_objects:
+        temp = i.get_save_info()
+        save_info['RO'].append({'x': temp[0], 'y': temp[1], 'block_name': temp[2], 'cli_text': temp[3],
+                                'class_info': temp[4]})
+
     for i in globalVars.cable_objects:
         temp = i.get_save_info()
-        save_info['ETH'].append({'block_name': temp[0], 'obj1_coords': temp[1], 'obj2_coords': temp[2],
-                                 'obj1_tag': temp[3], 'obj2_tag': temp[4], 'class_info': temp[5]})
+        if temp[1] and all(temp[0] != c for c in save_info['ETH']):
+            save_info['ETH'].append({'block_name': temp[0], 'obj1_coords': temp[1], 'obj2_coords': temp[2],
+                                     'obj1_tag': temp[3], 'obj2_tag': temp[4],
+                                     'intf_1_name': temp[5], 'intf_2_name': temp[6], 'line_count': temp[7]})
 
     for i in globalVars.canvas_rectangles:
         temp = i.get_save_info()
@@ -85,11 +95,11 @@ def load(canvas, master, file):
         # ----- Rebuild PC ----- #
 
         # ----- Rebuild Interfaces ----- #
-        intf = PhysicalInterface(PhysicalInterface.set_name(pc_interface_info[0]), pc_interface_info[0], pc_obj)
+        intf = PhysicalInterface(pc_interface_info[2][1:], pc_interface_info[0], pc_obj)
         intf.set_bandwidth(pc_interface_info[1])
-        intf.set_is_connected(pc_interface_info[4])
-        intf.set_connected_to(pc_interface_info[5])
-        intf.set_operational(pc_interface_info[6], load=True)
+        # intf.set_is_connected(pc_interface_info[4])
+        # intf.set_connected_to(pc_interface_info[5])
+        # intf.set_operational(pc_interface_info[6], load=True)
         intf.set_administratively_down(pc_interface_info[7], load=True)
         pc_obj.set_interfaces_on_load(intf)
         # ----- Rebuild Interfaces ----- #
@@ -105,24 +115,27 @@ def load(canvas, master, file):
     sw_icons = loadIcons.get_sw_icons()
     for sw in configuration['SW']:
 
-        # return [self.Host_Name, self.MAC_Address, self.CAM_table, interfaces]
         sw_class_info = sw['class_info']
         sw_interface_info = sw['class_info'][3]
 
         # ----- Rebuild SW ----- #
-        sw_obj = Switch(sw_class_info[0])
+        sw_obj = Switch(sw_class_info[0], load=True)
         sw_obj.set_mac_address(sw_class_info[1])
         sw_obj.set_cam_table(sw_class_info[2])
         # ----- Rebuild SW ----- #
 
         # ----- Rebuild Interfaces ----- #
         for interface in sw_interface_info:
-            intf = PhysicalInterface(PhysicalInterface.set_name(interface[0]), interface[0], sw_obj)
+            t = interface[2].split('/')  # Split the name of the interface to pass it in next line
+            intf = PhysicalInterface(t[0][-1] + '/' + t[-1], interface[0], sw_obj)
             intf.set_bandwidth(interface[1])
-            intf.set_is_connected(interface[4])
-            intf.set_connected_to(interface[5])
-            intf.set_operational(interface[6], load=True)
+            # intf.set_is_connected(interface[4])
+            # intf.set_connected_to(interface[5])
+            # intf.set_operational(interface[6], load=True)
             intf.set_administratively_down(interface[7], load=True)
+            intf.set_switchport_type(interface[8])
+            intf.set_access_vlan_id(interface[9])
+            intf.set_allowed_trunk_vlans(interface[10])
             sw_obj.set_interfaces_on_load(intf)
         # ----- Rebuild Interfaces ----- #
 
@@ -133,6 +146,56 @@ def load(canvas, master, file):
 
         globalVars.objects.append(sw_canvas_object)
         globalVars.sw_objects.append(sw_canvas_object)
+
+    ro_icons = loadIcons.get_router_icons()
+    for ro in configuration['RO']:
+        # save_info['RO'].append({'x': temp[0], 'y': temp[1], 'block_name': temp[2], 'cli_text': temp[3],
+        # 'class_info': temp[4]})
+        # CANVAS: return [self._x, self._y, self.block_name, self.cli_text, self.class_object.get_save_info()]
+        # ROUTER: return [self.Host_Name, self.MAC_Address, self.ARP_table, self.routing_table, interfaces]
+
+        ro_class_info = ro['class_info']
+        ro_interface_info = ro['class_info'][4]
+
+        # ----- Rebuild RO ----- #
+        ro_obj = Router(ro_class_info[0], True)
+        ro_obj.set_mac_address(ro_class_info[1])
+        ro_obj.set_arp_table(ro_class_info[2])
+        ro_obj.set_routing_table(ro_class_info[3])
+        # ----- Rebuild RO ----- #
+
+        # ----- Rebuild Interfaces ----- #
+        for interface in ro_interface_info:
+            t = interface[2].split('/')  # Split the name of the interface to pass it in next line
+            intf = PhysicalInterface(t[0][-1] + '/' + t[-1], interface[0], ro_obj)
+            intf.set_bandwidth(interface[1])
+            # intf.set_is_connected(interface[4])
+            # intf.set_connected_to(interface[5])
+            # intf.set_operational(interface[6], load=True)
+            intf.set_administratively_down(interface[7], load=True)
+            intf.set_ipv4_address(interface[8])
+            intf.set_netmask(interface[9])
+            ro_obj.set_interfaces_on_load(intf)
+        # ----- Rebuild Interfaces ----- #
+
+        # ----- Rebuild Canvas RO ----- #
+        ro_canvas_object = RouterCanvasObject(canvas, ro['block_name'], ro_icons, ro_obj, master, load=True)
+        ro_canvas_object.set_pos(ro['x'], ro['y'])
+        # ----- Rebuild Canvas RO ----- #
+
+        globalVars.ro_objects.append(ro_canvas_object)
+        globalVars.objects.append(ro_canvas_object)
+
+    eth_icon = loadIcons.get_ethernet_icon()  # Don't really need the icon
+    for eth in configuration['ETH']:
+        eth_object = EthernetCable()
+        eth_canvas_object = EthernetCableCanvasObject(canvas, eth['block_name'], eth_icon,
+                                                      eth_object, master, load=True)
+        eth_canvas_object.set_pos(eth['obj1_coords'][0], eth['obj1_coords'][1],
+                                  eth['obj2_coords'][0], eth['obj2_coords'][1], eth['obj1_tag'], eth['obj2_tag'],
+                                  eth['intf_1_name'], eth['intf_2_name'], eth['line_count'])
+
+        globalVars.cable_objects.append(eth_canvas_object)
 
     for rect in configuration['RECT']:
         rectangle_canvas_object = RectangleCanvasObject(canvas, rect['color_code'], rect['block_name'], load=True)

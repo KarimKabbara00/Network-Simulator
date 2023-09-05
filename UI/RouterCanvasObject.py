@@ -8,7 +8,7 @@ from UI.PCCanvasObject import PCCanvasObject
 
 
 class RouterCanvasObject:
-    def __init__(self, canvas, block_name, icons, class_object, master):
+    def __init__(self, canvas, block_name, icons, class_object, master, load=False):
         self._x = None
         self._y = None
         self.canvas = canvas
@@ -54,8 +54,9 @@ class RouterCanvasObject:
         # Hover menu Stuff
 
         # Button Bindings
-        self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
-        self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
+        if not load:
+            self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
+            self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
         self.canvas.tag_bind(self.block_name, '<B1-Motion>', self.motion)  # When moving the object after it is created
         self.canvas.tag_bind(self.block_name, '<ButtonRelease-1>',
                              self.button_release)  # When moving the object after it is created
@@ -263,7 +264,8 @@ class RouterCanvasObject:
         self.delete_button.bind('<Leave>', self.delete_button_bg_leave)
         self.delete_button.bind('<Button-1>', lambda e, q=False: self.menu_delete(e, q))
 
-        self.on_start_hover(event)
+        if event:
+            self.on_start_hover(event)
 
     def hide_menu(self):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
@@ -510,3 +512,35 @@ class RouterCanvasObject:
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
 
+    # -------------------------- Save & Load Methods -------------------------- #
+    def get_save_info(self):
+        return [self._x, self._y, self.block_name, self.cli_text, self.class_object.get_save_info()]
+
+    def set_pos(self, x_pos, y_pos):
+        self._x = x_pos
+        self._y = y_pos
+        self.canvas.coords(self.canvas_object, x_pos, y_pos)
+
+        # Move the hover area and menu buttons
+        self.canvas.coords(self.hover_area, self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) - 35,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 35,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 55,
+                           self.canvas.canvasx(self._x) + 97, self.canvas.canvasy(self._y) - 55,
+                           self.canvas.canvasx(self._x) + 97, self.canvas.canvasy(self._y) + 65,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 65,
+                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 45,
+                           self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) + 45)
+
+        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(self._x) + 40, self.canvas.canvasy(self._y),
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 5,
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 50,
+                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) - 50,
+                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) + 60,
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 60,
+                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 5)
+
+        self.button_release(None)
+
+    def get_coords(self):
+        return [self._x, self._y]
+    # -------------------------- Save & Load Methods -------------------------- #

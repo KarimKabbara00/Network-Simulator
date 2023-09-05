@@ -38,6 +38,7 @@ def create_switch(popup, canvas, icons, switch_type, master):
 def create_router(popup, canvas, icons, master):
     router = RouterCanvasObject(canvas, hf.get_next_router(), icons, network.Router.Router(), master)
     globalVars.objects.append(router)
+    globalVars.ro_objects.append(router)
     popup.destroy()
     globalVars.open_TL_ro = False
 

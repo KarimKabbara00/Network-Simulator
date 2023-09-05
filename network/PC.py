@@ -121,6 +121,9 @@ class PC:
     def get_interfaces(self):
         return self.interface
 
+    def get_interface_by_name(self, ignored):
+        return self.interface[0]  # does the same as the function above it. Needed in EthCableCanvas
+
     def get_host_name(self):
         return self.Host_Name
 

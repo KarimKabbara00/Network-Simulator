@@ -519,6 +519,7 @@ class SwitchCanvasObject:
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
 
+    # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
         return [self._x, self._y, self.block_name, self.cli_text, self.class_object.get_save_info()]
 
@@ -546,4 +547,7 @@ class SwitchCanvasObject:
                            self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 5)
 
         self.button_release(None)
+
+    def get_coords(self):
+        return [self._x, self._y]
     # -------------------------- Save & Load Methods -------------------------- #

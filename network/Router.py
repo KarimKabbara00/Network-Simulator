@@ -4,13 +4,16 @@ from network.Physical_Interface import PhysicalInterface
 
 
 class Router:
-    def __init__(self, host_name="Router"):
+    def __init__(self, host_name="Router", load=False):
         self.MAC_Address = hf.generate_mac_address()
         self.Model_Number = "R94X"
         self.Host_Name = host_name
 
+        self.interfaces = []
         self.serial_interfaces = []
-        self.interfaces = self.set_interfaces()
+        if not load:
+            self.serial_interfaces = []
+            self.interfaces = self.set_interfaces()
 
         self.routing_table = {}
         self.ARP_table = {}
@@ -24,6 +27,9 @@ class Router:
         for i in range(3):
             self.serial_interfaces.append(PhysicalInterface('0/' + str(i), 1000, self))
         return interfaces
+
+    def set_mac_address(self, address):
+        self.MAC_Address = address
 
     def de_encapsulate(self, frame, receiving_interface):
 
@@ -204,3 +210,21 @@ class Router:
 
     def get_arp_table(self):
         return nf.get_arp_table(self.ARP_table)
+
+    # -------------------------- Save & Load Methods -------------------------- #
+    def get_save_info(self):
+        interfaces = []
+        for interface in self.interfaces:
+            interfaces.append(interface.get_save_info())
+
+        return [self.Host_Name, self.MAC_Address, self.ARP_table, self.routing_table, interfaces]
+
+    def set_arp_table(self, arp):
+        self.ARP_table = arp
+
+    def set_routing_table(self, rt_table):
+        self.routing_table = rt_table
+
+    def set_interfaces_on_load(self, interface):
+        self.interfaces.append(interface)
+    # -------------------------- Save & Load Methods -------------------------- #
