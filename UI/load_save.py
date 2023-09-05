@@ -29,10 +29,7 @@ def load_file(canvas, master):
 
 
 def save(file_name):
-    save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
-                 'preferences': [globalVars.file_directory, globalVars.ask_before_delete,
-                                 globalVars.ask_before_quick_delete, globalVars.show_link_lights,
-                                 globalVars.persistent_cable_connect]}
+    save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': []}
 
     for i in globalVars.pc_objects:
         temp = i.get_save_info()
@@ -73,23 +70,15 @@ def save(file_name):
 
 
 def load(canvas, master, file):
-
     # Clear everything first
     globalVars.clear_all_objects()
     canvas.delete("all")
 
+    # Use the json dumps method to write data to file
     with open(file, 'r') as F:
-        # Use the json dumps method to write data to file
         configuration = json.load(F)
 
     globalVars.node_number = configuration['node_number']
-
-    # Set preferences
-    globalVars.file_directory = configuration['preferences'][0]
-    globalVars.ask_before_delete = configuration['preferences'][1]
-    globalVars.ask_before_quick_delete = configuration['preferences'][2]
-    globalVars.show_link_lights = configuration['preferences'][3]
-    globalVars.persistent_cable_connect = configuration['preferences'][4]
 
     # Load All Nodes
     pc_interface_to_light_mapping = {}

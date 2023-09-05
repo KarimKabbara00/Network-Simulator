@@ -6,7 +6,6 @@ from itertools import groupby
 from operator import itemgetter
 from textwrap import wrap
 from tkinter import filedialog
-
 import numpy as np
 from UI import loadIcons
 import globalVars

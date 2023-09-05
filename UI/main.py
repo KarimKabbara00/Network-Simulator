@@ -1,8 +1,9 @@
+import json
 from tkinter import *
 from PIL import Image, ImageTk
 import button_handler
 import load_save as ls
-
+import globalVars
 global img
 
 
@@ -22,7 +23,7 @@ def create_menu(canvas_obj, master):
     menu_bar.add_cascade(label="Preferences", menu=preferences_menu)
 
     help_menu = Menu(menu_bar, tearoff=0)
-    help_menu.add_command(label="Help Index")
+    help_menu.add_command(label="Help", command=lambda m=master: button_handler.help_menu(m))
     help_menu.add_command(label="About...")
     menu_bar.add_cascade(label="Help", menu=help_menu)
 
@@ -177,13 +178,21 @@ del_button.bind('<Enter>', lambda e, btn=del_button: button_handler.hf.button_en
 del_button.bind('<Leave>', lambda e, btn=del_button: button_handler.hf.button_leave(e, btn))
 # Delete Button Stuff
 
+# Load Preferences
+with open('preferences.json', 'r') as F:
+    preferences = json.load(F)
+
+globalVars.file_directory = preferences[0]
+globalVars.ask_before_delete = preferences[1]
+globalVars.ask_before_quick_delete = preferences[2]
+globalVars.show_link_lights = preferences[3]
+globalVars.persistent_cable_connect = preferences[4]
+
 # launch
 tk.config(menu=menubar)
 tk.mainloop()
 
 # TODO Order:
-#   4. Set save directory in preferences
-#   5. Save preferences
 #   6. UI on different screens
 #   7. Add help menu
 #   8. Add Changelog menu

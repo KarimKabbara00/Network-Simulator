@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 from tkinter import colorchooser, messagebox
 import globalVars as globalVars
@@ -416,3 +417,32 @@ def set_preferences(option, value, canvas=None):
 
         case _:
             raise Exception()
+
+    # Save preferences when anything changes
+    with open('preferences.json', 'w') as F:
+        F.write(json.dumps([globalVars.file_directory, globalVars.ask_before_delete, globalVars.ask_before_quick_delete,
+                            globalVars.show_link_lights, globalVars.persistent_cable_connect]))
+
+
+def help_menu(master):
+    menu = tk.Toplevel(master)
+    menu.title("Help Menu")
+    # help_menu.iconphoto(False) # TODO: Give icon
+
+    menu.geometry("%dx%d+%d+%d" % (800, 600, 740, 300))
+
+    help_items = tk.Listbox(menu, width=15, height=32, font=('Arial', 11))
+    # TODO: change to https://pythonassets.com/posts/treeview-in-tk-tkinter/
+    help_items.insert(1, "Python")
+    help_items.insert(2, "Perl")
+    help_items.insert(3, "C")
+    help_items.insert(4, "PHP")
+    help_items.insert(5, "JSP")
+    help_items.insert(6, "Ruby")
+    help_items.grid(row=0, column=0, padx=(5, 0), pady=(5, 0))
+
+    info = tk.Text(menu, background="white", foreground="black", insertbackground="black")
+
+    info.grid(row=0, column=1, sticky="nsew", pady=(6, 0), padx=10)
+
+    menu.columnconfigure(1, weight=1, )
