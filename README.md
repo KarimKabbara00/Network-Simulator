@@ -4,6 +4,6 @@
 - Current working functionality includes ICMP pings, ARP learning process, and dynamic MAC address learning.
 - Defined PDUs for OSI layers 2, 3 and 4, including encapsulation and de-encapsulation at each layer.
 <br>
-- As of 8/8/2023, access/trunk ports, as well as VLANs are still under development.
+- As of 9/4/2023 trunk ports are still under development.
 
 (They can be configured, but they do not operate as expected)
