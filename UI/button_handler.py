@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import colorchooser, messagebox, ttk
 from tkinter.font import nametofont
 
+from tkinterweb.htmlwidgets import HtmlFrame
+
 import globalVars as globalVars
 import helper_functions as hf
 import network.Ethernet_Cable
@@ -204,7 +206,7 @@ def handle_button_click(master, canvas, device_type):
 def toggle_link_lights(canvas, checkbox=False):
     if canvas:
 
-        # Only not the variable this function is called from the toggle button, not the preferences menu
+        # Only not the variable when this function is called from the toggle button, not the preferences menu
         if not checkbox:
             globalVars.light_state = not globalVars.light_state
 
@@ -366,7 +368,10 @@ def preferences_menu(master, canvas):
     folder_path.insert('end', globalVars.file_directory)
     folder_path.configure(state='disabled')
 
-    browse_button = tk.Button(frame, text='Browse', command=hf.open_folder_dialogue, relief=tk.GROOVE)
+    browse_button = tk.Button(frame, text='Browse',
+                              command=lambda popup=preferences_popup, path=folder_path: hf.open_folder_dialogue(popup,
+                                                                                                                path),
+                              relief=tk.GROOVE)
     browse_button.grid(row=5, column=1, sticky=tk.W)
     browse_button.bind('<Enter>', lambda e, b=browse_button: hf.button_enter(e, b))
     browse_button.bind('<Leave>', lambda e, b=browse_button: hf.button_leave(e, b))
@@ -430,13 +435,17 @@ def set_preferences(option, value, canvas=None):
 
 def open_help_menu(master):
     def show_help_description(event):
-        curItem = help_items.focus()  # TODO: Show text (clear textarea and insert whats needed) Can insert pictures?
-        print(help_items.item(curItem)['text'])
+        selected_item = help_items.focus()
+        selected_item = help_items.item(selected_item)['text']
+        hf.show_info(selected_item, help_menu)
+
+    icon = loadIcons.get_help_menu_icon()
 
     help_menu = tk.Toplevel(master)
     help_menu.title("Help Menu")
-    # help_menu.iconphoto(False) # TODO: Give icon
-    help_menu.geometry("%dx%d+%d+%d" % (800, 590, 720, 300))
+    help_menu.iconphoto(False, icon)
+    help_menu.geometry("%dx%d+%d+%d" % (800, 610, 720, 300))
+    help_menu.focus_set()
 
     style = ttk.Style()
     style.configure("Treeview", font=('Arial', 10, 'bold'), rowheight=50)
@@ -458,10 +467,5 @@ def open_help_menu(master):
     help_items.insert(nodes, 2, text="Switches")
     help_items.insert(nodes, 3, text="Routers")
     help_items.insert(nodes, 4, text="Firewalls")
-
-    info = tk.Text(help_menu, background="white", foreground="black", insertbackground="black")
-    info.grid(row=0, column=1, sticky="nsew", pady=(6, 0), padx=10)
-
-    help_menu.columnconfigure(1, weight=1, )
 
     help_items.bind('<<TreeviewSelect>>', show_help_description)

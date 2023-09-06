@@ -202,7 +202,13 @@ class RouterCanvasObject:
 
                             i.set_lights(l1, l2)
 
-                            if not globalVars.show_link_lights:
+                            if ((globalVars.show_link_lights and globalVars.light_state) or
+                                    (not globalVars.show_link_lights and globalVars.light_state)):
+                                self.canvas.itemconfig(l1, state='normal')
+                                self.canvas.itemconfig(l2, state='normal')
+
+                            elif ((globalVars.show_link_lights and not globalVars.light_state) or
+                                  (not globalVars.show_link_lights and not globalVars.light_state)):
                                 self.canvas.itemconfig(l1, state='hidden')
                                 self.canvas.itemconfig(l2, state='hidden')
 

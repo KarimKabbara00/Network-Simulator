@@ -1,4 +1,5 @@
 import UI.helper_functions as hf
+from UI import globalVars
 from network.ICMP import ICMP
 from network.ipv4_packet import ipv4_packet
 from network.Ethernet_Frame import EthernetFrame
@@ -122,3 +123,38 @@ def get_arp_table(arp_table):
         entries += "{:<25} {:<25} {:<15}".format(ip, arp_table[ip][0], arp_table[ip][1])
         entries += "\n"
     return header + entries
+
+
+def test():
+    return globalVars.pc_objects
+
+def background_processes():
+
+    # Dynamic MAC Address Aging = 5 minutes
+    # Dynamic ARP Entry Aging = 2 minutes
+
+    # pc_objects = []
+    # sw_objects = []
+    # ro_objects = []
+
+    while True:
+
+        print(test())
+
+        print('checking')
+        # PCs and routers have ARP tables
+        for i in globalVars.pc_objects + globalVars.ro_objects:
+            print('found a node')
+            node = i.get_class_object()
+            for arp_table in node.get_arp_table_actual():
+                for entry in arp_table:
+                    if arp_table[entry][1] == 'DYNAMIC' and globalVars.current_time > arp_table[entry][2] + 20:  # 120 sec
+                        arp_table.pop(entry)
+                        node.set_arp_table(arp_table)
+                        print('deleted')
+
+        # Switches have MAC tables:
+        # for i in globalVars.sw_objects:
+        #     i.get_class_object.get_CAM_table()
+
+        time.sleep(10)

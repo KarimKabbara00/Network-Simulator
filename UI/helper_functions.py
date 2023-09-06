@@ -10,6 +10,9 @@ from tkinter import filedialog
 import numpy as np
 from UI import loadIcons
 import globalVars
+from tkinterweb import HtmlFrame
+import markdown
+import time
 
 
 def button_enter(event, btn):
@@ -447,10 +450,65 @@ def create_tooltip(canvas, button, text, tag, pos=(0, 0), text_offset=(0, 0)):
         canvas.tag_lower(tooltip_bg, tooltip_text)
 
 
-def open_folder_dialogue():
+def open_folder_dialogue(preferences_menu, path):
     globalVars.file_directory = filedialog.askdirectory(initialdir=globalVars.file_directory, title="Select a File")
 
     # Save preferences when anything changes
     with open('preferences.json', 'w') as F:
         F.write(json.dumps([globalVars.file_directory, globalVars.ask_before_delete, globalVars.ask_before_quick_delete,
                             globalVars.show_link_lights, globalVars.persistent_cable_connect]))
+
+    path.configure(state='normal')
+    path.delete("1.0", "end")
+    path.insert('end', globalVars.file_directory)
+    path.configure(state='disabled')
+    preferences_menu.focus_set()
+
+
+def show_info(selected_item, help_menu):
+
+    info_box = HtmlFrame(help_menu, messages_enabled=False)
+    info_box.grid(row=0, column=1, sticky="nsew", pady=6, padx=10)
+
+    file = ''
+    match selected_item:
+        case 'Network Simulator':
+            file = 'markdown/Network_Simulator.md'
+        case 'PCs':
+            file = 'markdown/PC.md'
+        case 'Switch':
+            file = 'markdown/Switch.md'
+        case 'Router':
+            file = 'markdown/Router.md'
+        case 'Firewall':
+            file = 'markdown/Firewall.md'
+        case 'Connecting Nodes':
+            file = 'markdown/Connecting_Nodes.md'
+        case 'Creating Areas and Labels':
+            file = 'markdown/Drawing.md'
+        case 'Deleting Things':
+            file = 'markdown/Deleting_Things.md'
+
+    if file:
+        with open(file, 'r') as f:
+            m_text = f.read()
+
+        m_html = markdown.markdown(m_text)
+        f = open('C:/Users/kkabbara/PycharmProjects/Network-Simulator/markdown/temp', mode='w')
+        f.write(m_html)
+        f.flush()
+        info_box.load_file(f.name)
+        f.close()
+
+    help_menu.columnconfigure(1, weight=1)
+
+
+def count_time():
+    while True:
+        time.sleep(1)
+        globalVars.current_time += 1
+        print(globalVars.current_time)
+
+
+def stop_time(thread):
+    thread.kill()

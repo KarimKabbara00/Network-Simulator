@@ -7,7 +7,7 @@ from RouterCanvasObject import RouterCanvasObject
 from EthernetCableCanvasObject import EthernetCableCanvasObject
 from RectangleCanvasObject import RectangleCanvasObject
 from LabelCanvasObject import LabelCanvasObject
-from UI import loadIcons
+from UI import loadIcons, button_handler
 from network.Physical_Interface import PhysicalInterface
 from network.Switch import Switch
 from network.Ethernet_Cable import EthernetCable
@@ -29,7 +29,8 @@ def load_file(canvas, master):
 
 
 def save(file_name):
-    save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': []}
+    save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
+                 'OTHER': {}}
 
     for i in globalVars.pc_objects:
         temp = i.get_save_info()
@@ -63,6 +64,8 @@ def save(file_name):
         temp = i.get_save_info()
         save_info['LBL'].append({'block_name': temp[0], 'text': temp[1], 'x': temp[2], 'y': temp[3],
                                  'a': temp[4], 'b': temp[5], 'label_x': temp[6], 'label_y': temp[7]})
+
+    save_info['OTHER']['Light_State'] = globalVars.light_state
 
     # Write json to file
     with open(file_name, 'a') as F:
@@ -233,4 +236,8 @@ def load(canvas, master, file):
         if i.get_is_connected():
             i.set_operational(ro_interface_to_light_mapping[i][0])
             i.set_administratively_down(ro_interface_to_light_mapping[i][1])
+
+    # Set the light state
+    globalVars.light_state = configuration['OTHER']['Light_State']
+    button_handler.toggle_link_lights(canvas, checkbox=True)
     # ----- Set Lights ----- #

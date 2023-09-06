@@ -323,25 +323,71 @@ class EthernetCableCanvasObject:
 
         self.existing_line_count = line_count
 
+        # Objects' relation to each other (quadrants)
+        if self.obj1_coords[0] < self.obj2_coords[0]:
+            x_flag = True
+        else:
+            x_flag = False
+        if self.obj1_coords[1] < self.obj2_coords[1]:
+            y_flag = True
+        else:
+            y_flag = False
+
+        # How to shift the new line based on the line relations
+        x_shift = 0
+        y_shift = 0
+        if x_flag and not y_flag:  # Left and Under
+            x_shift = 4 * self.existing_line_count
+            y_shift = 4 * self.existing_line_count
+        elif x_flag and y_flag:  # Left and Above
+            x_shift = 4 * self.existing_line_count
+            y_shift = -4 * self.existing_line_count
+        elif not x_flag and not y_flag:  # Right and Under
+            x_shift = -4 * self.existing_line_count
+            y_shift = 4 * self.existing_line_count
+        elif not x_flag and y_flag:  # Right and Above
+            x_shift = -4 * self.existing_line_count
+            y_shift = -4 * self.existing_line_count
+
         # Draw Line
-        self.canvas_line = self.canvas.create_line(self.obj1_coords[0], self.obj1_coords[1],
-                                                   self.obj2_coords[0],
-                                                   self.obj2_coords[1], fill="black", width=2,
+        self.canvas_line = self.canvas.create_line(self.obj1_coords[0] + x_shift, self.obj1_coords[1] + y_shift,
+                                                   self.obj2_coords[0] + x_shift,
+                                                   self.obj2_coords[1] + y_shift, fill="black", width=2,
                                                    tags=(
                                                        self.obj1_canvas_tag + "_line_" + self.obj2_canvas_tag +
                                                        "_" + str(self.existing_line_count),
                                                        self.obj2_canvas_tag + "_line_" + self.obj1_canvas_tag +
                                                        "_" + str(self.existing_line_count), 'line', 'Ethernet'))
 
-        self.light_1 = hf.draw_circle(self.obj1_coords[0], self.obj1_coords[1],
-                                      self.obj2_coords[0], self.obj2_coords[1], 4,
+        self.light_1 = hf.draw_circle(self.obj1_coords[0] + x_shift, self.obj1_coords[1] + y_shift,
+                                      self.obj2_coords[0] + x_shift, self.obj2_coords[1] + y_shift, 4,
                                       self.canvas, self.obj1_canvas_tag + "_light_" + self.obj2_canvas_tag +
                                       "_" + str(self.existing_line_count))
 
-        self.light_2 = hf.draw_circle(self.obj2_coords[0], self.obj2_coords[1],
-                                      self.obj1_coords[0], self.obj1_coords[1], 4,
+        self.light_2 = hf.draw_circle(self.obj2_coords[0] + x_shift, self.obj2_coords[1] + y_shift,
+                                      self.obj1_coords[0] + x_shift, self.obj1_coords[1] + y_shift, 4,
                                       self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
                                       "_" + str(self.existing_line_count))
+
+        # # Draw Line
+        # self.canvas_line = self.canvas.create_line(self.obj1_coords[0], self.obj1_coords[1],
+        #                                            self.obj2_coords[0],
+        #                                            self.obj2_coords[1], fill="black", width=2,
+        #                                            tags=(
+        #                                                self.obj1_canvas_tag + "_line_" + self.obj2_canvas_tag +
+        #                                                "_" + str(self.existing_line_count),
+        #                                                self.obj2_canvas_tag + "_line_" + self.obj1_canvas_tag +
+        #                                                "_" + str(self.existing_line_count), 'line', 'Ethernet'))
+        #
+        # self.light_1 = hf.draw_circle(self.obj1_coords[0], self.obj1_coords[1],
+        #                               self.obj2_coords[0], self.obj2_coords[1], 4,
+        #                               self.canvas, self.obj1_canvas_tag + "_light_" + self.obj2_canvas_tag +
+        #                               "_" + str(self.existing_line_count))
+        #
+        # self.light_2 = hf.draw_circle(self.obj2_coords[0], self.obj2_coords[1],
+        #                               self.obj1_coords[0], self.obj1_coords[1], 4,
+        #                               self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
+        #                               "_" + str(self.existing_line_count))
 
         # Lower line and lights one layer to underlap the hover menu and canvas object
         for light in self.canvas.find_withtag('light'):

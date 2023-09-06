@@ -211,6 +211,9 @@ class Router:
     def get_arp_table(self):
         return nf.get_arp_table(self.ARP_table)
 
+    def get_arp_table_actual(self):
+        return self.ARP_table
+
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
         interfaces = []

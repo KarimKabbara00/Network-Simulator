@@ -143,7 +143,13 @@ class PCCanvasObject(object):
                     for rectangle in self.canvas.find_withtag('Rectangle'):
                         self.canvas.tag_lower(rectangle, ln)
 
-                if not globalVars.show_link_lights:
+                if ((globalVars.show_link_lights and globalVars.light_state) or
+                        (not globalVars.show_link_lights and globalVars.light_state)):
+                    self.canvas.itemconfig(self.l1, state='normal')
+                    self.canvas.itemconfig(self.l2, state='normal')
+
+                elif ((globalVars.show_link_lights and not globalVars.light_state) or
+                      (not globalVars.show_link_lights and not globalVars.light_state)):
                     self.canvas.itemconfig(self.l1, state='hidden')
                     self.canvas.itemconfig(self.l2, state='hidden')
 

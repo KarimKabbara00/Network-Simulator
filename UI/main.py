@@ -1,11 +1,14 @@
 import json
+import threading
 from tkinter import *
 from PIL import Image, ImageTk
 import button_handler
 import load_save as ls
 import globalVars
+import network.network_functions as nf
+import helper_functions as hf
 
-global img
+# global img
 
 
 def create_menu(canvas_obj, master):
@@ -52,6 +55,7 @@ canvas.configure(scrollregion=canvas.bbox("all"))
 
 # create top menu
 menubar = create_menu(canvas, tk)
+tk.config(menu=menubar)
 
 # bottom frame
 action_frame = Frame(tk, highlightbackground="grey22", highlightthickness=1.5)
@@ -59,12 +63,12 @@ action_frame.place(x=0, y=795, width=width, height=height - 840)
 
 # device buttons and logic
 device_frame = LabelFrame(tk, text="Devices", padx=5, pady=5)
-# device_frame.place(x=30, y=625, height=175, width=175)
-device_frame.place(x=30, y=825, height=175, width=175)
+device_frame.place(x=30, y=625, height=175, width=175)
+# device_frame.place(x=30, y=825, height=175, width=175)
 
 cable_frame = LabelFrame(tk, text="Cables", padx=5, pady=5)
-# cable_frame.place(x=225, y=625, height=175, width=82)
-cable_frame.place(x=225, y=825, height=175, width=82)
+cable_frame.place(x=225, y=625, height=175, width=82)
+# cable_frame.place(x=225, y=825, height=175, width=82)
 
 pc = Image.open("icons/desktop-computer.png")
 sw = Image.open("icons/switch.png")
@@ -133,7 +137,8 @@ ser_button.bind('<Leave>', lambda e, btn=ser_button: button_handler.hf.button_le
 
 # Toggle Button Stuff
 toggle_frame = LabelFrame(tk, text="Toggle", padx=5, pady=5)
-toggle_frame.place(x=width - 230, y=825, height=175, width=200)
+# toggle_frame.place(x=width - 230, y=825, height=175, width=200)
+toggle_frame.place(x=width - 230, y=625, height=175, width=200)
 
 light_button = Button(toggle_frame, command=lambda c=canvas: button_handler.toggle_link_lights(c),
                       text="Toggle Link Lights", width=25, height=3, relief=GROOVE)
@@ -150,8 +155,8 @@ label_button.bind('<Leave>', lambda e, btn=label_button: button_handler.hf.butto
 
 # Canvas Drawing Stuff
 canvas_drawing = LabelFrame(tk, text="Canvas", padx=5, pady=5)
-# canvas_drawing.place(x=width - 475, y=625, height=175, width=225)
-canvas_drawing.place(x=width - 475, y=825, height=175, width=225)
+canvas_drawing.place(x=width - 475, y=625, height=175, width=225)
+# canvas_drawing.place(x=width - 475, y=825, height=175, width=225)
 
 rect_button = Button(canvas_drawing, command=lambda: button_handler.create_rectangle(canvas), text="  Create Rectangle",
                      image=rectangle1, compound="left", width=175, height=50, relief=GROOVE)
@@ -169,8 +174,8 @@ new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_handler.
 
 # Delete Button Stuff
 canvas_delete = LabelFrame(tk, text="Quick Delete", padx=16, pady=3)
-# canvas_delete.place(x=width - 567, y=625, height=75, width=75)
-canvas_delete.place(x=width - 567, y=925, height=75, width=82)
+canvas_delete.place(x=width - 567, y=625, height=75, width=75)
+# canvas_delete.place(x=width - 567, y=925, height=75, width=82)
 
 del_button = Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
                     image=x1, width=40, height=40, relief=GROOVE)
@@ -192,14 +197,22 @@ except FileNotFoundError:
     with open('preferences.json', 'w+') as F:
         F.write('["/", true, true, true, true]')
 
+# Threads
+time_counter = threading.Thread(target=hf.count_time)
+time_counter.start()
+
+background_processes = threading.Thread(target=nf.background_processes)
+background_processes.start()
+
 # launch
-tk.config(menu=menubar)
 tk.mainloop()
 
 # TODO Order:
+#   5. Rectangle Save and load State
 #   6. UI on different screens
-#   7. Add help menu
-#   8. Add Changelog menu
-#   9. Reboot devices (Introduce startup/running configs)
+#   7. Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
+#   8. Add About/Feedback menu
+#   9. Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
+#                                                             but not writing to mem.
 #   10. Disconnect menu button
 #   11. Other TODOs

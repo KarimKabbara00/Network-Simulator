@@ -69,6 +69,7 @@ def get_ethernet_icon():
     eth_icon = Image.open("icons/ethernet.png")
     eth_icon = eth_icon.resize((50, 50))
     eth_icon1 = ImageTk.PhotoImage(eth_icon)
+
     return [eth_icon1]
 
 
@@ -94,3 +95,11 @@ def get_preferences_icon():
     preferences_icon1 = ImageTk.PhotoImage(preferences_icon)
 
     return [preferences_icon1]
+
+
+def get_help_menu_icon():
+    help_menu_icon = Image.open('icons/help.png')
+    help_menu_icon = help_menu_icon.resize((25, 25))
+    help_menu_icon1 = ImageTk.PhotoImage(help_menu_icon)
+
+    return [help_menu_icon1]

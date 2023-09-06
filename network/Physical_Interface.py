@@ -175,8 +175,8 @@ class PhysicalInterface:
     def set_switchport_type(self, sw_type):
         self.switchport_type = sw_type
 
-    def add_allowed_trunk_vlan(self, vlan_id):
-        self.trunk_vlan_ids.append(vlan_id)
+    def add_allowed_trunk_vlan(self, vlan_ids):
+        self.trunk_vlan_ids = vlan_ids
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

@@ -6,6 +6,7 @@ from network.Ethernet_Frame import EthernetFrame
 from network.Physical_Interface import PhysicalInterface
 from network.UDP import UDP
 from network.ipv4_packet import ipv4_packet
+from UI import globalVars
 
 
 def generate_ip_address():
@@ -116,7 +117,7 @@ class PC:
                     linebreak=True, last=False)
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
-        self.ARP_table[ipv4] = [mac_address, address_type]
+        self.ARP_table[ipv4] = [mac_address, address_type, globalVars.current_time]
 
     def get_interfaces(self):
         return self.interface
