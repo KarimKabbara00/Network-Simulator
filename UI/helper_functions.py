@@ -1,3 +1,4 @@
+import json
 import math
 import random
 import re
@@ -54,12 +55,12 @@ def get_node_by_name(name):
             return node
 
 
-def create_circle(x, y, r, canvas):  # center coordinates, radius
-    x0 = x - r
-    y0 = y - r
-    x1 = x + r
-    y1 = y + r
-    return canvas.create_oval(x0, y0, x1, y1)
+# def create_circle(x, y, r, canvas):  # center coordinates, radius
+#     x0 = x - r
+#     y0 = y - r
+#     x1 = x + r
+#     y1 = y + r
+#     return canvas.create_oval(x0, y0, x1, y1)
 
 
 def draw_circle(x, y, a, b, r, canvas, tag):  # center coordinates, radius
@@ -448,3 +449,8 @@ def create_tooltip(canvas, button, text, tag, pos=(0, 0), text_offset=(0, 0)):
 
 def open_folder_dialogue():
     globalVars.file_directory = filedialog.askdirectory(initialdir=globalVars.file_directory, title="Select a File")
+
+    # Save preferences when anything changes
+    with open('preferences.json', 'w') as F:
+        F.write(json.dumps([globalVars.file_directory, globalVars.ask_before_delete, globalVars.ask_before_quick_delete,
+                            globalVars.show_link_lights, globalVars.persistent_cable_connect]))

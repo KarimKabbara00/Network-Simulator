@@ -1,6 +1,8 @@
 import json
 import tkinter as tk
-from tkinter import colorchooser, messagebox
+from tkinter import colorchooser, messagebox, ttk
+from tkinter.font import nametofont
+
 import globalVars as globalVars
 import helper_functions as hf
 import network.Ethernet_Cable
@@ -364,8 +366,10 @@ def preferences_menu(master, canvas):
     folder_path.insert('end', globalVars.file_directory)
     folder_path.configure(state='disabled')
 
-    browse_button = tk.Button(frame, text='Browse', command=hf.open_folder_dialogue)
+    browse_button = tk.Button(frame, text='Browse', command=hf.open_folder_dialogue, relief=tk.GROOVE)
     browse_button.grid(row=5, column=1, sticky=tk.W)
+    browse_button.bind('<Enter>', lambda e, b=browse_button: hf.button_enter(e, b))
+    browse_button.bind('<Leave>', lambda e, b=browse_button: hf.button_leave(e, b))
 
     # Change label contents
 
@@ -424,25 +428,40 @@ def set_preferences(option, value, canvas=None):
                             globalVars.show_link_lights, globalVars.persistent_cable_connect]))
 
 
-def help_menu(master):
-    menu = tk.Toplevel(master)
-    menu.title("Help Menu")
+def open_help_menu(master):
+    def show_help_description(event):
+        curItem = help_items.focus()  # TODO: Show text (clear textarea and insert whats needed) Can insert pictures?
+        print(help_items.item(curItem)['text'])
+
+    help_menu = tk.Toplevel(master)
+    help_menu.title("Help Menu")
     # help_menu.iconphoto(False) # TODO: Give icon
+    help_menu.geometry("%dx%d+%d+%d" % (800, 590, 720, 300))
 
-    menu.geometry("%dx%d+%d+%d" % (800, 600, 740, 300))
+    style = ttk.Style()
+    style.configure("Treeview", font=('Arial', 10, 'bold'), rowheight=50)
+    style.configure("Treeview.Heading", font=('Arial', 12, 'bold'), rowheight=50)
 
-    help_items = tk.Listbox(menu, width=15, height=32, font=('Arial', 11))
-    # TODO: change to https://pythonassets.com/posts/treeview-in-tk-tkinter/
-    help_items.insert(1, "Python")
-    help_items.insert(2, "Perl")
-    help_items.insert(3, "C")
-    help_items.insert(4, "PHP")
-    help_items.insert(5, "JSP")
-    help_items.insert(6, "Ruby")
+    help_items = ttk.Treeview(help_menu, height=11)
+    help_items.heading("#0", text='Help Menu')
+
+    # Top level #
+    help_items.insert("", 1, text="Network Simulator")
+    nodes = help_items.insert("", 2, text="Nodes")
+    help_items.insert("", 3, text="Connecting Nodes")
+    help_items.insert("", 4, text="Creating Areas and Labels")
+    help_items.insert("", 5, text="Deleting Things")
     help_items.grid(row=0, column=0, padx=(5, 0), pady=(5, 0))
 
-    info = tk.Text(menu, background="white", foreground="black", insertbackground="black")
+    # Sub Tree views
+    help_items.insert(nodes, 1, text="PCs")
+    help_items.insert(nodes, 2, text="Switches")
+    help_items.insert(nodes, 3, text="Routers")
+    help_items.insert(nodes, 4, text="Firewalls")
 
+    info = tk.Text(help_menu, background="white", foreground="black", insertbackground="black")
     info.grid(row=0, column=1, sticky="nsew", pady=(6, 0), padx=10)
 
-    menu.columnconfigure(1, weight=1, )
+    help_menu.columnconfigure(1, weight=1, )
+
+    help_items.bind('<<TreeviewSelect>>', show_help_description)
