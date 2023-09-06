@@ -8,6 +8,7 @@ import globalVars
 import network.network_functions as nf
 import helper_functions as hf
 
+
 # global img
 
 
@@ -100,32 +101,43 @@ rectangle1 = ImageTk.PhotoImage(rectangle)
 label1 = ImageTk.PhotoImage(label)
 x1 = ImageTk.PhotoImage(x)
 
+# Time
+# internal_clock = InternalTime()
+# globalVars.internal_clock = internal_clock
+
+# Node buttons
 host_button = Button(device_frame, image=pc1, width=60, height=60, relief=GROOVE,
-                     command=lambda: button_handler.handle_button_click(tk, canvas, "endhost"))
+                     command=lambda: button_handler.handle_button_click(tk, canvas, "endhost",
+                                                                        globalVars.internal_clock))
 host_button.grid(column=0, row=0, padx=10)
 host_button.bind('<Enter>', lambda e, btn=host_button: button_handler.hf.button_enter(e, btn))
 host_button.bind('<Leave>', lambda e, btn=host_button: button_handler.hf.button_leave(e, btn))
 
 switch_button = Button(device_frame, image=sw1, width=60, height=60, relief=GROOVE,
-                       command=lambda: button_handler.handle_button_click(tk, canvas, "switch"))
+                       command=lambda: button_handler.handle_button_click(tk, canvas, "switch",
+                                                                          globalVars.internal_clock))
 switch_button.grid(column=1, row=0)
+
 switch_button.bind('<Enter>', lambda e, btn=switch_button: button_handler.hf.button_enter(e, btn))
 switch_button.bind('<Leave>', lambda e, btn=switch_button: button_handler.hf.button_leave(e, btn))
 
 router_button = Button(device_frame, image=ro1, width=60, height=60, relief=GROOVE,
-                       command=lambda: button_handler.handle_button_click(tk, canvas, "router"))
+                       command=lambda: button_handler.handle_button_click(tk, canvas, "router",
+                                                                          globalVars.internal_clock))
 router_button.grid(column=0, row=1, padx=10, pady=5)
 router_button.bind('<Enter>', lambda e, btn=router_button: button_handler.hf.button_enter(e, btn))
 router_button.bind('<Leave>', lambda e, btn=router_button: button_handler.hf.button_leave(e, btn))
 
 fw_button = Button(device_frame, image=fw1, width=60, height=60, relief=GROOVE,
-                   command=lambda: button_handler.handle_button_click(tk, canvas, "firewall"))
+                   command=lambda: button_handler.handle_button_click(tk, canvas, "firewall",
+                                                                      globalVars.internal_clock))
 fw_button.grid(column=1, row=1, pady=5)
 fw_button.bind('<Enter>', lambda e, btn=fw_button: button_handler.hf.button_enter(e, btn))
 fw_button.bind('<Leave>', lambda e, btn=fw_button: button_handler.hf.button_leave(e, btn))
 
 eth_button = Button(cable_frame, image=eth_cable1, width=60, height=60, relief=GROOVE,
-                    command=lambda: button_handler.handle_button_click(tk, canvas, "Eth_cable"))
+                    command=lambda: button_handler.handle_button_click(tk, canvas, "Eth_cable",
+                                                                       globalVars.internal_clock))
 eth_button.grid(column=0, row=0)
 eth_button.bind('<Enter>', lambda e, btn=eth_button: button_handler.hf.button_enter(e, btn))
 eth_button.bind('<Leave>', lambda e, btn=eth_button: button_handler.hf.button_leave(e, btn))
@@ -164,7 +176,8 @@ rect_button.grid(column=0, row=0, pady=5, padx=12)
 rect_button.bind('<Enter>', lambda e, btn=rect_button: button_handler.hf.button_enter(e, btn))
 rect_button.bind('<Leave>', lambda e, btn=rect_button: button_handler.hf.button_leave(e, btn))
 
-new_label_button = Button(canvas_drawing, command=lambda: button_handler.handle_button_click(tk, canvas, "Label"),
+new_label_button = Button(canvas_drawing, command=lambda: button_handler.handle_button_click(tk, canvas, "Label",
+                                                                                             globalVars.internal_clock),
                           text="       Create Label", image=label1, compound="left", width=175, height=50,
                           relief=GROOVE)
 new_label_button.grid(column=0, row=1, pady=10)
@@ -198,18 +211,24 @@ except FileNotFoundError:
         F.write('["/", true, true, true, true]')
 
 # Threads
-time_counter = threading.Thread(target=hf.count_time)
+time_counter = threading.Thread(target=hf.count_time, daemon=True, args=(globalVars.internal_clock,))
 time_counter.start()
 
-background_processes = threading.Thread(target=nf.background_processes)
+background_processes = threading.Thread(target=nf.background_processes, args=(globalVars.internal_clock,), daemon=True)
 background_processes.start()
+
 
 # launch
 tk.mainloop()
 
 # TODO Order:
-#   5. Rectangle Save and load State
-#   6. UI on different screens
+#   - Another package for program stuff: time class, load_save, main, button_handler
+#   - Switch clear MAC table
+#   - Rectangle Save and load State
+#   - UI on different screens
+#   - Are you sure you want to exit? / Prompt save if anything changes
+#           (global var, set true in any class if something happens)
+#   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?
 #   7. Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 #   8. Add About/Feedback menu
 #   9. Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing

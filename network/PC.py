@@ -6,7 +6,6 @@ from network.Ethernet_Frame import EthernetFrame
 from network.Physical_Interface import PhysicalInterface
 from network.UDP import UDP
 from network.ipv4_packet import ipv4_packet
-from UI import globalVars
 
 
 def generate_ip_address():
@@ -39,6 +38,8 @@ class PC:
         self.received_ping_count = 0
         self.ping_rtt_times = []
         # ICMP Control
+
+        self.internal_clock = None
 
     def set_interface(self):
         return [PhysicalInterface('0/0', 1000, self)]
@@ -117,7 +118,7 @@ class PC:
                     linebreak=True, last=False)
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
-        self.ARP_table[ipv4] = [mac_address, address_type, globalVars.current_time]
+        self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.get_time()]
 
     def get_interfaces(self):
         return self.interface
@@ -209,6 +210,9 @@ class PC:
 
     def set_start_time(self, s_time):
         self.start_time = s_time
+
+    def set_internal_clock(self, clock):
+        self.internal_clock = clock
 
     def reset_ping_count(self, n):
         self.received_ping_count = n

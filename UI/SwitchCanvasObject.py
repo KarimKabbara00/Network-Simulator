@@ -9,7 +9,7 @@ import globalVars
 
 class SwitchCanvasObject:
 
-    def __init__(self, canvas, block_name, icons, class_object, master, load=False):
+    def __init__(self, canvas, block_name, icons, class_object, master, time_class, load=False):
         self._x = None
         self._y = None
         self.canvas = canvas
@@ -18,6 +18,10 @@ class SwitchCanvasObject:
         self.class_object.set_canvas_object(self)
         self.master = master
         self.icons = icons
+
+        self.internal_clock = time_class
+        self.internal_clock.add_switch(self)
+        self.class_object.set_internal_clock(self.internal_clock)
 
         # Cursor Location when object is created
         x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
@@ -396,6 +400,7 @@ class SwitchCanvasObject:
             except (tk.TclError, AttributeError):
                 pass
 
+            self.internal_clock.remove_router(self)
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)

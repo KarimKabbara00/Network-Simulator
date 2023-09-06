@@ -1,11 +1,11 @@
 import UI.helper_functions as hf
-from UI import globalVars
 from network.ICMP import ICMP
 from network.ipv4_packet import ipv4_packet
 from network.Ethernet_Frame import EthernetFrame
 from network.Arp import Arp
 from network.Dot1q import Dot1q
 import time
+import copy
 
 
 def create_icmp_echo_segment():
@@ -32,7 +32,6 @@ def create_dot1q_header(vlan_id):
 
 def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, dest_ip, count, canvas, host,
                       time_between_pings, interface):
-
     same_subnet = hf.is_same_subnet(source_ip, source_netmask, dest_ip)
 
     canvas.toggle_cli_busy()
@@ -125,36 +124,30 @@ def get_arp_table(arp_table):
     return header + entries
 
 
-def test():
-    return globalVars.pc_objects
-
-def background_processes():
+def background_processes(internal_clock):
 
     # Dynamic MAC Address Aging = 5 minutes
     # Dynamic ARP Entry Aging = 2 minutes
 
-    # pc_objects = []
-    # sw_objects = []
-    # ro_objects = []
+    pcs = internal_clock.get_pcs()
+    sws = internal_clock.get_switches()
+    ros = internal_clock.get_routers()
 
     while True:
+        print(pcs, sws, ros)
 
-        print(test())
-
-        print('checking')
         # PCs and routers have ARP tables
-        for i in globalVars.pc_objects + globalVars.ro_objects:
-            print('found a node')
+        for i in pcs + ros:
             node = i.get_class_object()
-            for arp_table in node.get_arp_table_actual():
-                for entry in arp_table:
-                    if arp_table[entry][1] == 'DYNAMIC' and globalVars.current_time > arp_table[entry][2] + 20:  # 120 sec
-                        arp_table.pop(entry)
-                        node.set_arp_table(arp_table)
-                        print('deleted')
+            arp_table = node.get_arp_table_actual()
+
+            for ip in copy.copy(arp_table):
+                if arp_table[ip][1] == 'DYNAMIC' and internal_clock.get_time() > arp_table[ip][2] + 120:
+                    arp_table.pop(ip)
+                    node.set_arp_table(arp_table)
 
         # Switches have MAC tables:
         # for i in globalVars.sw_objects:
         #     i.get_class_object.get_CAM_table()
 
-        time.sleep(10)
+        time.sleep(5)

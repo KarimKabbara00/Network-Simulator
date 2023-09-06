@@ -1,3 +1,5 @@
+from operations.InternalClock import InternalTime
+
 file_directory = "/"
 # file_directory = "C:/Users/kkabbara/PycharmProjects/Network-Simulator/save_files"
 # file_directory = "C:/Users/karim/PycharmProjects/pythonProject1/save_files"
@@ -12,6 +14,7 @@ cable_objects = []
 canvas_rectangles = []
 canvas_labels = []
 node_number = 0
+internal_clock = InternalTime()
 # ------------ Object Lists ------------ #
 
 # ------------ Link Light State ------------ #
@@ -41,14 +44,13 @@ ask_before_delete = True
 ask_before_quick_delete = True
 show_link_lights = True
 persistent_cable_connect = True
-
-
 # ------------ Preference Variables ------------ #
+
 
 # ------------ Reset Canvas ------------ #
 def clear_all_objects():
     global objects, pc_objects, sw_objects, ro_objects, fw_objects, cable_objects, \
-        canvas_rectangles, canvas_labels, node_number, node_buttons, open_TL_pc, TL_pc, open_TL_sw, TL_sw, \
+        canvas_rectangles, canvas_labels, node_number, open_TL_pc, TL_pc, open_TL_sw, TL_sw, \
         open_TL_ro, TL_ro, open_TL_fw, tl_fw, open_TL_lb, tl_lb
 
     for i in objects:
@@ -95,12 +97,4 @@ def clear_all_objects():
 
     open_TL_lb = False
     tl_lb = None
-
-
 # ------------ Reset Canvas ------------ #
-
-
-# ------------ Internal Program Clock ------------ #
-current_time = 0
-# ------------ Internal Program Clock ------------ #
-

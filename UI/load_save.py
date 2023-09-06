@@ -66,6 +66,7 @@ def save(file_name):
                                  'a': temp[4], 'b': temp[5], 'label_x': temp[6], 'label_y': temp[7]})
 
     save_info['OTHER']['Light_State'] = globalVars.light_state
+    save_info['OTHER']['Time'] = globalVars.internal_clock.get_time()
 
     # Write json to file
     with open(file_name, 'a') as F:
@@ -80,6 +81,9 @@ def load(canvas, master, file):
     # Use the json dumps method to write data to file
     with open(file, 'r') as F:
         configuration = json.load(F)
+
+    # Set the internal clock
+    globalVars.internal_clock.set_time(configuration['OTHER']['Time'])
 
     globalVars.node_number = configuration['node_number']
 
@@ -109,7 +113,9 @@ def load(canvas, master, file):
         # ----- Rebuild Interfaces ----- #
 
         # ----- Rebuild Canvas PC ----- #
-        pc_canvas_obj = PCCanvasObject(canvas, pc['block_name'], pc_icons, pc_obj, master, load=True)
+
+        pc_canvas_obj = PCCanvasObject(canvas, pc['block_name'], pc_icons, pc_obj, master, globalVars.internal_clock,
+                                       load=True)
         pc_canvas_obj.set_pos(pc['x_coord'], pc['y_coord'])
         # ----- Rebuild Canvas PC ----- #
 
@@ -149,7 +155,8 @@ def load(canvas, master, file):
         # ----- Rebuild CAM Table ----- #
 
         # ----- Rebuild Canvas SW ----- #
-        sw_canvas_object = SwitchCanvasObject(canvas, sw['block_name'], sw_icons, sw_obj, master, load=True)
+        sw_canvas_object = SwitchCanvasObject(canvas, sw['block_name'], sw_icons, sw_obj, master,
+                                              globalVars.internal_clock, load=True)
         sw_canvas_object.set_pos(sw['x'], sw['y'])
         # ----- Rebuild Canvas SW ----- #
 
@@ -191,7 +198,8 @@ def load(canvas, master, file):
         # ----- Rebuild Routing Table ----- #
 
         # ----- Rebuild Canvas RO ----- #
-        ro_canvas_object = RouterCanvasObject(canvas, ro['block_name'], ro_icons, ro_obj, master, load=True)
+        ro_canvas_object = RouterCanvasObject(canvas, ro['block_name'], ro_icons, ro_obj, master,
+                                              globalVars.internal_clock, load=True)
         ro_canvas_object.set_pos(ro['x'], ro['y'])
         # ----- Rebuild Canvas RO ----- #
 

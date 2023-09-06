@@ -1,10 +1,6 @@
 import json
 import tkinter as tk
 from tkinter import colorchooser, messagebox, ttk
-from tkinter.font import nametofont
-
-from tkinterweb.htmlwidgets import HtmlFrame
-
 import globalVars as globalVars
 import helper_functions as hf
 import network.Ethernet_Cable
@@ -20,17 +16,17 @@ from SwitchCanvasObject import SwitchCanvasObject
 from UI import loadIcons
 
 
-def create_pc(popup, canvas, generation, master, icons):
-    pc = PCCanvasObject(canvas, hf.get_next_pc(generation), icons, network.PC.PC(generation), master)
+def create_pc(popup, canvas, generation, master, icons, time_class):
+    pc = PCCanvasObject(canvas, hf.get_next_pc(generation), icons, network.PC.PC(generation), master, time_class)
     globalVars.objects.append(pc)
     globalVars.pc_objects.append(pc)
     popup.destroy()
     globalVars.open_TL_pc = False
 
 
-def create_switch(popup, canvas, icons, switch_type, master):
+def create_switch(popup, canvas, icons, switch_type, master, time_class):
     if switch_type == "TSA1000X":
-        switch = SwitchCanvasObject(canvas, hf.get_next_switch(), icons, network.Switch.Switch(), master)
+        switch = SwitchCanvasObject(canvas, hf.get_next_switch(), icons, network.Switch.Switch(), master, time_class)
         globalVars.objects.append(switch)
         globalVars.sw_objects.append(switch)
     elif switch_type == "RTSA1000X":
@@ -40,8 +36,8 @@ def create_switch(popup, canvas, icons, switch_type, master):
     globalVars.open_TL_sw = False
 
 
-def create_router(popup, canvas, icons, master):
-    router = RouterCanvasObject(canvas, hf.get_next_router(), icons, network.Router.Router(), master)
+def create_router(popup, canvas, icons, master, time_class):
+    router = RouterCanvasObject(canvas, hf.get_next_router(), icons, network.Router.Router(), master, time_class)
     globalVars.objects.append(router)
     globalVars.ro_objects.append(router)
     popup.destroy()
@@ -65,7 +61,7 @@ def create_label(popup, canvas, text):
     globalVars.open_TL_lb = False
 
 
-def handle_button_click(master, canvas, device_type):
+def handle_button_click(master, canvas, device_type, time_class):
     if device_type == "endhost":
 
         if not globalVars.open_TL_pc:
@@ -84,7 +80,7 @@ def handle_button_click(master, canvas, device_type):
             frame.place(x=10, y=10, height=300, width=425)
 
             pc_button = tk.Button(frame, width=10, height=5, text="PC", relief=tk.GROOVE,
-                                  command=lambda: create_pc(globalVars.TL_pc, canvas, "SecondGen", master, pc_icons))
+                                  command=lambda: create_pc(globalVars.TL_pc, canvas, "SecondGen", master, pc_icons, time_class))
             pc_button.place(x=165, y=80)
             pc_button.bind('<Enter>', lambda e, btn=pc_button: hf.button_enter(e, btn))
             pc_button.bind('<Leave>', lambda e, btn=pc_button: hf.button_leave(e, btn))
@@ -111,13 +107,13 @@ def handle_button_click(master, canvas, device_type):
             frame.place(x=10, y=10, height=300, width=525)
 
             l2sw_btn = tk.Button(frame, width=10, height=5, text="TSA1000X", relief=tk.GROOVE,
-                                 command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "TSA1000X", master))
+                                 command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "TSA1000X", master, time_class))
             l2sw_btn.place(x=100, y=30)
             l2sw_btn.bind('<Enter>', lambda e, btn=l2sw_btn: hf.button_enter(e, btn))
             l2sw_btn.bind('<Leave>', lambda e, btn=l2sw_btn: hf.button_leave(e, btn))
 
             l3sw_btn = tk.Button(frame, width=10, height=5, text="RTSA1000X", relief=tk.GROOVE,
-                                 command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "RTSA1000X", master))
+                                 command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "RTSA1000X", master, time_class))
             l3sw_btn.place(x=340, y=30)
             # l3sw_btn.bind('<Enter>', lambda e, btn=l3sw_btn: button_enter(e, btn))
             # l3sw_btn.bind('<Leave>', lambda e, btn=l3sw_btn: button_leave(e, btn))
@@ -153,7 +149,7 @@ def handle_button_click(master, canvas, device_type):
             frame.place(x=10, y=10, height=300, width=425)
 
             ro_btn = tk.Button(frame, width=10, height=5, text="R94X", relief=tk.GROOVE,
-                               command=lambda: create_router(globalVars.TL_ro, canvas, r_icons, master))
+                               command=lambda: create_router(globalVars.TL_ro, canvas, r_icons, master, time_class))
             ro_btn.place(x=165, y=80)
             ro_btn.bind('<Enter>', lambda e, btn=ro_btn: hf.button_enter(e, btn))
             ro_btn.bind('<Leave>', lambda e, btn=ro_btn: hf.button_leave(e, btn))

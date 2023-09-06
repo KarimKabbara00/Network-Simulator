@@ -503,12 +503,10 @@ def show_info(selected_item, help_menu):
     help_menu.columnconfigure(1, weight=1)
 
 
-def count_time():
+def count_time(internal_clock):
+
     while True:
         time.sleep(1)
-        globalVars.current_time += 1
-        print(globalVars.current_time)
+        internal_clock.increment_time()
 
-
-def stop_time(thread):
-    thread.kill()
+        print(internal_clock.get_time())

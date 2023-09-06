@@ -9,11 +9,16 @@ class Switch:
         self.MAC_Address = hf.generate_mac_address()
         self.Model_Number = "TSA1000X"
         self.Host_Name = host_name
+
         self.interfaces = []
         if not load:
             self.interfaces = self.set_interfaces()
+
         self.CAM_table = {}
         self.canvas_object = None
+
+        self.internal_clock = None
+
 
     def set_interfaces(self):
         interfaces = []
@@ -153,6 +158,9 @@ class Switch:
 
     def set_mac_address(self, mac):
         self.MAC_Address = mac
+
+    def set_internal_clock(self, clock):
+        self.internal_clock = clock
 
     def update_cam_table_vid(self, interface, vid):
         for i in self.CAM_table:

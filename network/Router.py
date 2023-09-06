@@ -19,6 +19,7 @@ class Router:
         self.ARP_table = {}
 
         self.canvas_object = None
+        self.internal_clock = None
 
     def set_interfaces(self):
         interfaces = []
@@ -182,7 +183,7 @@ class Router:
         return forwarding_interface
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
-        self.ARP_table[ipv4] = [mac_address, address_type]
+        self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.get_time()]
 
     def get_interfaces(self):
         return self.interfaces
@@ -204,6 +205,9 @@ class Router:
 
     def set_canvas_object(self, obj):
         self.canvas_object = obj
+
+    def set_internal_clock(self, clock):
+        self.internal_clock = clock
 
     def get_model(self):
         return self.Model_Number
