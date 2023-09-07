@@ -1,4 +1,5 @@
-import globalVars
+from operations import globalVars
+
 
 class LabelCanvasObject:
     def __init__(self, canvas, label_id, text, load=False):
@@ -18,6 +19,9 @@ class LabelCanvasObject:
             self.a = self.canvas.bbox(self.label)[2] + 10
             self.b = self.canvas.bbox(self.label)[3] + 8
 
+            globalVars.label_state = False  # If a new label is created, the label_state should be true.
+                                            # If it causes a mismatch, a reset will occur, showing all. 
+
             self.label_bg = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, fill="gray94",
                                                          tags=(self.block_name + "_bg", "Label"))
             self.canvas.tag_lower(self.label_bg, self.label)
@@ -25,12 +29,13 @@ class LabelCanvasObject:
             self.hidden_label = False
             # Label Stuff
 
-            # Button Bindings
+        # Button Bindings
             self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
             self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
-            self.canvas.tag_bind(self.block_name, '<B1-Motion>', self.motion)  # After the object is created
-            self.canvas.tag_bind(self.block_name + "_bg", '<B1-Motion>', self.motion)  # After the object is created
-            # Button Bindings
+
+        self.canvas.tag_bind(self.block_name, '<B1-Motion>', self.motion)  # After the object is created
+        self.canvas.tag_bind(self.block_name + "_bg", '<B1-Motion>', self.motion)  # After the object is created
+        # Button Bindings
 
     def motion(self, event):
         # Move the object
@@ -51,7 +56,7 @@ class LabelCanvasObject:
 
     def toggle_label(self, reset):
         if not reset:
-            self.hidden_label = not self.hidden_label
+            self.hidden_label = globalVars.label_state = not self.hidden_label
             if self.hidden_label:
                 self.canvas.itemconfigure(self.block_name, state='hidden')
                 self.canvas.itemconfigure(self.block_name + "_bg", state='hidden')
@@ -94,5 +99,11 @@ class LabelCanvasObject:
                                                      tags=(self.block_name + "_bg", "Label"))
         self.canvas.tag_lower(self.label_bg, self.label)
 
-        self.hidden_label = False
+        self.hidden_label = globalVars.label_state
+        if self.hidden_label:
+            self.canvas.itemconfigure(self.block_name, state='hidden')
+            self.canvas.itemconfigure(self.block_name + "_bg", state='hidden')
+        else:
+            self.canvas.itemconfigure(self.block_name, state='normal')
+            self.canvas.itemconfigure(self.block_name + "_bg", state='normal')
     # -------------------------- Save & Load Methods -------------------------- #

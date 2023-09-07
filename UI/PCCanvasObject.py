@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 from UI import helper_functions as hf
-import globalVars
+from operations import globalVars
 
 
 class PCCanvasObject(object):
@@ -93,31 +93,41 @@ class PCCanvasObject(object):
         self.l2 = None
         # Light Stuff
 
-    def motion(self, event):
+    def motion(self, event=None):
+
+        if not event:
+            event_x = self.canvas.coords(self.block_name)[0] + 0.000005
+            event_y = self.canvas.coords(self.block_name)[1] + 0.000005
+        else:
+            event_x = event.x
+            event_y = event.y
+
+            # Hide the menu
+            self.unbind_menu_temporarily()
 
         # Hide the menu
-        self.unbind_menu_temporarily()
+        # self.unbind_menu_temporarily()
 
         # Move the object
-        self.canvas.coords(self.block_name, self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        self.canvas.coords(self.block_name, self.canvas.canvasx(event_x), self.canvas.canvasy(event_y))
 
         # Move the hover area and menu buttons
-        self.canvas.coords(self.hover_area, self.canvas.canvasx(event.x) - 50, self.canvas.canvasy(event.y) - 50,
-                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) - 50,
-                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) - 75,
-                           self.canvas.canvasx(event.x) + 95, self.canvas.canvasy(event.y) - 75,
-                           self.canvas.canvasx(event.x) + 95, self.canvas.canvasy(event.y) + 75,
-                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) + 75,
-                           self.canvas.canvasx(event.x) + 45, self.canvas.canvasy(event.y) + 50,
-                           self.canvas.canvasx(event.x) - 50, self.canvas.canvasy(event.y) + 50)
+        self.canvas.coords(self.hover_area, self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) - 50,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 50,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 75,
+                           self.canvas.canvasx(event_x) + 95, self.canvas.canvasy(event_y) - 75,
+                           self.canvas.canvasx(event_x) + 95, self.canvas.canvasy(event_y) + 75,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 75,
+                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 50,
+                           self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) + 50)
 
-        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event.x) + 40, self.canvas.canvasy(event.y),
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) - 5,
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) - 72,
-                           self.canvas.canvasx(event.x) + 92, self.canvas.canvasy(event.y) - 72,
-                           self.canvas.canvasx(event.x) + 92, self.canvas.canvasy(event.y) + 72,
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 72,
-                           self.canvas.canvasx(event.x) + 50, self.canvas.canvasy(event.y) + 5)
+        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event_x) + 40, self.canvas.canvasy(event_y),
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 5,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 72,
+                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) - 72,
+                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) + 72,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 72,
+                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 5)
 
 
         try:
@@ -157,18 +167,18 @@ class PCCanvasObject(object):
                     self.canvas.itemconfig(self.l1, state='hidden')
                     self.canvas.itemconfig(self.l2, state='hidden')
 
-                if 0 <= abs(self.canvas.canvasx(event.x) - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
-                        self.canvas.canvasy(event.y) - self.canvas.coords(line)[1]) <= 30:
-                    self.canvas.coords(line, self.canvas.canvasx(event.x), self.canvas.canvasy(event.y),
+                if 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
+                        self.canvas.canvasy(event_y) - self.canvas.coords(line)[1]) <= 30:
+                    self.canvas.coords(line, self.canvas.canvasx(event_x), self.canvas.canvasy(event_y),
                                        self.canvas.coords(line)[2], self.canvas.coords(line)[3])
 
                     self.canvas.itemconfig(self.l1, fill=hf.get_color_from_op(self.interface_1.get_is_operational()))
                     self.canvas.itemconfig(self.l2, fill=hf.get_color_from_op(self.interface_2.get_is_operational()))
 
-                elif 0 <= abs(self.canvas.canvasx(event.x) - self.canvas.coords(line)[2]) <= 30 and 0 <= abs(
-                        self.canvas.canvasy(event.y) - self.canvas.coords(line)[3]) <= 30:
+                elif 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[2]) <= 30 and 0 <= abs(
+                        self.canvas.canvasy(event_y) - self.canvas.coords(line)[3]) <= 30:
                     self.canvas.coords(line, self.canvas.coords(line)[0], self.canvas.coords(line)[1],
-                                       self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+                                       self.canvas.canvasx(event_x), self.canvas.canvasy(event_y))
 
                     self.canvas.itemconfig(self.l2, fill=hf.get_color_from_op(self.interface_1.get_is_operational()))
                     self.canvas.itemconfig(self.l1, fill=hf.get_color_from_op(self.interface_2.get_is_operational()))
@@ -176,8 +186,8 @@ class PCCanvasObject(object):
         except StopIteration:
             pass
 
-        self._x = event.x
-        self._y = event.y
+        self._x = event_x
+        self._y = event_y
         return
 
     def button_release(self, event):

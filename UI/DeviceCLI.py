@@ -1,5 +1,5 @@
 import tkinter as tk
-import helper_functions as hf
+import UI.helper_functions as hf
 from abc import ABC, abstractmethod
 
 

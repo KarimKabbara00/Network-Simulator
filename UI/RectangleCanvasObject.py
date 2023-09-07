@@ -1,5 +1,3 @@
-import globalVars
-
 class RectangleCanvasObject:
     def __init__(self, canvas, color_code, rect_id, load=False):
         self.canvas = canvas

@@ -1,6 +1,6 @@
 import tkinter as tk
-import helper_functions as hf
-from DeviceCLI import DeviceCli
+import UI.helper_functions as hf
+from UI.DeviceCLI import DeviceCli
 
 
 class RouterCli(DeviceCli):

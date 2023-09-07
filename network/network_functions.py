@@ -5,7 +5,6 @@ from network.Ethernet_Frame import EthernetFrame
 from network.Arp import Arp
 from network.Dot1q import Dot1q
 import time
-import copy
 
 
 def create_icmp_echo_segment():
@@ -122,32 +121,3 @@ def get_arp_table(arp_table):
         entries += "{:<25} {:<25} {:<15}".format(ip, arp_table[ip][0], arp_table[ip][1])
         entries += "\n"
     return header + entries
-
-
-def background_processes(internal_clock):
-
-    # Dynamic MAC Address Aging = 5 minutes
-    # Dynamic ARP Entry Aging = 2 minutes
-
-    pcs = internal_clock.get_pcs()
-    sws = internal_clock.get_switches()
-    ros = internal_clock.get_routers()
-
-    while True:
-        print(pcs, sws, ros)
-
-        # PCs and routers have ARP tables
-        for i in pcs + ros:
-            node = i.get_class_object()
-            arp_table = node.get_arp_table_actual()
-
-            for ip in copy.copy(arp_table):
-                if arp_table[ip][1] == 'DYNAMIC' and internal_clock.get_time() > arp_table[ip][2] + 120:
-                    arp_table.pop(ip)
-                    node.set_arp_table(arp_table)
-
-        # Switches have MAC tables:
-        # for i in globalVars.sw_objects:
-        #     i.get_class_object.get_CAM_table()
-
-        time.sleep(5)

@@ -9,10 +9,9 @@ from textwrap import wrap
 from tkinter import filedialog
 import numpy as np
 from UI import loadIcons
-import globalVars
+from operations import globalVars
 from tkinterweb import HtmlFrame
 import markdown
-import time
 
 
 def button_enter(event, btn):
@@ -454,7 +453,7 @@ def open_folder_dialogue(preferences_menu, path):
     globalVars.file_directory = filedialog.askdirectory(initialdir=globalVars.file_directory, title="Select a File")
 
     # Save preferences when anything changes
-    with open('preferences.json', 'w') as F:
+    with open('../preferences.json', 'w') as F:
         F.write(json.dumps([globalVars.file_directory, globalVars.ask_before_delete, globalVars.ask_before_quick_delete,
                             globalVars.show_link_lights, globalVars.persistent_cable_connect]))
 
@@ -473,40 +472,31 @@ def show_info(selected_item, help_menu):
     file = ''
     match selected_item:
         case 'Network Simulator':
-            file = 'markdown/Network_Simulator.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Network_Simulator.md'
         case 'PCs':
-            file = 'markdown/PC.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/PC.md'
         case 'Switch':
-            file = 'markdown/Switch.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Switch.md'
         case 'Router':
-            file = 'markdown/Router.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Router.md'
         case 'Firewall':
-            file = 'markdown/Firewall.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Firewall.md'
         case 'Connecting Nodes':
-            file = 'markdown/Connecting_Nodes.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Connecting_Nodes.md'
         case 'Creating Areas and Labels':
-            file = 'markdown/Drawing.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Drawing.md'
         case 'Deleting Things':
-            file = 'markdown/Deleting_Things.md'
+            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Deleting_Things.md'
 
     if file:
         with open(file, 'r') as f:
             m_text = f.read()
 
         m_html = markdown.markdown(m_text)
-        f = open('C:/Users/kkabbara/PycharmProjects/Network-Simulator/markdown/temp', mode='w')
+        f = open('C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/temp', mode='w')
         f.write(m_html)
         f.flush()
         info_box.load_file(f.name)
         f.close()
 
     help_menu.columnconfigure(1, weight=1)
-
-
-def count_time(internal_clock):
-
-    while True:
-        time.sleep(1)
-        internal_clock.increment_time()
-
-        print(internal_clock.get_time())

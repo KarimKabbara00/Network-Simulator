@@ -1,5 +1,5 @@
 import tkinter as tk
-from DeviceCLI import DeviceCli
+from UI.DeviceCLI import DeviceCli
 
 
 class SwitchCli(DeviceCli):

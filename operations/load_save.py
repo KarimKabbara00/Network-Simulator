@@ -1,12 +1,12 @@
 from tkinter.filedialog import asksaveasfile, askopenfilename
-import globalVars
+from operations import globalVars
 import json
-from PCCanvasObject import PCCanvasObject
-from SwitchCanvasObject import SwitchCanvasObject
-from RouterCanvasObject import RouterCanvasObject
-from EthernetCableCanvasObject import EthernetCableCanvasObject
-from RectangleCanvasObject import RectangleCanvasObject
-from LabelCanvasObject import LabelCanvasObject
+from UI.EthernetCableCanvasObject import EthernetCableCanvasObject
+from UI.LabelCanvasObject import LabelCanvasObject
+from UI.PCCanvasObject import PCCanvasObject
+from UI.RectangleCanvasObject import RectangleCanvasObject
+from UI.RouterCanvasObject import RouterCanvasObject
+from UI.SwitchCanvasObject import SwitchCanvasObject
 from UI import loadIcons, button_handler
 from network.Physical_Interface import PhysicalInterface
 from network.Switch import Switch
@@ -15,11 +15,11 @@ from network.PC import PC
 from network.Router import Router
 
 
-def save_file():
+def save_file(canvas):
     f = asksaveasfile(initialdir=globalVars.file_directory, initialfile='.json',
                       defaultextension=".json", filetypes=[("json", ".json")])
     if f:
-        save(f.name)
+        save(f.name, canvas)
 
 
 def load_file(canvas, master):
@@ -28,7 +28,7 @@ def load_file(canvas, master):
         load(canvas, master, f)
 
 
-def save(file_name):
+def save(file_name, canvas):
     save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
                  'OTHER': {}}
 
@@ -66,6 +66,7 @@ def save(file_name):
                                  'a': temp[4], 'b': temp[5], 'label_x': temp[6], 'label_y': temp[7]})
 
     save_info['OTHER']['Light_State'] = globalVars.light_state
+    save_info['OTHER']['Label_State'] = globalVars.label_state
     save_info['OTHER']['Time'] = globalVars.internal_clock.get_time()
 
     # Write json to file
@@ -223,11 +224,14 @@ def load(canvas, master, file):
         rectangle_canvas_object.set_coords(rect['x'], rect['y'], rect['a'], rect['b'])
         globalVars.canvas_rectangles.append(rectangle_canvas_object)
 
+    # Set the saved label state
+    globalVars.label_state = configuration['OTHER']['Label_State']
     for label in configuration['LBL']:
         label_canvas_object = LabelCanvasObject(canvas, label['block_name'], label['text'], load=True)
         label_canvas_object.set_coords(label['x'], label['y'], label['a'], label['b'],
                                        label['label_x'], label['label_y'])
         globalVars.canvas_labels.append(label_canvas_object)
+        # label_canvas_object.toggle_label()
 
     # ----- Set Lights ----- #
     for i in pc_interface_to_light_mapping:
@@ -247,5 +251,6 @@ def load(canvas, master, file):
 
     # Set the light state
     globalVars.light_state = configuration['OTHER']['Light_State']
+
     button_handler.toggle_link_lights(canvas, checkbox=True)
     # ----- Set Lights ----- #

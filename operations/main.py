@@ -2,14 +2,9 @@ import json
 import threading
 from tkinter import *
 from PIL import Image, ImageTk
-import button_handler
-import load_save as ls
-import globalVars
-import network.network_functions as nf
-import helper_functions as hf
-
-
-# global img
+from UI import button_handler
+from operations import load_save as ls, globalVars
+import operations.backgroundProcesses as bp
 
 
 def create_menu(canvas_obj, master):
@@ -17,7 +12,7 @@ def create_menu(canvas_obj, master):
     file_menu = Menu(menu_bar, tearoff=0)
     file_menu.add_command(label="New")
     file_menu.add_command(label="Open", command=lambda c=canvas_obj, m=master: ls.load_file(c, m))
-    file_menu.add_command(label="Save", command=ls.save_file)
+    file_menu.add_command(label="Save", command=lambda c=canvas_obj: ls.save_file(c))
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=tk.quit)
     menu_bar.add_cascade(label="File", menu=file_menu)
@@ -199,7 +194,7 @@ del_button.bind('<Leave>', lambda e, btn=del_button: button_handler.hf.button_le
 
 # Load Preferences
 try:
-    with open('preferences.json', 'r+') as F:
+    with open('../preferences.json', 'r+') as F:
         preferences = json.load(F)
         globalVars.file_directory = preferences[0]
         globalVars.ask_before_delete = preferences[1]
@@ -207,24 +202,22 @@ try:
         globalVars.show_link_lights = preferences[3]
         globalVars.persistent_cable_connect = preferences[4]
 except FileNotFoundError:
-    with open('preferences.json', 'w+') as F:
+    with open('../preferences.json', 'w+') as F:
         F.write('["/", true, true, true, true]')
 
 # Threads
-time_counter = threading.Thread(target=hf.count_time, daemon=True, args=(globalVars.internal_clock,))
+time_counter = threading.Thread(target=bp.count_time, daemon=True, args=(globalVars.internal_clock,))
 time_counter.start()
 
-background_processes = threading.Thread(target=nf.background_processes, args=(globalVars.internal_clock,), daemon=True)
-background_processes.start()
+arp_mac_aging = threading.Thread(target=bp.arp_mac_aging, args=(globalVars.internal_clock,), daemon=True)
+arp_mac_aging.start()
 
 
 # launch
 tk.mainloop()
 
 # TODO Order:
-#   - Another package for program stuff: time class, load_save, main, button_handler
-#   - Switch clear MAC table
-#   - Rectangle Save and load State
+#   - Error when loading two_switches
 #   - UI on different screens
 #   - Are you sure you want to exit? / Prompt save if anything changes
 #           (global var, set true in any class if something happens)

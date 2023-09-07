@@ -2,9 +2,9 @@ import tkinter
 import tkinter as tk
 from tkinter import messagebox, ttk
 import UI.helper_functions as hf
-from PCCanvasObject import PCCanvasObject
-from SwitchCLI import SwitchCli
-import globalVars
+from UI import PCCanvasObject
+from UI.SwitchCLI import SwitchCli
+from operations import globalVars
 
 
 class SwitchCanvasObject:

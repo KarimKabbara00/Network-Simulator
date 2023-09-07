@@ -18,8 +18,8 @@ internal_clock = InternalTime()
 # ------------ Object Lists ------------ #
 
 # ------------ Link Light State ------------ #
-light_state = True
-rectangle_state = True  # TODO
+light_state = True      # True as in showing
+label_state = False     # False as in not hiding
 # ------------ Link Light State ------------ #
 
 # ------------ Pop up variables to ensure only 1 of the same window is open at a time ------------ #

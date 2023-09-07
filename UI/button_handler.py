@@ -1,18 +1,18 @@
 import json
 import tkinter as tk
 from tkinter import colorchooser, messagebox, ttk
-import globalVars as globalVars
-import helper_functions as hf
+from operations import globalVars as globalVars
+import UI.helper_functions as hf
 import network.Ethernet_Cable
 import network.PC
 import network.Router
 import network.Switch
-from EthernetCableCanvasObject import EthernetCableCanvasObject
-from LabelCanvasObject import LabelCanvasObject
-from PCCanvasObject import PCCanvasObject
-from RectangleCanvasObject import RectangleCanvasObject
-from RouterCanvasObject import RouterCanvasObject
-from SwitchCanvasObject import SwitchCanvasObject
+from UI.EthernetCableCanvasObject import EthernetCableCanvasObject
+from UI.LabelCanvasObject import LabelCanvasObject
+from UI.PCCanvasObject import PCCanvasObject
+from UI.RectangleCanvasObject import RectangleCanvasObject
+from UI.RouterCanvasObject import RouterCanvasObject
+from UI.SwitchCanvasObject import SwitchCanvasObject
 from UI import loadIcons
 
 
@@ -215,6 +215,7 @@ def toggle_link_lights(canvas, checkbox=False):
 
 
 def toggle_labels(canvas):
+
     for i in globalVars.canvas_labels:
         i.toggle_label(False)
 
@@ -224,6 +225,8 @@ def toggle_labels(canvas):
             canvas.itemcget(i, 'state') == 'normal' for i in labels):
         for i in globalVars.canvas_labels:
             i.toggle_label(True)
+
+        globalVars.label_state = False
 
 
 def delete_object(canvas, icon):
@@ -424,7 +427,7 @@ def set_preferences(option, value, canvas=None):
             raise Exception()
 
     # Save preferences when anything changes
-    with open('preferences.json', 'w') as F:
+    with open('../preferences.json', 'w') as F:
         F.write(json.dumps([globalVars.file_directory, globalVars.ask_before_delete, globalVars.ask_before_quick_delete,
                             globalVars.show_link_lights, globalVars.persistent_cable_connect]))
 

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from UI import helper_functions as hf
-import globalVars
+from operations import globalVars
 from network import Ethernet_Cable
 
 

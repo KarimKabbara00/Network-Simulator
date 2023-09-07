@@ -2,9 +2,9 @@ import tkinter
 import tkinter as tk
 from tkinter import ttk, messagebox
 import UI.helper_functions as hf
-from RouterCLI import RouterCli
-import globalVars
-from UI.PCCanvasObject import PCCanvasObject
+from UI.RouterCLI import RouterCli
+from operations import globalVars
+from UI import PCCanvasObject
 
 
 class RouterCanvasObject:

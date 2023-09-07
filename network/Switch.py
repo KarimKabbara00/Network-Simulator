@@ -76,7 +76,7 @@ class Switch:
 
         # if it doesn't, add it
         if not exists:
-            self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface]
+            self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface, self.internal_clock.get_time()]
 
         # Get the forwarding interface
         for i in self.CAM_table:
@@ -153,14 +153,20 @@ class Switch:
     def get_mac_address(self):
         return self.MAC_Address
 
-    def set_canvas_object(self, obj):
-        self.canvas_object = obj
-
     def set_mac_address(self, mac):
         self.MAC_Address = mac
 
+    def set_canvas_object(self, obj):
+        self.canvas_object = obj
+
     def set_internal_clock(self, clock):
         self.internal_clock = clock
+
+    def set_cam_table(self, cam):
+        self.CAM_table = cam
+
+    def get_cam_table(self):
+        return self.CAM_table
 
     def update_cam_table_vid(self, interface, vid):
         for i in self.CAM_table:
@@ -178,9 +184,6 @@ class Switch:
             interfaces.append(interface.get_save_info())
 
         return [self.Host_Name, self.MAC_Address, self.save_cam_table(), interfaces]
-
-    def set_cam_table(self, cam):
-        self.CAM_table = cam
 
     def save_cam_table(self):
         # self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface]
