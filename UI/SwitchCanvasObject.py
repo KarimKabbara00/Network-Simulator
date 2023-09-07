@@ -400,7 +400,7 @@ class SwitchCanvasObject:
             except (tk.TclError, AttributeError):
                 pass
 
-            self.internal_clock.remove_router(self)
+            self.internal_clock.remove_switch(self)
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)

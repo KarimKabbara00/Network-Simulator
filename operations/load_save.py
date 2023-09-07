@@ -15,11 +15,11 @@ from network.PC import PC
 from network.Router import Router
 
 
-def save_file(canvas):
+def save_file():
     f = asksaveasfile(initialdir=globalVars.file_directory, initialfile='.json',
                       defaultextension=".json", filetypes=[("json", ".json")])
     if f:
-        save(f.name, canvas)
+        save(f.name)
 
 
 def load_file(canvas, master):
@@ -28,7 +28,7 @@ def load_file(canvas, master):
         load(canvas, master, f)
 
 
-def save(file_name, canvas):
+def save(file_name):
     save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
                  'OTHER': {}}
 
@@ -75,8 +75,10 @@ def save(file_name, canvas):
 
 
 def load(canvas, master, file):
+
     # Clear everything first
     globalVars.clear_all_objects()
+    globalVars.internal_clock.clear_all()
     canvas.delete("all")
 
     # Use the json dumps method to write data to file
@@ -122,6 +124,7 @@ def load(canvas, master, file):
 
         globalVars.objects.append(pc_canvas_obj)
         globalVars.pc_objects.append(pc_canvas_obj)
+        globalVars.internal_clock.add_pc(pc_canvas_obj)
 
     sw_interface_to_light_mapping = {}
     sw_icons = loadIcons.get_sw_icons()
@@ -151,7 +154,7 @@ def load(canvas, master, file):
         cam_table = {}
         for entry in sw_class_info[2]:
             cam_table[int(entry)] = [sw_class_info[2][entry][0], sw_class_info[2][entry][1], sw_class_info[2][entry][2],
-                                     sw_obj.get_interface_by_name(sw_class_info[2][entry][3])]
+                                     sw_obj.get_interface_by_name(sw_class_info[2][entry][3]), sw_class_info[2][entry][4]]
         sw_obj.set_cam_table(cam_table)
         # ----- Rebuild CAM Table ----- #
 
@@ -163,6 +166,7 @@ def load(canvas, master, file):
 
         globalVars.objects.append(sw_canvas_object)
         globalVars.sw_objects.append(sw_canvas_object)
+        globalVars.internal_clock.add_switch(sw_canvas_object)
 
     ro_interface_to_light_mapping = {}
     ro_icons = loadIcons.get_router_icons()
@@ -206,6 +210,7 @@ def load(canvas, master, file):
 
         globalVars.ro_objects.append(ro_canvas_object)
         globalVars.objects.append(ro_canvas_object)
+        globalVars.internal_clock.add_router(ro_canvas_object)
 
     eth_icon = loadIcons.get_ethernet_icon()  # Don't really need the icon
     for eth in configuration['ETH']:

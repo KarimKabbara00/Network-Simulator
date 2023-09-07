@@ -41,3 +41,8 @@ class InternalTime:
 
     def get_routers(self):
         return self.routers
+
+    def clear_all(self):
+        self.pcs = []
+        self.switches = []
+        self.routers = []

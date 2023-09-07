@@ -24,9 +24,13 @@ class Router:
     def set_interfaces(self):
         interfaces = []
         for i in range(8):
-            interfaces.append(PhysicalInterface('0/' + str(i), 1000, self))
+            intf = PhysicalInterface('0/' + str(i), 1000, self)
+            intf.set_administratively_down(True)
+            interfaces.append(intf)
         for i in range(3):
-            self.serial_interfaces.append(PhysicalInterface('0/' + str(i), 1000, self))
+            intf = PhysicalInterface('0/' + str(i), 1000, self)
+            intf.set_administratively_down(True)
+            self.serial_interfaces.append(intf)
         return interfaces
 
     def set_mac_address(self, address):

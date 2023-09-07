@@ -12,7 +12,7 @@ def create_menu(canvas_obj, master):
     file_menu = Menu(menu_bar, tearoff=0)
     file_menu.add_command(label="New")
     file_menu.add_command(label="Open", command=lambda c=canvas_obj, m=master: ls.load_file(c, m))
-    file_menu.add_command(label="Save", command=lambda c=canvas_obj: ls.save_file(c))
+    file_menu.add_command(label="Save", command=ls.save_file)
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=tk.quit)
     menu_bar.add_cascade(label="File", menu=file_menu)
@@ -217,7 +217,6 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
-#   - Error when loading two_switches
 #   - UI on different screens
 #   - Are you sure you want to exit? / Prompt save if anything changes
 #           (global var, set true in any class if something happens)

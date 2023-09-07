@@ -156,14 +156,18 @@ class PhysicalInterface:
 
     def set_administratively_down(self, is_down):
         self.administratively_down = is_down
-        if is_down:
-            self.set_operational(False)
 
-        elif not is_down and self.is_connected:
-            self.set_operational(True)
+        try:  # Won't error if cable is connected
+            if is_down:
+                self.set_operational(False)
 
-        elif not is_down and not self.is_connected:
-            self.set_operational(False)
+            elif not is_down and self.is_connected:
+                self.set_operational(True)
+
+            elif not is_down and not self.is_connected:
+                self.set_operational(False)
+        except AttributeError:
+            pass
 
     def set_access_vlan_id(self, v_id):
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":

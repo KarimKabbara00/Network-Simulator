@@ -124,6 +124,8 @@ class EthernetCableCanvasObject:
         self.cable_end_1.disconnect()
         self.cable_end_2.disconnect()
 
+        globalVars.cable_objects.remove(self)
+
     def show_interfaces(self, event, host_object):
         submenu = tk.Menu(self.canvas, tearoff=0)
 
@@ -368,26 +370,6 @@ class EthernetCableCanvasObject:
                                       self.obj1_coords[0] + x_shift, self.obj1_coords[1] + y_shift, 4,
                                       self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
                                       "_" + str(self.existing_line_count))
-
-        # # Draw Line
-        # self.canvas_line = self.canvas.create_line(self.obj1_coords[0], self.obj1_coords[1],
-        #                                            self.obj2_coords[0],
-        #                                            self.obj2_coords[1], fill="black", width=2,
-        #                                            tags=(
-        #                                                self.obj1_canvas_tag + "_line_" + self.obj2_canvas_tag +
-        #                                                "_" + str(self.existing_line_count),
-        #                                                self.obj2_canvas_tag + "_line_" + self.obj1_canvas_tag +
-        #                                                "_" + str(self.existing_line_count), 'line', 'Ethernet'))
-        #
-        # self.light_1 = hf.draw_circle(self.obj1_coords[0], self.obj1_coords[1],
-        #                               self.obj2_coords[0], self.obj2_coords[1], 4,
-        #                               self.canvas, self.obj1_canvas_tag + "_light_" + self.obj2_canvas_tag +
-        #                               "_" + str(self.existing_line_count))
-        #
-        # self.light_2 = hf.draw_circle(self.obj2_coords[0], self.obj2_coords[1],
-        #                               self.obj1_coords[0], self.obj1_coords[1], 4,
-        #                               self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
-        #                               "_" + str(self.existing_line_count))
 
         # Lower line and lights one layer to underlap the hover menu and canvas object
         for light in self.canvas.find_withtag('light'):
