@@ -1,11 +1,14 @@
 import tkinter as tk
 import UI.helper_functions as hf
 from UI.DeviceCLI import DeviceCli
+from network.SubInterface import SubInterface
 
 
 class RouterCli(DeviceCli):
     def __init__(self, canvas_object, class_object,  popup, cli_text, prefix, files):
         super().__init__(canvas_object, class_object, popup, cli_text, prefix, files)
+        self.working_sub_interface = None
+        self.sub_interface_configuration = False
 
     def process_command(self, command):
 
@@ -15,7 +18,7 @@ class RouterCli(DeviceCli):
             self.cli.insert(tk.END, "\n" + self.cli_text)
             valid_command = False
 
-        if not self.interface_configuration:
+        if not self.interface_configuration and not self.sub_interface_configuration:
 
             if command == "show interfaces":
                 interfaces = self.class_object.show_interfaces()
@@ -36,12 +39,28 @@ class RouterCli(DeviceCli):
                 self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
 
             elif command.startswith("interface "):
-                interface = command.split("interface ")[1]
+
+                try:
+                    interface = command.split("interface ")[1].split('.')[0]
+                    sub_intf = '.' + command.split("interface ")[1].split('.')[1]
+                except IndexError:
+                    interface = command.split("interface ")[1]
+                    sub_intf = None
+
                 self.working_interface = self.class_object.get_interface_by_name(interface)
-                if self.working_interface:
+
+                if self.working_interface and sub_intf:  # If true, sub interface config
+                    self.sub_interface_configuration = True
+                    self.working_sub_interface = SubInterface(self.working_interface, sub_intf)
+                    self.working_interface.add_sub_interface(self.working_sub_interface)
+                    self.cli_text = self.class_object.get_host_name() + "(sub-int-config)> "
+                    self.cli.insert(tk.END, "\n" + self.cli_text)
+
+                elif self.working_interface:
                     self.interface_configuration = True
                     self.cli_text = self.class_object.get_host_name() + "(int-config)> "
                     self.cli.insert(tk.END, "\n" + self.cli_text)
+
                 else:
                     self.cli.insert(tk.END, "\nInterface Not Found")
                     self.cli.insert(tk.END, "\n" + self.cli_text)
@@ -114,6 +133,33 @@ class RouterCli(DeviceCli):
                 else:
                     self.cli.insert(tk.END, "\nInterface Not Found")
                     self.cli.insert(tk.END, "\n" + self.cli_text)
+
+            else:
+                self.cli.insert(tk.END, "\nUnknown Command\n" + "\n" + self.cli_text)
+                valid_command = False
+
+        elif self.sub_interface_configuration:
+            if command.startswith("encapsulation dot1q "):
+                info = command.split("encapsulation dot1q ")
+
+                try:
+                    try:
+                        v_id = int(info[1].split(" ")[0])
+                        self.working_sub_interface.set_vlan_id(v_id)
+
+                        native_vlan = int(info[1].split(" ")[1])
+                        self.working_sub_interface.set_native_vlan(native_vlan)
+
+                    except IndexError:
+                        v_id = int(info[1])
+                        self.working_sub_interface.set_vlan_id(v_id)
+
+                except ValueError:
+                    self.cli.insert(tk.END, "\nInvalid Command\n" + "\n" + self.cli_text)
+                    valid_command = False
+
+                self.cli_text = self.class_object.get_host_name() + "(sub-int-config)> "
+                self.cli.insert(tk.END, "\n" + self.cli_text)
 
             else:
                 self.cli.insert(tk.END, "\nUnknown Command\n" + "\n" + self.cli_text)

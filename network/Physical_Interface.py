@@ -17,6 +17,7 @@ class PhysicalInterface:
         if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
             self.ip_address = None
             self.netmask = None
+            self.sub_interfaces = []
 
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
             self.switchport_type = None  # If none, then all vlan traffic is allowed
@@ -181,6 +182,17 @@ class PhysicalInterface:
 
     def add_allowed_trunk_vlan(self, vlan_ids):
         self.trunk_vlan_ids = vlan_ids
+
+    def add_sub_interface(self, sub):
+        self.sub_interfaces.append(sub)
+
+    def get_sub_interfaces(self):
+        return self.sub_interfaces
+
+    def get_sub_interface_by_name(self, name):
+        for i in self.sub_interfaces:
+            if i.get_name() == name:
+                return name
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

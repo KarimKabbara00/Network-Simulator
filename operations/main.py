@@ -36,15 +36,16 @@ tk.overrideredirect()
 width = tk.winfo_screenwidth()
 height = tk.winfo_screenheight()
 tk.geometry("%dx%d" % (width - 10, height - 10))
+tk.state('zoomed')
 
 # Canvas
-canvas = Canvas(tk, bg="white", height=height * 2, width=width * 2, scrollregion=(0, 0, width * 2, height * 2))
+canvas = Canvas(tk, bg="white", scrollregion=(0, 0, width * 2, height * 2))
 canvas.pack(expand=YES, fill=BOTH)
 
-scroll_x = Scrollbar(tk, orient="horizontal", command=canvas.xview)
-scroll_x.place(x=0, y=778, width=width)
-scroll_y = Scrollbar(tk, orient="vertical", command=canvas.yview)
-scroll_y.place(x=width - 17, y=0, height=777)
+scroll_x = Scrollbar(canvas, orient="horizontal", command=canvas.xview)
+scroll_x.pack(expand=NO, fill=BOTH, side=BOTTOM)
+scroll_y = Scrollbar(canvas, orient="vertical", command=canvas.yview)
+scroll_y.pack(expand=NO, fill=BOTH, side=RIGHT)
 
 canvas.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
 canvas.configure(scrollregion=canvas.bbox("all"))
@@ -54,17 +55,15 @@ menubar = create_menu(canvas, tk)
 tk.config(menu=menubar)
 
 # bottom frame
-action_frame = Frame(tk, highlightbackground="grey22", highlightthickness=1.5)
-action_frame.place(x=0, y=795, width=width, height=height - 840)
+action_frame = Frame(tk, highlightbackground="grey22", highlightthickness=1.5, height=(height * 0.25))
+action_frame.pack(expand=NO, fill=BOTH)
 
 # device buttons and logic
-device_frame = LabelFrame(tk, text="Devices", padx=5, pady=5)
-device_frame.place(x=30, y=625, height=175, width=175)
-# device_frame.place(x=30, y=825, height=175, width=175)
+device_frame = LabelFrame(action_frame, text="Devices", padx=5, pady=5)
+device_frame.place(x=30, y=(((height * 0.25) - 175) / 2), height=175, width=175)
 
-cable_frame = LabelFrame(tk, text="Cables", padx=5, pady=5)
-cable_frame.place(x=225, y=625, height=175, width=82)
-# cable_frame.place(x=225, y=825, height=175, width=82)
+cable_frame = LabelFrame(action_frame, text="Cables", padx=5, pady=5)
+cable_frame.place(x=225, y=(((height * 0.25) - 175) / 2), height=175, width=82)
 
 pc = Image.open("icons/desktop-computer.png")
 sw = Image.open("icons/switch.png")
@@ -95,10 +94,6 @@ ser_cable1 = ImageTk.PhotoImage(ser_cable)
 rectangle1 = ImageTk.PhotoImage(rectangle)
 label1 = ImageTk.PhotoImage(label)
 x1 = ImageTk.PhotoImage(x)
-
-# Time
-# internal_clock = InternalTime()
-# globalVars.internal_clock = internal_clock
 
 # Node buttons
 host_button = Button(device_frame, image=pc1, width=60, height=60, relief=GROOVE,
@@ -143,9 +138,9 @@ ser_button.bind('<Enter>', lambda e, btn=ser_button: button_handler.hf.button_en
 ser_button.bind('<Leave>', lambda e, btn=ser_button: button_handler.hf.button_leave(e, btn))
 
 # Toggle Button Stuff
-toggle_frame = LabelFrame(tk, text="Toggle", padx=5, pady=5)
+toggle_frame = LabelFrame(action_frame, text="Toggle", padx=5, pady=5)
 # toggle_frame.place(x=width - 230, y=825, height=175, width=200)
-toggle_frame.place(x=width - 230, y=625, height=175, width=200)
+toggle_frame.place(x=width - 230, y=(((height * 0.25) - 175) / 2), height=175, width=200)
 
 light_button = Button(toggle_frame, command=lambda c=canvas: button_handler.toggle_link_lights(c),
                       text="Toggle Link Lights", width=25, height=3, relief=GROOVE)
@@ -161,9 +156,8 @@ label_button.bind('<Leave>', lambda e, btn=label_button: button_handler.hf.butto
 # Toggle Button Stuff
 
 # Canvas Drawing Stuff
-canvas_drawing = LabelFrame(tk, text="Canvas", padx=5, pady=5)
-canvas_drawing.place(x=width - 475, y=625, height=175, width=225)
-# canvas_drawing.place(x=width - 475, y=825, height=175, width=225)
+canvas_drawing = LabelFrame(action_frame, text="Canvas", padx=5, pady=5)
+canvas_drawing.place(x=width - 475, y=(((height * 0.25) - 175) / 2), height=175, width=225)
 
 rect_button = Button(canvas_drawing, command=lambda: button_handler.create_rectangle(canvas), text="  Create Rectangle",
                      image=rectangle1, compound="left", width=175, height=50, relief=GROOVE)
@@ -181,9 +175,8 @@ new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_handler.
 # Canvas Drawing Stuff
 
 # Delete Button Stuff
-canvas_delete = LabelFrame(tk, text="Quick Delete", padx=16, pady=3)
-canvas_delete.place(x=width - 567, y=625, height=75, width=75)
-# canvas_delete.place(x=width - 567, y=925, height=75, width=82)
+canvas_delete = LabelFrame(action_frame, text="Quick Delete", padx=16, pady=3)
+canvas_delete.place(x=width - 567, y=((height * 0.25) / 2) + 11, height=75, width=75)
 
 del_button = Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
                     image=x1, width=40, height=40, relief=GROOVE)
@@ -217,7 +210,6 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
-#   - UI on different screens
 #   - Are you sure you want to exit? / Prompt save if anything changes
 #           (global var, set true in any class if something happens)
 #   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?

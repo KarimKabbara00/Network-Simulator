@@ -74,7 +74,11 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_pc.title("Add End Host")
             globalVars.TL_pc.iconphoto(False, pc_icons[0])
 
-            globalVars.TL_pc.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
+            ws = master.winfo_screenwidth()
+            hs = master.winfo_screenheight()
+            x = (ws / 2) - (450 / 2)
+            y = (hs / 2) - (325 / 2) - 100
+            globalVars.TL_pc.geometry('%dx%d+%d+%d' % (450, 325, x, y))
 
             frame = tk.LabelFrame(globalVars.TL_pc, padx=5, pady=5)
             frame.place(x=10, y=10, height=300, width=425)
@@ -100,8 +104,13 @@ def handle_button_click(master, canvas, device_type, time_class):
 
             globalVars.TL_sw = tk.Toplevel(master)
             globalVars.TL_sw.title("Add Switch")
-            globalVars.TL_sw.geometry("%dx%d+%d+%d" % (550, 325, 675, 300))
             globalVars.TL_sw.iconphoto(False, sw_icons[0])
+
+            ws = master.winfo_screenwidth()
+            hs = master.winfo_screenheight()
+            x = (ws / 2) - (550 / 2)
+            y = (hs / 2) - (325 / 2) - 100
+            globalVars.TL_sw.geometry('%dx%d+%d+%d' % (550, 325, x, y))
 
             frame = tk.LabelFrame(globalVars.TL_sw, padx=5, pady=5)
             frame.place(x=10, y=10, height=300, width=525)
@@ -141,9 +150,14 @@ def handle_button_click(master, canvas, device_type, time_class):
 
             globalVars.TL_ro = tk.Toplevel(master)
             globalVars.TL_ro.title("Add Router")
-            globalVars.TL_ro.geometry("%dx%d+%d+%d" % (450, 325, 740, 300))
             globalVars.TL_ro.iconphoto(False, r_icons[0])
             # popup.attributes('-toolwindow', True)
+
+            ws = master.winfo_screenwidth()
+            hs = master.winfo_screenheight()
+            x = (ws / 2) - (450 / 2)
+            y = (hs / 2) - (325 / 2) - 100
+            globalVars.TL_ro.geometry('%dx%d+%d+%d' % (450, 325, x, y))
 
             frame = tk.LabelFrame(globalVars.TL_ro, padx=5, pady=5)
             frame.place(x=10, y=10, height=300, width=425)
@@ -177,8 +191,13 @@ def handle_button_click(master, canvas, device_type, time_class):
 
             globalVars.tl_lb = tk.Toplevel(master)
             globalVars.tl_lb.title("Add Label")
-            globalVars.tl_lb.geometry("%dx%d+%d+%d" % (250, 150, 825, 350))
             globalVars.tl_lb.iconphoto(False, loadIcons.get_label_icon()[0])
+
+            ws = master.winfo_screenwidth()
+            hs = master.winfo_screenheight()
+            x = (ws / 2) - (250 / 2)
+            y = (hs / 2) - (150 / 2) - 100
+            globalVars.tl_lb.geometry('%dx%d+%d+%d' % (250, 150, x, y))
 
             frame = tk.LabelFrame(globalVars.tl_lb, padx=5, pady=5)
             frame.place(x=10, y=10, height=130, width=230)
@@ -295,7 +314,7 @@ def delete_object(canvas, icon):
                     return
             return
 
-    hf.move_mouse_to(1400, 800)
+    hf.move_mouse_to(1100, 600)
     x = canvas.canvasx(canvas.winfo_pointerx() - canvas.winfo_rootx())
     y = canvas.canvasy(canvas.winfo_pointery() - canvas.winfo_rooty())
 
@@ -311,7 +330,12 @@ def preferences_menu(master, canvas):
     preferences_popup.title("Preferences")
     preferences_popup.iconphoto(False, loadIcons.get_preferences_icon()[0])
 
-    preferences_popup.geometry("%dx%d+%d+%d" % (830, 600, 740, 300))
+    ws = master.winfo_screenwidth()
+    hs = master.winfo_screenheight()
+    x = (ws / 2) - (830 / 2)
+    y = (hs / 2) - (600 / 2) - 50
+    preferences_popup.geometry('%dx%d+%d+%d' % (830, 600, x, y))
+
     preferences_popup.focus_set()
 
     frame = tk.LabelFrame(preferences_popup, padx=5, pady=5)
@@ -443,7 +467,13 @@ def open_help_menu(master):
     help_menu = tk.Toplevel(master)
     help_menu.title("Help Menu")
     help_menu.iconphoto(False, icon)
-    help_menu.geometry("%dx%d+%d+%d" % (800, 610, 720, 300))
+
+    ws = master.winfo_screenwidth()
+    hs = master.winfo_screenheight()
+    x = (ws / 2) - (800 / 2)
+    y = (hs / 2) - (610 / 2) - 50
+    help_menu.geometry('%dx%d+%d+%d' % (800, 610, x, y))
+
     help_menu.focus_set()
 
     style = ttk.Style()

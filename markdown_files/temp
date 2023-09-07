@@ -1,23 +1,10 @@
-<h1>PCs</h1>
-<p><a href="../icons/desktop-computer.png"><img src="../icons/desktop-computer.png" width="200"/></a></p>
-<p>PCs are your typical end host devices.</p>
-<h2>Menus</h2>
-<p>Each PC has 4 menus to interact with it:</p>
-<h3>Configure PC</h3>
-<p>In this menu, you can configure: <br>
-&nbsp; &nbsp; &nbsp; - Hostname <br>
-&nbsp; &nbsp; &nbsp; - MAC Address <br>
-&nbsp; &nbsp; &nbsp; - IP Information such as: <br>
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - IPv4 Address and Subnet Mask <br>
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  - IPv6 Address and Prefix Length <br>
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  - Default Gateways <br></p>
-<h3>Terminal</h3>
-<p>The terminal allows you to interact with the PC. Currently, the available commands are: <br>
-&nbsp; &nbsp; &nbsp; &nbsp; - arp -a<br>
-&nbsp; &nbsp; &nbsp; &nbsp; - ping A.B.C.D<br>
-&nbsp; &nbsp; &nbsp; &nbsp; - ping A.B.C.D -n #pingcount<br></p>
-<h3>Disconnect Cable</h3>
-<p>This button disconnects the ethernet connection to another device.  </p>
-<h3>Delete Node</h3>
-<p>This button disconnects all connections, and deletes the node, and its configurations.
-<strong>This cannot be undone</strong>. </p>
+<h1>Network-Simulator</h1>
+<ul>
+<li>A simple network simulator to create network topologies, featuring devices like PCs, routers, and switches.</li>
+<li>Each device features a command line/interface for configuring IP addresses, VLANs, access/trunk ports, default gateways, and more.</li>
+<li>Current working functionality includes ICMP pings, ARP learning process, and dynamic MAC address learning.</li>
+<li>Defined PDUs for OSI layers 2, 3 and 4, including encapsulation and de-encapsulation at each layer.
+<br></li>
+<li>As of 9/4/2023 trunk ports are still under development.</li>
+</ul>
+<p>(They can be configured, but they do not operate as expected)</p>

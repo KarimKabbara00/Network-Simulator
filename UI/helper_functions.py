@@ -7,11 +7,12 @@ from itertools import groupby
 from operator import itemgetter
 from textwrap import wrap
 from tkinter import filedialog
+import markdown
 import numpy as np
 from UI import loadIcons
 from operations import globalVars
 from tkinterweb import HtmlFrame
-import markdown
+import markdown_files
 
 
 def button_enter(event, btn):
@@ -493,7 +494,7 @@ def show_info(selected_item, help_menu):
             m_text = f.read()
 
         m_html = markdown.markdown(m_text)
-        f = open('C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/temp', mode='w')
+        f = open('markdown_files/temp', mode='w')
         f.write(m_html)
         f.flush()
         info_box.load_file(f.name)

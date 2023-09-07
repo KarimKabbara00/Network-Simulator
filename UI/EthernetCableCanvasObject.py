@@ -7,7 +7,7 @@ from network import Ethernet_Cable
 
 class EthernetCableCanvasObject:
 
-    def __init__(self, canvas, block_name, icon, class_object, master, cursor_pos=(350, 800), load=False):
+    def __init__(self, canvas, block_name, icon, class_object, master, cursor_pos=(350, 600), load=False):
         self.canvas = canvas
         self.master = master
         self.block_name = block_name
