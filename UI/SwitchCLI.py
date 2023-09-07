@@ -111,9 +111,9 @@ class SwitchCli(DeviceCli):
 
                 elif command.startswith("trunk allowed-vlans "):
                     try:
-                        vlan_id = int(command.split("trunk allowed-vlans ")[1])
-                        print(vlan_id)
-                        self.working_interface.add_allowed_trunk_vlan(vlan_id)
+                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans ")[1].split(',')]
+                        print(vlan_ids)
+                        self.working_interface.add_allowed_trunk_vlan(vlan_ids)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False

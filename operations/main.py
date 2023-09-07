@@ -210,6 +210,9 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
+#   - Trunk ports / ROAS
+#   - hf.window_close
+#   - Center node menus like other menus
 #   - Are you sure you want to exit? / Prompt save if anything changes
 #           (global var, set true in any class if something happens)
 #   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?

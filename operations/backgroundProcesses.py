@@ -7,7 +7,7 @@ def count_time(internal_clock):
         time.sleep(1)
         internal_clock.increment_time()
 
-        print(internal_clock.get_time())
+        # print(internal_clock.get_time())
 
 
 def arp_mac_aging(internal_clock):

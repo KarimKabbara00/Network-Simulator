@@ -185,6 +185,7 @@ def handle_button_click(master, canvas, device_type, time_class):
 
     elif device_type == "Label":
 
+        print(globalVars.open_TL_lb)
         if not globalVars.open_TL_lb:
 
             globalVars.open_TL_lb = True
@@ -192,6 +193,7 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.tl_lb = tk.Toplevel(master)
             globalVars.tl_lb.title("Add Label")
             globalVars.tl_lb.iconphoto(False, loadIcons.get_label_icon()[0])
+            globalVars.tl_lb.protocol("WM_DELETE_WINDOW", lambda w=globalVars.tl_lb: hf.window_closed(w))
 
             ws = master.winfo_screenwidth()
             hs = master.winfo_screenheight()

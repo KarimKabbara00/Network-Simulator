@@ -23,6 +23,13 @@ def button_leave(event, btn):
     btn.config(background='SystemButtonFace', relief=tk.GROOVE)
 
 
+def window_closed(window):  # TODO: ALL WINDOWS
+    match window:
+        case globalVars.tl_lb:
+            globalVars.open_TL_lb = False
+            globalVars.tl_lb.destroy()
+
+
 def get_next_number():
     globalVars.node_number += 1
     return globalVars.node_number
@@ -466,7 +473,6 @@ def open_folder_dialogue(preferences_menu, path):
 
 
 def show_info(selected_item, help_menu):
-
     info_box = HtmlFrame(help_menu, messages_enabled=False)
     info_box.grid(row=0, column=1, sticky="nsew", pady=6, padx=10)
 

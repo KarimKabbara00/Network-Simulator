@@ -20,7 +20,7 @@ class PhysicalInterface:
             self.sub_interfaces = []
 
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
-            self.switchport_type = None  # If none, then all vlan traffic is allowed
+            self.switchport_type = 'Access'  # If none, then all vlan traffic is allowed
             self.access_vlan_id = 1
             self.trunk_vlan_ids = []
 
@@ -191,15 +191,20 @@ class PhysicalInterface:
 
     def get_sub_interface_by_name(self, name):
         for i in self.sub_interfaces:
-            if i.get_name() == name:
+            if i.get_shortened_name() == name:
                 return name
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
         if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
+
+            sub_interfaces = []
+            for i in self.sub_interfaces:
+                sub_interfaces.append(i.get_save_info())
+
             return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
                     self.connected_to_MAC, self.operational, self.administratively_down,
-                    self.ip_address, self.netmask]
+                    self.ip_address, self.netmask, sub_interfaces]
 
         elif self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
             return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,

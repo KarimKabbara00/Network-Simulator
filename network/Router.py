@@ -38,6 +38,8 @@ class Router:
 
     def de_encapsulate(self, frame, receiving_interface):
 
+        print('ro', receiving_interface.get_shortened_name())
+
         packet = frame.get_packet()
         packet_identifier = packet.get_identifier()
         forwarding_interface = self.decide_route(packet)
@@ -46,6 +48,12 @@ class Router:
         original_sender_mac = hf.bin_to_hex(frame.get_src_mac())
 
         original_dest_ipv4 = packet.get_dest_ip()
+
+        # TODO: Duct tape fix? not rlly working
+        if not receiving_interface.get_netmask():
+            for x in receiving_interface.get_sub_interfaces():
+                if hf.is_same_subnet(x.get_ipv4_address(), x.get_subnet_mask(), original_sender_ipv4):
+                    receiving_interface = x
 
         # Check if the dest is in the router's ARP table
         if original_dest_ipv4 not in self.ARP_table:
@@ -184,6 +192,8 @@ class Router:
                     forwarding_interface = i
                     break
 
+        print('route is', forwarding_interface.get_shortened_name())
+
         return forwarding_interface
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
@@ -199,9 +209,16 @@ class Router:
         return self.MAC_Address
 
     def get_interface_by_name(self, name):
+
         for i in self.interfaces:
             if name.lower() == i.get_shortened_name().lower():
                 return i
+
+        for intf in self.interfaces:
+            for sub_intf in intf.get_sub_interfaces():
+                if name.lower() == sub_intf.get_shortened_name().lower():
+                    return sub_intf
+
         return None
 
     def get_canvas_object(self):

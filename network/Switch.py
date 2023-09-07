@@ -44,16 +44,10 @@ class Switch:
         forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface,
                                                              src_dot1q)
 
-        # Unicast
-        if forwarding_interface and forwarding_interface.get_is_operational():
-            forwarding_interface.send(frame)
+        if forwarding_interface:  # Unicast
+            self.unicast(frame, forwarding_interface, vlan_id)
 
-        # Unicast but interface is down
-        elif forwarding_interface and not forwarding_interface.get_is_operational():
-            pass
-
-        # Broadcast
-        elif not forwarding_interface:
+        else:  # Broadcast
             self.broadcast(frame, receiving_interface, vlan_id)
 
     def check_cam_table(self, src_mac, dst_mac, receiving_interface, src_dot1q):
@@ -86,13 +80,39 @@ class Switch:
         # If a broadcast frame, or unknown unicast
         return None, src_dot1q
 
+    def unicast(self, frame, forwarding_interface, vlan_id):
+        # Unicast
+        if forwarding_interface.get_switchport_type() == 'Access':
+            if forwarding_interface and forwarding_interface.get_is_operational():
+                forwarding_interface.send(frame)
+                print('Unicast Access port')
+
+            # Unicast but interface is down
+            elif forwarding_interface and not forwarding_interface.get_is_operational():
+                pass
+
+        elif forwarding_interface.get_switchport_type == 'Trunk':
+            if any(v_id == vlan_id for v_id in forwarding_interface.get_trunk_vlan_ids()):
+                forwarding_interface.send(frame)
+                print('Unicast Trunk port')
+
     def broadcast(self, frame, receiving_interface, broadcast_domain):
 
         forwarding_interfaces = []
 
         for i in self.interfaces:
-            if i.get_is_operational() and i.get_access_vlan_id() == broadcast_domain and i != receiving_interface:
-                forwarding_interfaces.append(i)
+            if i.get_switchport_type() == 'Access':
+                if i.get_is_operational() and i.get_access_vlan_id() == broadcast_domain and i != receiving_interface:
+                    forwarding_interfaces.append(i)
+                    print('Broadcast Access port')
+            elif i.get_switchport_type() == 'Trunk':
+                if (i.get_is_operational() and any(x == broadcast_domain for x in i.get_trunk_vlan_ids())
+                        and i != receiving_interface):
+                    forwarding_interfaces.append(i)
+                    print('Broadcast Trunk port')
+
+        # Remove duplicates
+        forwarding_interfaces = list(set(forwarding_interfaces))
 
         for i in forwarding_interfaces:
             i.send(frame)
@@ -186,7 +206,6 @@ class Switch:
         return [self.Host_Name, self.MAC_Address, self.save_cam_table(), interfaces]
 
     def save_cam_table(self):
-        # self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface]
         cam_table = {}
         for entry in self.CAM_table:
             cam_table[entry] = [self.CAM_table[entry][0], self.CAM_table[entry][1],

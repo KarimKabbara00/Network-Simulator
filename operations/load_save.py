@@ -13,6 +13,7 @@ from network.Switch import Switch
 from network.Ethernet_Cable import EthernetCable
 from network.PC import PC
 from network.Router import Router
+from network.SubInterface import SubInterface
 
 
 def save_file():
@@ -188,6 +189,15 @@ def load(canvas, master, file):
             intf.set_bandwidth(interface[1])
             intf.set_ipv4_address(interface[8])
             intf.set_netmask(interface[9])
+
+            for sub_intf in interface[10]:
+                sub_interface = SubInterface(intf, '.' + sub_intf[1].split('.')[1])
+                sub_interface.set_ipv4_address(sub_intf[2])
+                sub_interface.set_netmask(sub_intf[3])
+                sub_interface.set_vlan_id(sub_intf[4])
+                sub_interface.set_native_vlan(sub_intf[5])
+                intf.add_sub_interface(sub_interface)
+
             ro_obj.set_interfaces_on_load(intf)
             ro_interface_to_light_mapping[intf] = [interface[6], interface[7]]
         # ----- Rebuild Interfaces ----- #
