@@ -3,6 +3,7 @@ import network.network_functions as nf
 from network.Physical_Interface import PhysicalInterface
 from network.Dot1q import Dot1q
 
+
 class Router:
     def __init__(self, host_name="Router", load=False):
         self.MAC_Address = hf.generate_mac_address()
@@ -47,18 +48,22 @@ class Router:
 
         original_dest_ipv4 = packet.get_dest_ip()
 
+        # TODO: CLEAN!!!!!!!!!
         # Adjust for sub-interfaces
         dot1q_header = None
         if not receiving_interface.get_netmask():
             for x in receiving_interface.get_sub_interfaces():
-                if hf.is_same_subnet(x.get_ipv4_address(), x.get_subnet_mask(), original_sender_ipv4):
+                if hf.is_same_subnet(x.get_ipv4_address(), x.get_netmask(), original_sender_ipv4):
                     receiving_interface = x
                     if frame.get_dot1q():  # Check if the frame had a dot1q header
-                        dot1q_header = Dot1q(forwarding_interface.get_vlan_id())
+                        if packet_identifier == 'ipv4':
+                            dot1q_header = Dot1q(forwarding_interface.get_vlan_id())
+                        elif packet_identifier == 'ARP':
+                            dot1q_header = Dot1q(receiving_interface.get_vlan_id())
 
         # Check if the dest is in the router's ARP table
         if original_dest_ipv4 not in self.ARP_table:
-            self.arp_request(original_dest_ipv4, forwarding_interface)
+            self.arp_request(original_dest_ipv4, forwarding_interface, dot1q_header)
 
         # TODO: MAKE THIS CLEANER: nf.process_request(packet_identifier, packet, ...)
         # Do not route ARP
@@ -71,13 +76,14 @@ class Router:
                 if original_dest_ipv4 == receiving_interface.get_ipv4_address():
                     self.arp_reply(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
                                    original_sender_ipv4, dot1q_header)
-                    print(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
-                          original_sender_ipv4)
-                    print()
 
                 # If destined to someone on another subnet
                 elif not hf.is_same_subnet(receiving_interface.get_ipv4_address(), receiving_interface.get_netmask(),
                                            original_dest_ipv4):
+
+                    print('ROUTER', receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
+                          original_sender_ipv4, original_dest_ipv4, dot1q_header.get_VID())
+                    print()
 
                     # If not in ARP table, but in routing table (forwarding interface not None), send an ARP request
                     # to discover the original intended destination
@@ -88,7 +94,7 @@ class Router:
                     # If in ARP table, send a reply to the original sender
                     if original_dest_ipv4 in self.ARP_table:
                         self.arp_reply(receiving_interface, original_dest_ipv4, original_sender_mac,
-                                       original_sender_ipv4)
+                                       original_sender_ipv4, dot1q_header)
 
                 self.add_arp_entry(original_sender_ipv4, original_sender_mac, "DYNAMIC")
 
@@ -102,14 +108,14 @@ class Router:
 
             if segment_identifier == "ICMP ECHO REQUEST":
                 if original_dest_ipv4 == forwarding_interface.get_ipv4_address():  # Is this ICMP destined to me?
-                    self.icmp_echo_reply(original_sender_ipv4, forwarding_interface)
+                    self.icmp_echo_reply(original_sender_ipv4, forwarding_interface, dot1q_header)
                 else:  # If not
                     if original_dest_ipv4 in self.ARP_table:  # Does ARP table have a record
                         frame = nf.create_ethernet_frame(self.ARP_table[original_dest_ipv4][0], self.MAC_Address,
-                                                         None, packet, None)
+                                                         dot1q_header, packet, None)
                         forwarding_interface.send(frame)
                     else:  # If not, send one
-                        self.arp_request(original_dest_ipv4, forwarding_interface)
+                        self.arp_request(original_dest_ipv4, forwarding_interface, dot1q_header)
 
             elif segment_identifier == "ICMP ECHO REPLY":
                 if original_dest_ipv4 == forwarding_interface.get_ipv4_address():
@@ -117,17 +123,19 @@ class Router:
                 else:
                     # If routing an ICMP reply, the request must have gone through, therefore ARP entry exists already
                     frame = nf.create_ethernet_frame(self.ARP_table[original_dest_ipv4][0], self.MAC_Address,
-                                                     None, packet, None)
+                                                     dot1q_header, packet, None)
                     forwarding_interface.send(frame)
 
-    def icmp_echo_reply(self, original_sender_ipv4, interface):
+    def icmp_echo_reply(self, original_sender_ipv4, interface, dot1q=None):
         if original_sender_ipv4 not in self.ARP_table:
-            self.arp_request(original_sender_ipv4, interface)
-        frame = nf.icmp_echo_reply(self.MAC_Address, interface.get_ipv4_address(), original_sender_ipv4, self.ARP_table)
+            self.arp_request(original_sender_ipv4, interface, dot1q)
+        frame = nf.icmp_echo_reply(self.MAC_Address, interface.get_ipv4_address(), original_sender_ipv4, self.ARP_table,
+                                   dot1q)
         interface.send(frame)
 
     def arp_request(self, dst_ipv4_address, forwarding_interface, dot1q=None):
-        arp_frame = nf.create_arp_request(self.MAC_Address, forwarding_interface.get_ipv4_address(), dst_ipv4_address, dot1q)
+        arp_frame = nf.create_arp_request(self.MAC_Address, forwarding_interface.get_ipv4_address(), dst_ipv4_address,
+                                          dot1q)
         forwarding_interface.send(arp_frame)
 
     def arp_reply(self, forwarding_interface, fwd_int_ip, dest_mac, dest_ip, dot1q=None):

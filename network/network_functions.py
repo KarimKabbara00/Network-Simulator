@@ -77,7 +77,8 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
                             linebreak=True, last=False)
 
 
-def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, arp_table):
+def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, arp_table, dot1q=None):
+
     dst_mac = arp_table[original_sender_ipv4][0]
 
     # Type 0 and code 0 indicate Echo Reply
@@ -85,7 +86,7 @@ def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, arp_table):
     packet = ipv4_packet(icmp_segment, dscp='000000', ecn='00', identification='0000000000000000', flags='000',
                          f_offset='0000000000000', ttl='10000000',
                          src_ip=source_ip, dst_ip=original_sender_ipv4, options='')
-    frame = EthernetFrame(dst_mac=dst_mac, src_mac=source_mac, dot1q=None, packet=packet, FCS=None)
+    frame = EthernetFrame(dst_mac=dst_mac, src_mac=source_mac, dot1q=dot1q, packet=packet, FCS=None)
 
     return frame
 
@@ -121,3 +122,18 @@ def get_arp_table(arp_table):
         entries += "{:<25} {:<25} {:<15}".format(ip, arp_table[ip][0], arp_table[ip][1])
         entries += "\n"
     return header + entries
+
+
+def get_same_subnet_sub_interface_vid(receiving_interface, forwarding_interface, frame):
+
+    packet = frame.get_packet()
+    original_sender_ipv4 = packet.get_src_ip()
+
+    dot1q_header = None
+    for x in receiving_interface.get_sub_interfaces():
+        if hf.is_same_subnet(x.get_ipv4_address(), x.get_netmask(), original_sender_ipv4):
+            receiving_interface = x
+            if frame.get_dot1q():  # Check if the frame had a dot1q header
+                dot1q_header = Dot1q(forwarding_interface.get_vlan_id())
+
+    return receiving_interface, dot1q_header

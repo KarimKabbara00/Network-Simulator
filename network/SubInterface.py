@@ -8,6 +8,9 @@ class SubInterface:
         self.vlan_id = None
         self.native_vlan = None
 
+    def __str__(self):
+        return self.name + " @ " + str(self.parent_interface.get_speed()) + " mbps"
+
     def send(self, frame):
         self.parent_interface.send(frame)
 
@@ -20,7 +23,7 @@ class SubInterface:
     def set_ipv4_address(self, address):
         self.ipv4_address = address
 
-    def get_subnet_mask(self):
+    def get_netmask(self):
         return self.subnet_mask
 
     def set_netmask(self, mask):

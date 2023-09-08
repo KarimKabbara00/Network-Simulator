@@ -41,23 +41,30 @@ class Switch:
         original_dst_mac = frame.get_dst_mac()
         src_dot1q = frame.get_dot1q()
 
-        forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface,
-                                                             src_dot1q)
-
-
         # TODO: router sends a tagged arp reply. Switch receives it:
         #   - Received on an access port: get the received access port vlan id and set to the frame
         #   - Received on a trunk port:
         #       - If the frame's dot1q vlan is allowed on the trunk port, allow it and keep the same dot1q vlan header
         #       - Otherwise drop it.
 
-        # if receiving_interface.get_switchport_type() == 'Trunk':
-        #     vlan_id = frame.get_dot1q()
+        # If received on a trunk port, check if it is allowed on the trunk
+        if receiving_interface.get_switchport_type() == 'Trunk':
+            if src_dot1q.get_VID() in receiving_interface.get_trunk_vlan_ids():
+                src_dot1q = frame.get_dot1q().get_VID()
+                forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac,
+                                                                     receiving_interface, src_dot1q)
+            else:
+                forwarding_interface, vlan_id = None, None
+        # If received on an access port, get the receiving interface's vlan id
+        else:
+            src_dot1q = receiving_interface.get_access_vlan_id()
+            forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac,
+                                                                 receiving_interface, src_dot1q)
 
-        if vlan_id != 1:
+        if vlan_id and vlan_id != 1:
             frame.set_dot1q(Dot1q(vlan_id))
 
-        print(forwarding_interface, hf.bin_to_hex(frame.get_dst_mac()), hf.bin_to_hex(frame.get_src_mac()),
+        print('SWITCH', forwarding_interface, hf.bin_to_hex(frame.get_dst_mac()), hf.bin_to_hex(frame.get_src_mac()),
               frame.get_packet().get_identifier(), src_dot1q, vlan_id)
 
         if forwarding_interface:  # Unicast
@@ -74,14 +81,11 @@ class Switch:
         src_mac = hf.bin_to_hex(src_mac)
         dst_mac = hf.bin_to_hex(dst_mac)
 
-        # if not src_dot1q:
-        if receiving_interface.get_switchport_type() == 'Access':
-            src_dot1q = receiving_interface.get_access_vlan_id()
-
         # Check if the source mac exists in the cam table
         exists = False
         for i in self.CAM_table:
-            if self.CAM_table[i][0] == src_mac and self.CAM_table[i][3] == receiving_interface:
+            if (self.CAM_table[i][0] == src_mac and self.CAM_table[i][3] == receiving_interface and
+                    self.CAM_table[i][1] == src_dot1q):
                 exists = True
                 break
 
@@ -99,20 +103,24 @@ class Switch:
 
     def unicast(self, frame, forwarding_interface, vlan_id):
 
+        # print('UNICAST', vlan_id)
+        # print(forwarding_interface)
+        # print(forwarding_interface.get_switchport_type())
+
         # Unicast
         if forwarding_interface.get_switchport_type() == 'Access':
             if forwarding_interface and forwarding_interface.get_is_operational():
                 forwarding_interface.send(frame)
-                # print('Unicast Access port')
+                print('Unicast Access port')
 
             # Unicast but interface is down
             elif forwarding_interface and not forwarding_interface.get_is_operational():
                 pass
 
-        elif forwarding_interface.get_switchport_type == 'Trunk':
+        elif forwarding_interface.get_switchport_type() == 'Trunk':
+            print('Unicast Trunk port')
             if any(v_id == vlan_id for v_id in forwarding_interface.get_trunk_vlan_ids()):
                 forwarding_interface.send(frame)
-                # print('Unicast Trunk port')
 
     def broadcast(self, frame, receiving_interface, broadcast_domain):
 
