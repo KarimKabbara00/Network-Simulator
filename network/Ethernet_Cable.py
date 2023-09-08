@@ -45,10 +45,8 @@ class EthernetCable:
 
     def send(self, source_interface, frame):
         if source_interface == self.rj45_side_1:
-            print(source_interface)
             self.rj45_side_2.get_host().de_encapsulate(frame, self.rj45_side_2)
         elif source_interface == self.rj45_side_2:
-            print(source_interface)
             self.rj45_side_1.get_host().de_encapsulate(frame, self.rj45_side_1)
         else:
             raise Exception("Interface Not Found")

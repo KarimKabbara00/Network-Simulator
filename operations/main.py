@@ -211,6 +211,7 @@ tk.mainloop()
 
 # TODO Order:
 #   - Trunk ports / ROAS
+#   - create router -> delete router -> save = error!
 #   - hf.window_close
 #   - Center node menus like other menus
 #   - Are you sure you want to exit? / Prompt save if anything changes

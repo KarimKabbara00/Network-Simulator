@@ -11,15 +11,14 @@ class Switch:
         self.Model_Number = "TSA1000X"
         self.Host_Name = host_name
 
+        self.CAM_table = {}
+        self.VLANS = []
         self.interfaces = []
         if not load:
             self.interfaces = self.set_interfaces()
 
-        self.CAM_table = {}
         self.canvas_object = None
-
         self.internal_clock = None
-
 
     def set_interfaces(self):
         interfaces = []
@@ -45,8 +44,21 @@ class Switch:
         forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface,
                                                              src_dot1q)
 
+
+        # TODO: router sends a tagged arp reply. Switch receives it:
+        #   - Received on an access port: get the received access port vlan id and set to the frame
+        #   - Received on a trunk port:
+        #       - If the frame's dot1q vlan is allowed on the trunk port, allow it and keep the same dot1q vlan header
+        #       - Otherwise drop it.
+
+        # if receiving_interface.get_switchport_type() == 'Trunk':
+        #     vlan_id = frame.get_dot1q()
+
         if vlan_id != 1:
             frame.set_dot1q(Dot1q(vlan_id))
+
+        print(forwarding_interface, hf.bin_to_hex(frame.get_dst_mac()), hf.bin_to_hex(frame.get_src_mac()),
+              frame.get_packet().get_identifier(), src_dot1q, vlan_id)
 
         if forwarding_interface:  # Unicast
             self.unicast(frame, forwarding_interface, vlan_id)
@@ -62,7 +74,8 @@ class Switch:
         src_mac = hf.bin_to_hex(src_mac)
         dst_mac = hf.bin_to_hex(dst_mac)
 
-        if not src_dot1q:
+        # if not src_dot1q:
+        if receiving_interface.get_switchport_type() == 'Access':
             src_dot1q = receiving_interface.get_access_vlan_id()
 
         # Check if the source mac exists in the cam table
@@ -85,6 +98,7 @@ class Switch:
         return None, src_dot1q
 
     def unicast(self, frame, forwarding_interface, vlan_id):
+
         # Unicast
         if forwarding_interface.get_switchport_type() == 'Access':
             if forwarding_interface and forwarding_interface.get_is_operational():
@@ -120,57 +134,6 @@ class Switch:
 
         for i in forwarding_interfaces:
             i.send(frame)
-
-    def show_cam_table(self):
-        header = "{:<8} {:<25} {:<15} {:<20}".format('VLAN', 'MAC Address', 'Type', 'Local Port')
-        header += '\n-------------------------------------------------------------\n'
-        entries = ''
-        for entry in self.CAM_table:
-            entries += "{:<8} {:<25} {:<15} {:<20}".format(self.CAM_table[entry][1], self.CAM_table[entry][0],
-                                                           self.CAM_table[entry][2],
-                                                           self.CAM_table[entry][3].__str__().split(" @")[0])
-            entries += "\n"
-        return header + entries
-
-    def show_interfaces(self):
-        header = "{:<15} {:<15} {:<15} {:<15} {:<15}".format('Interface', 'Connected', 'Operational', 'Speed',
-                                                             'Bandwidth')
-        header += '\n--------------------------------------------\n'
-        entries = ''
-        for interface in self.interfaces:
-            int_co = "False"
-            int_op = "False"
-            if interface.get_is_connected():
-                int_co = "True"
-            if interface.get_is_operational():
-                int_op = "True"
-
-            entries += "{:<15} {:<15} {:<15}".format(interface.get_name(), int_co, int_op, interface.get_speed(),
-                                                     interface.get_bandwidth())
-            entries += "\n"
-        return header + entries
-
-    def show_interfaces_trunk(self):
-        header = "{:<11} {:<12} {:<14} {:<9} {:<12} {:<12}".format('Interface', 'Operational', 'Encapsulation',
-                                                                   'Status', 'Native VLAN', 'Allowed VLANs')
-        header += '\n----------------------------------------------------------------------------\n'
-        for interface in self.interfaces:
-            if interface.get_switchport_type() == 'Trunk':
-                entries = ''
-
-                int_op = "False"
-                if interface.get_is_operational():
-                    int_op = "True"
-
-                vlans = ','.join(str(e) for e in interface.get_trunk_vlan_ids())
-
-                entries += ("{:<11} {:<12} {:<14} {:<9} {:<12} {:<12}".format(interface.get_name(), int_op,
-                                                                               '802.1q', 'Trunking',
-                                                                               interface.get_native_vlan(), vlans)
-                            + '\n')
-                header += entries
-
-        return header
 
     def disable_interface(self, interface):
         for i in self.interfaces:
@@ -219,8 +182,26 @@ class Switch:
             if self.CAM_table[i][3] == interface:
                 self.CAM_table[i][1] = vid
 
-    def at_least_one_connected_interface(self):
-        return any(i.get_is_connected() for i in self.interfaces)
+    def add_vlan(self, vlan, interface=None):
+
+        # Interface = None when being called from load_save.py
+        if not interface:
+            self.VLANS.append(vlan)
+
+        else:
+            exists = False
+            for v in self.VLANS:
+                if v.get_id() == vlan.get_id():
+                    v.add_interface(interface)
+                    exists = True
+                    break
+
+            if not exists:
+                vlan.add_interface(interface)
+                self.VLANS.append(vlan)
+
+    def get_vlans(self):
+        return self.VLANS
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
@@ -229,7 +210,11 @@ class Switch:
         for interface in self.interfaces:
             interfaces.append(interface.get_save_info())
 
-        return [self.Host_Name, self.MAC_Address, self.save_cam_table(), interfaces]
+        vlans = []
+        for vlan in self.VLANS:
+            vlans.append(vlan.get_save_info())
+
+        return [self.Host_Name, self.MAC_Address, self.save_cam_table(), interfaces, vlans]
 
     def save_cam_table(self):
         cam_table = {}

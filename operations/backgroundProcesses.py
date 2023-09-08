@@ -1,8 +1,8 @@
 import time
 import copy
 
-def count_time(internal_clock):
 
+def count_time(internal_clock):
     while True:
         time.sleep(1)
         internal_clock.increment_time()
@@ -11,7 +11,6 @@ def count_time(internal_clock):
 
 
 def arp_mac_aging(internal_clock):
-
     ARP_AGING_TIME = 120  # Dynamic ARP Entry Aging = 2 minutes
     MAC_AGING_TIME = 100  # Dynamic MAC Address Aging = 5 minutes
 
@@ -37,7 +36,8 @@ def arp_mac_aging(internal_clock):
             mac_table = node.get_cam_table()
 
             for entry in copy.copy(mac_table):
-                if mac_table[entry][2] == 'DYNAMIC' and internal_clock.get_time() > mac_table[entry][4] + MAC_AGING_TIME:
+                if mac_table[entry][2] == 'DYNAMIC' and internal_clock.get_time() > mac_table[entry][
+                    4] + MAC_AGING_TIME:
                     mac_table.pop(entry)
                     node.set_cam_table(mac_table)
 

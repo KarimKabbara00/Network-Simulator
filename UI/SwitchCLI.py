@@ -1,9 +1,10 @@
 import tkinter as tk
 from UI.DeviceCLI import DeviceCli
-
+import network.show_commands.SwitchShowCommands as Show
+from network.VLAN import VLAN
 
 class SwitchCli(DeviceCli):
-    def __init__(self, canvas_object, class_object,  popup, cli_text, prefix, files):
+    def __init__(self, canvas_object, class_object, popup, cli_text, prefix, files):
         super().__init__(canvas_object, class_object, popup, cli_text, prefix, files)
 
     def process_command(self, command):
@@ -17,21 +18,27 @@ class SwitchCli(DeviceCli):
         if not self.interface_configuration:
 
             if command == "show mac-address-table":
-                mac_table = self.class_object.show_cam_table()
+                mac_table = Show.cam_table(self.class_object.get_cam_table())
                 self.cli.insert(tk.END, "\n")
                 self.cli.insert(tk.END, mac_table)
                 self.cli.insert(tk.END, "\n\n" + self.cli_text)
 
             elif command == "show interfaces":
-                interfaces = self.class_object.show_interfaces()
+                interfaces = Show.interfaces(self.class_object.get_interfaces())
                 self.cli.insert(tk.END, "\n")
                 self.cli.insert(tk.END, interfaces)
                 self.cli.insert(tk.END, "\n\n" + self.cli_text)
 
             elif command == "show interfaces trunk":
-                trunk_interfaces = self.class_object.show_interfaces_trunk()
+                trunk_interfaces = Show.interfaces_trunk(self.class_object.get_interfaces())
                 self.cli.insert(tk.END, "\n")
                 self.cli.insert(tk.END, trunk_interfaces)
+                self.cli.insert(tk.END, "\n\n" + self.cli_text)
+
+            elif command == "show vlans":
+                vlan_information = Show.vlans(self.class_object.get_vlans())
+                self.cli.insert(tk.END, "\n")
+                self.cli.insert(tk.END, vlan_information)
                 self.cli.insert(tk.END, "\n\n" + self.cli_text)
 
             elif command.startswith("interface "):
@@ -111,6 +118,7 @@ class SwitchCli(DeviceCli):
                     try:
                         vlan_id = int(command.split("access vlan ")[1])
                         self.working_interface.set_access_vlan_id(vlan_id)
+                        self.class_object.add_vlan(VLAN(vlan_id), self.working_interface)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False

@@ -14,6 +14,7 @@ from network.Ethernet_Cable import EthernetCable
 from network.PC import PC
 from network.Router import Router
 from network.SubInterface import SubInterface
+from network.VLAN import VLAN
 
 
 def save_file():
@@ -133,6 +134,7 @@ def load(canvas, master, file):
 
         sw_class_info = sw['class_info']
         sw_interface_info = sw['class_info'][3]
+        sw_vlan_info = sw['class_info'][4]
 
         # ----- Rebuild SW ----- #
         sw_obj = Switch(sw_class_info[0], load=True)
@@ -150,6 +152,16 @@ def load(canvas, master, file):
             sw_obj.set_interfaces_on_load(intf)
             sw_interface_to_light_mapping[intf] = [interface[6], interface[7]]
         # ----- Rebuild Interfaces ----- #
+
+        # ----- Rebuild VLANS ----- #
+        for vlan in sw_vlan_info:
+            v = VLAN(vlan[1])
+            v.set_name(vlan[0])
+            v.set_status(vlan[2])
+            for intf in vlan[3]:
+                v.add_interface(sw_obj.get_interface_by_name(intf))
+            sw_obj.add_vlan(v)
+        # ----- Rebuild VLANS ----- #
 
         # ----- Rebuild CAM Table ----- #
         cam_table = {}
@@ -246,7 +258,6 @@ def load(canvas, master, file):
         label_canvas_object.set_coords(label['x'], label['y'], label['a'], label['b'],
                                        label['label_x'], label['label_y'])
         globalVars.canvas_labels.append(label_canvas_object)
-        # label_canvas_object.toggle_label()
 
     # ----- Set Lights ----- #
     for i in pc_interface_to_light_mapping:

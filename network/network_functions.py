@@ -90,14 +90,14 @@ def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, arp_table):
     return frame
 
 
-def create_arp_request(source_mac, source_ipv4, dest_ipv4):
+def create_arp_request(source_mac, source_ipv4, dest_ipv4, dot1q=None):
     # see ARP class definition for what these codes are
     # 4th arg, 0x0001, identifies an arp request
     # destination MAC is ignored, hence the empty arg
     arp_packet = Arp(0x0001, 0x0800, 0x06, 0x04, 0x0001, source_mac, source_ipv4, "", dest_ipv4)
 
     # ARP requests are always broadcast ethernet frames
-    frame = EthernetFrame("FF:FF:FF:FF:FF:FF", source_mac, None, arp_packet, None)
+    frame = EthernetFrame("FF:FF:FF:FF:FF:FF", source_mac, dot1q, arp_packet, None)
 
     return frame
 
