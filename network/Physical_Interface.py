@@ -23,6 +23,7 @@ class PhysicalInterface:
             self.switchport_type = 'Access'  # If none, then all vlan traffic is allowed
             self.access_vlan_id = 1
             self.trunk_vlan_ids = []
+            self.native_vlan = 1 # TODO: SERIALIZE
 
     @staticmethod
     def set_name(speed):
@@ -177,17 +178,27 @@ class PhysicalInterface:
         else:
             raise Exception("What you doin bruh")
 
+    # ------ Switch only ------ #
     def set_switchport_type(self, sw_type):
         self.switchport_type = sw_type
 
     def add_allowed_trunk_vlan(self, vlan_ids):
         self.trunk_vlan_ids = vlan_ids
 
+    def get_native_vlan(self):
+        return self.native_vlan
+
+    def set_native_vlan(self, native):
+        self.native_vlan = native
+    # ------ Switch only ------ #
+
+    # ------ Router only ------ #
     def add_sub_interface(self, sub):
         self.sub_interfaces.append(sub)
 
     def get_sub_interfaces(self):
         return self.sub_interfaces
+    # ------ Router only ------ #
 
     def get_sub_interface_by_name(self, name):
         for i in self.sub_interfaces:

@@ -1,6 +1,7 @@
 import UI.helper_functions as hf
 import network.network_functions as nf
 from network.Physical_Interface import PhysicalInterface
+from network.Dot1q import Dot1q
 
 
 class Switch:
@@ -44,6 +45,9 @@ class Switch:
         forwarding_interface, vlan_id = self.check_cam_table(original_src_mac, original_dst_mac, receiving_interface,
                                                              src_dot1q)
 
+        if vlan_id != 1:
+            frame.set_dot1q(Dot1q(vlan_id))
+
         if forwarding_interface:  # Unicast
             self.unicast(frame, forwarding_interface, vlan_id)
 
@@ -85,7 +89,7 @@ class Switch:
         if forwarding_interface.get_switchport_type() == 'Access':
             if forwarding_interface and forwarding_interface.get_is_operational():
                 forwarding_interface.send(frame)
-                print('Unicast Access port')
+                # print('Unicast Access port')
 
             # Unicast but interface is down
             elif forwarding_interface and not forwarding_interface.get_is_operational():
@@ -94,7 +98,7 @@ class Switch:
         elif forwarding_interface.get_switchport_type == 'Trunk':
             if any(v_id == vlan_id for v_id in forwarding_interface.get_trunk_vlan_ids()):
                 forwarding_interface.send(frame)
-                print('Unicast Trunk port')
+                # print('Unicast Trunk port')
 
     def broadcast(self, frame, receiving_interface, broadcast_domain):
 
@@ -104,12 +108,12 @@ class Switch:
             if i.get_switchport_type() == 'Access':
                 if i.get_is_operational() and i.get_access_vlan_id() == broadcast_domain and i != receiving_interface:
                     forwarding_interfaces.append(i)
-                    print('Broadcast Access port')
+                    # print('Broadcast Access port')
             elif i.get_switchport_type() == 'Trunk':
                 if (i.get_is_operational() and any(x == broadcast_domain for x in i.get_trunk_vlan_ids())
                         and i != receiving_interface):
                     forwarding_interfaces.append(i)
-                    print('Broadcast Trunk port')
+                    # print('Broadcast Trunk port')
 
         # Remove duplicates
         forwarding_interfaces = list(set(forwarding_interfaces))
@@ -145,6 +149,28 @@ class Switch:
                                                      interface.get_bandwidth())
             entries += "\n"
         return header + entries
+
+    def show_interfaces_trunk(self):
+        header = "{:<11} {:<12} {:<14} {:<9} {:<12} {:<12}".format('Interface', 'Operational', 'Encapsulation',
+                                                                   'Status', 'Native VLAN', 'Allowed VLANs')
+        header += '\n----------------------------------------------------------------------------\n'
+        for interface in self.interfaces:
+            if interface.get_switchport_type() == 'Trunk':
+                entries = ''
+
+                int_op = "False"
+                if interface.get_is_operational():
+                    int_op = "True"
+
+                vlans = ','.join(str(e) for e in interface.get_trunk_vlan_ids())
+
+                entries += ("{:<11} {:<12} {:<14} {:<9} {:<12} {:<12}".format(interface.get_name(), int_op,
+                                                                               '802.1q', 'Trunking',
+                                                                               interface.get_native_vlan(), vlans)
+                            + '\n')
+                header += entries
+
+        return header
 
     def disable_interface(self, interface):
         for i in self.interfaces:

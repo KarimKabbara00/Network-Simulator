@@ -38,8 +38,6 @@ class Router:
 
     def de_encapsulate(self, frame, receiving_interface):
 
-        print('ro', receiving_interface.get_shortened_name())
-
         packet = frame.get_packet()
         packet_identifier = packet.get_identifier()
         forwarding_interface = self.decide_route(packet)
@@ -48,6 +46,11 @@ class Router:
         original_sender_mac = hf.bin_to_hex(frame.get_src_mac())
 
         original_dest_ipv4 = packet.get_dest_ip()
+
+        # Check if the frame had a dot1q header
+        dot1q_header = None
+        if frame.get_dot1q():
+            dot1q_header = frame.get_dot1q()
 
         # TODO: Duct tape fix? not rlly working
         if not receiving_interface.get_netmask():
@@ -66,9 +69,12 @@ class Router:
 
             if packet.get_operation_id() == 0x001:
                 # If destined to me, reply with the receiving interface to the sender
+
                 if original_dest_ipv4 == receiving_interface.get_ipv4_address():
                     self.arp_reply(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
-                                   original_sender_ipv4)
+                                   original_sender_ipv4, dot1q_header)
+                    # print(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac, original_sender_ipv4)
+                    # print('sending arp reply')
 
                 # If destined to someone on another subnet
                 elif not hf.is_same_subnet(receiving_interface.get_ipv4_address(), receiving_interface.get_netmask(),
@@ -125,8 +131,8 @@ class Router:
         arp_frame = nf.create_arp_request(self.MAC_Address, forwarding_interface.get_ipv4_address(), dst_ipv4_address)
         forwarding_interface.send(arp_frame)
 
-    def arp_reply(self, forwarding_interface, fwd_int_ip, dest_mac, dest_ip):
-        frame = nf.create_arp_reply(self.MAC_Address, fwd_int_ip, dest_mac, dest_ip)
+    def arp_reply(self, forwarding_interface, fwd_int_ip, dest_mac, dest_ip, dot1q=None):
+        frame = nf.create_arp_reply(self.MAC_Address, fwd_int_ip, dest_mac, dest_ip, dot1q)
         forwarding_interface.send(frame)
 
     def show_interfaces(self):
@@ -192,7 +198,7 @@ class Router:
                     forwarding_interface = i
                     break
 
-        print('route is', forwarding_interface.get_shortened_name())
+        # print('route is', forwarding_interface.get_shortened_name())
 
         return forwarding_interface
 

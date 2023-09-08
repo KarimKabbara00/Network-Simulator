@@ -102,13 +102,13 @@ def create_arp_request(source_mac, source_ipv4, dest_ipv4):
     return frame
 
 
-def create_arp_reply(source_mac, source_ip, dest_mac, dest_ip):
+def create_arp_reply(source_mac, source_ip, dest_mac, dest_ip, dot1q=None):
     # see ARP class definition for what these codes are
     # 4th arg, 0x0002, identifies an arp reply
     arp_packet = Arp(0x0001, 0x0800, 0x06, 0x04, 0x0002, source_mac, source_ip, dest_mac, dest_ip)
 
     # ARP requests are always broadcast ethernet frames
-    frame = EthernetFrame(dest_mac, source_mac, None, arp_packet, None)
+    frame = EthernetFrame(dest_mac, source_mac, dot1q, arp_packet, None)
 
     return frame
 

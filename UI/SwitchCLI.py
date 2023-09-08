@@ -28,6 +28,12 @@ class SwitchCli(DeviceCli):
                 self.cli.insert(tk.END, interfaces)
                 self.cli.insert(tk.END, "\n\n" + self.cli_text)
 
+            elif command == "show interfaces trunk":
+                trunk_interfaces = self.class_object.show_interfaces_trunk()
+                self.cli.insert(tk.END, "\n")
+                self.cli.insert(tk.END, trunk_interfaces)
+                self.cli.insert(tk.END, "\n\n" + self.cli_text)
+
             elif command.startswith("interface "):
                 interface = command.split("interface ")[1]
                 try:
@@ -112,7 +118,6 @@ class SwitchCli(DeviceCli):
                 elif command.startswith("trunk allowed-vlans "):
                     try:
                         vlan_ids = [int(i) for i in command.split("trunk allowed-vlans ")[1].split(',')]
-                        print(vlan_ids)
                         self.working_interface.add_allowed_trunk_vlan(vlan_ids)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)

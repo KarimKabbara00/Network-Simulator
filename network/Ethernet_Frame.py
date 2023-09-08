@@ -37,6 +37,9 @@ class EthernetFrame:
     def get_packet(self):
         return self.packet
 
+    def set_dot1q(self, d1q):
+        self.dot1q = d1q
+
     def __str__(self):
         return "Source MAC Address: " + str(self.src_mac) + "\n" + \
                "Destination MAC Address: " + str(self.dst_mac) + "\n" + \

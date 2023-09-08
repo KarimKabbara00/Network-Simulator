@@ -78,6 +78,8 @@ class PC:
         packet = frame.get_packet()
         packet_identifier = packet.get_identifier()
 
+        print(packet.get_src_ip())
+
         if packet_identifier == "ARP":
             if packet.get_dest_ip() == self.ipv4_address:  # if ARP request is destined to this host
                 if packet.get_operation_id() == 0x001:

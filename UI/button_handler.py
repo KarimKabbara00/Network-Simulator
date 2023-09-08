@@ -185,7 +185,6 @@ def handle_button_click(master, canvas, device_type, time_class):
 
     elif device_type == "Label":
 
-        print(globalVars.open_TL_lb)
         if not globalVars.open_TL_lb:
 
             globalVars.open_TL_lb = True
