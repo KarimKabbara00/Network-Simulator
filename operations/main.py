@@ -210,14 +210,13 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
-#   - Trunk ports / ROAS
-#   - create router -> delete router -> save = error!
 #   - hf.window_close
 #   - Center node menus like other menus
+#   - Router shutdown interface -> ping same subnet host -> error because broadcast frame to none type obj
 #   - Are you sure you want to exit? / Prompt save if anything changes
 #           (global var, set true in any class if something happens)
+#   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 #   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?
-#   7. Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 #   8. Add About/Feedback menu
 #   9. Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
 #                                                             but not writing to mem.

@@ -399,6 +399,9 @@ class RouterCanvasObject:
                 pass
 
             self.internal_clock.remove_router(self)
+            globalVars.ro_objects.remove(self)
+            globalVars.objects.remove(self)
+
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)

@@ -333,9 +333,10 @@ class PCCanvasObject(object):
 
         if answer:
 
-            self.hide_menu()
             self.disconnect_cable(event)
             self.internal_clock.remove_pc(self)
+            globalVars.pc_objects.remove(self)
+            globalVars.objects.remove(self)
 
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)

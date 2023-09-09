@@ -401,6 +401,9 @@ class SwitchCanvasObject:
                 pass
 
             self.internal_clock.remove_switch(self)
+            globalVars.sw_objects.remove(self)
+            globalVars.objects.remove(self)
+
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)
