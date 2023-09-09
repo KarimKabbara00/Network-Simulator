@@ -12,7 +12,6 @@ import numpy as np
 from UI import loadIcons
 from operations import globalVars
 from tkinterweb import HtmlFrame
-import markdown_files
 
 
 def button_enter(event, btn):
@@ -23,12 +22,28 @@ def button_leave(event, btn):
     btn.config(background='SystemButtonFace', relief=tk.GROOVE)
 
 
-def window_closed(window):  # TODO: ALL WINDOWS
+def window_closed(window):
+
     match window:
+        case globalVars.TL_pc:
+            globalVars.open_TL_pc = False
+            globalVars.TL_pc.destroy()
+
+        case globalVars.TL_sw:
+            globalVars.open_TL_sw = False
+            globalVars.TL_sw.destroy()
+
+        case globalVars.TL_ro:
+            globalVars.open_TL_ro = False
+            globalVars.TL_ro.destroy()
+
+        # case globalVars.TL_fw:
+        #     globalVars.open_TL_fw = False
+        #     globalVars.TL_fw.destroy
+
         case globalVars.tl_lb:
             globalVars.open_TL_lb = False
             globalVars.tl_lb.destroy()
-
 
 def get_next_number():
     globalVars.node_number += 1
@@ -63,14 +78,6 @@ def get_node_by_name(name):
     for node in globalVars.objects:
         if node.get_block_name() == name:
             return node
-
-
-# def create_circle(x, y, r, canvas):  # center coordinates, radius
-#     x0 = x - r
-#     y0 = y - r
-#     x1 = x + r
-#     y1 = y + r
-#     return canvas.create_oval(x0, y0, x1, y1)
 
 
 def draw_circle(x, y, a, b, r, canvas, tag):  # center coordinates, radius

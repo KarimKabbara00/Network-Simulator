@@ -38,6 +38,10 @@ height = tk.winfo_screenheight()
 tk.geometry("%dx%d" % (width - 10, height - 10))
 tk.state('zoomed')
 
+# Screen dimensions
+globalVars.screen_width = tk.winfo_screenwidth()
+globalVars.screen_height = tk.winfo_screenheight()
+
 # Canvas
 canvas = Canvas(tk, bg="white", scrollregion=(0, 0, width * 2, height * 2))
 canvas.pack(expand=YES, fill=BOTH)
@@ -210,9 +214,6 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
-#   - hf.window_close
-#   - Center node menus like other menus
-#   - Router shutdown interface -> ping same subnet host -> error because broadcast frame to none type obj
 #   - Are you sure you want to exit? / Prompt save if anything changes
 #           (global var, set true in any class if something happens)
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!

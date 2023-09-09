@@ -319,7 +319,11 @@ class SwitchCanvasObject:
                     pass
 
         self.disconnect_menu = tk.Toplevel(self.master)
-        self.disconnect_menu.geometry("%dx%d+%d+%d" % (672, 300, 600, 300))
+
+        x = (globalVars.screen_width / 2) - (672 / 2)
+        y = (globalVars.screen_height / 2) - (300 / 2) - 100
+        self.disconnect_menu.geometry("%dx%d+%d+%d" % (672, 300, x, y))
+
         self.disconnect_menu.wm_title("Disconnect Cable")
         self.disconnect_menu.wm_iconphoto(False, self.icons[2])
         self.disconnect_menu.focus_set()
@@ -431,7 +435,11 @@ class SwitchCanvasObject:
 
         if not self.created_terminal:
             self.cli_window = tk.Toplevel(self.canvas)
-            self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
+
+            x = (globalVars.screen_width / 2) - (700 / 2)
+            y = (globalVars.screen_height / 2) - (800 / 2) - 50
+            self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, x, y))
+
             self.cli_window.wm_iconphoto(False, self.icons[1])
             self.cli_window.wm_title("Terminal")
             self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)

@@ -1,8 +1,9 @@
 from operations.InternalClock import InternalTime
 
-file_directory = "/"
-# file_directory = "C:/Users/kkabbara/PycharmProjects/Network-Simulator/save_files"
-# file_directory = "C:/Users/karim/PycharmProjects/pythonProject1/save_files"
+# ------- Screen Dimensions ------- #
+screen_width = 0
+screen_height = 0
+# ------- Screen Dimensions ------- #
 
 # ------------ Object Lists ------------ #
 objects = []
@@ -17,10 +18,10 @@ node_number = 0
 internal_clock = InternalTime()
 # ------------ Object Lists ------------ #
 
-# ------------ Link Light State ------------ #
+# ------------ States ------------ #
 light_state = True      # True as in showing
 label_state = False     # False as in not hiding
-# ------------ Link Light State ------------ #
+# ------------ States ------------ #
 
 # ------------ Pop up variables to ensure only 1 of the same window is open at a time ------------ #
 open_TL_pc = False
@@ -44,6 +45,7 @@ ask_before_delete = True
 ask_before_quick_delete = True
 show_link_lights = True
 persistent_cable_connect = True
+file_directory = "/"
 # ------------ Preference Variables ------------ #
 
 

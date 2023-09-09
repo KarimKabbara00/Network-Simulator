@@ -245,7 +245,10 @@ class PCCanvasObject(object):
     def open_config_menu(self, event):
 
         self.config_window = tk.Toplevel(self.canvas)
-        self.config_window.geometry("%dx%d+%d+%d" % (700, 350, 600, 200))
+
+        x = (globalVars.screen_width / 2) - (700 / 2)
+        y = (globalVars.screen_height / 2) - (350 / 2) - 100
+        self.config_window.geometry('%dx%d+%d+%d' % (700, 350, x, y))
 
         self.config_window.wm_iconphoto(False, self.icons[1])
         self.config_window.wm_title("Configure PC")
@@ -464,7 +467,11 @@ class PCCanvasObject(object):
 
         if not self.created_terminal:
             self.cli_window = tk.Toplevel(self.canvas)
-            self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, 600, 125))
+
+            x = (globalVars.screen_width / 2) - (700 / 2)
+            y = (globalVars.screen_height / 2) - (800 / 2) - 50
+            self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, x, y))
+
             self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.wm_iconphoto(False, self.icons[2])

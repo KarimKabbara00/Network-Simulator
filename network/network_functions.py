@@ -73,7 +73,7 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
             time.sleep(time_between_pings)
 
         if host.get_received_ping_count() != _ + 1 and not host_not_found:
-            canvas.get_info(info="Reply from " + source_ip + ": Destination Host Unreachable",
+            canvas.get_info(info="Reply from " + source_ip + ": Destination Host Unreachable meow" + dest_ip,
                             linebreak=True, last=False)
 
 

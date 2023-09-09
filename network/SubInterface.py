@@ -14,6 +14,9 @@ class SubInterface:
     def send(self, frame):
         self.parent_interface.send(frame)
 
+    def get_is_operational(self):
+        return self.parent_interface.get_is_operational()
+
     def get_parent_interface(self):
         return self.parent_interface
 

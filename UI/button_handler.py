@@ -73,11 +73,10 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_pc = tk.Toplevel(master)
             globalVars.TL_pc.title("Add End Host")
             globalVars.TL_pc.iconphoto(False, pc_icons[0])
+            globalVars.TL_pc.protocol("WM_DELETE_WINDOW", lambda w=globalVars.TL_pc: hf.window_closed(w))
 
-            ws = master.winfo_screenwidth()
-            hs = master.winfo_screenheight()
-            x = (ws / 2) - (450 / 2)
-            y = (hs / 2) - (325 / 2) - 100
+            x = (globalVars.screen_width / 2) - (450 / 2)
+            y = (globalVars.screen_height / 2) - (325 / 2) - 100
             globalVars.TL_pc.geometry('%dx%d+%d+%d' % (450, 325, x, y))
 
             frame = tk.LabelFrame(globalVars.TL_pc, padx=5, pady=5)
@@ -105,11 +104,10 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_sw = tk.Toplevel(master)
             globalVars.TL_sw.title("Add Switch")
             globalVars.TL_sw.iconphoto(False, sw_icons[0])
+            globalVars.TL_sw.protocol("WM_DELETE_WINDOW", lambda w=globalVars.TL_sw: hf.window_closed(w))
 
-            ws = master.winfo_screenwidth()
-            hs = master.winfo_screenheight()
-            x = (ws / 2) - (550 / 2)
-            y = (hs / 2) - (325 / 2) - 100
+            x = (globalVars.screen_width / 2) - (550 / 2)
+            y = (globalVars.screen_height / 2) - (325 / 2) - 100
             globalVars.TL_sw.geometry('%dx%d+%d+%d' % (550, 325, x, y))
 
             frame = tk.LabelFrame(globalVars.TL_sw, padx=5, pady=5)
@@ -151,12 +149,10 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_ro = tk.Toplevel(master)
             globalVars.TL_ro.title("Add Router")
             globalVars.TL_ro.iconphoto(False, r_icons[0])
-            # popup.attributes('-toolwindow', True)
+            globalVars.TL_ro.protocol("WM_DELETE_WINDOW", lambda w=globalVars.TL_ro: hf.window_closed(w))
 
-            ws = master.winfo_screenwidth()
-            hs = master.winfo_screenheight()
-            x = (ws / 2) - (450 / 2)
-            y = (hs / 2) - (325 / 2) - 100
+            x = (globalVars.screen_width / 2) - (450 / 2)
+            y = (globalVars.screen_height / 2) - (325 / 2) - 100
             globalVars.TL_ro.geometry('%dx%d+%d+%d' % (450, 325, x, y))
 
             frame = tk.LabelFrame(globalVars.TL_ro, padx=5, pady=5)
@@ -194,10 +190,8 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.tl_lb.iconphoto(False, loadIcons.get_label_icon()[0])
             globalVars.tl_lb.protocol("WM_DELETE_WINDOW", lambda w=globalVars.tl_lb: hf.window_closed(w))
 
-            ws = master.winfo_screenwidth()
-            hs = master.winfo_screenheight()
-            x = (ws / 2) - (250 / 2)
-            y = (hs / 2) - (150 / 2) - 100
+            x = (globalVars.screen_width / 2) - (250 / 2)
+            y = (globalVars.screen_height / 2) - (150 / 2) - 100
             globalVars.tl_lb.geometry('%dx%d+%d+%d' % (250, 150, x, y))
 
             frame = tk.LabelFrame(globalVars.tl_lb, padx=5, pady=5)
