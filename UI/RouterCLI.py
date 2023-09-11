@@ -3,13 +3,12 @@ import UI.helper_functions as hf
 from UI.DeviceCLI import DeviceCli
 from network.SubInterface import SubInterface
 from operations import globalVars
+import network.show_commands.RouterShowCommands as Show
 
 
 class RouterCli(DeviceCli):
-    def __init__(self, canvas_object, class_object,  popup, cli_text, prefix, files):
-        super().__init__(canvas_object, class_object, popup, cli_text, prefix, files)
-        # self.working_sub_interface = None
-        # self.sub_interface_configuration = False
+    def __init__(self, canvas_object, class_object,  popup, cli_text, prefix, text_color, cursor_color, files):
+        super().__init__(canvas_object, class_object, popup, cli_text, prefix, text_color, cursor_color, files)
 
     def process_command(self, command):
 
@@ -23,19 +22,19 @@ class RouterCli(DeviceCli):
         if not self.interface_configuration and not self.sub_interface_configuration:
 
             if command == "show interfaces":
-                interfaces = self.class_object.show_interfaces()
+                interfaces = Show.interfaces(self.class_object.get_interfaces())
                 self.cli.insert(tk.END, "\n")
                 self.cli.insert(tk.END, interfaces)
                 self.cli.insert(tk.END, "\n\n" + self.cli_text)
 
             elif command == "show routing-table":
-                routes = self.class_object.show_routing_table()
+                routes = Show.routing_table(self.class_object.get_routing_table())
                 self.cli.insert(tk.END, "\n")
                 self.cli.insert(tk.END, routes)
                 self.cli.insert(tk.END, "\n\n" + self.cli_text)
 
             elif command == "show arp":
-                arp_table = self.class_object.get_arp_table()
+                arp_table = Show.arp_table(self.class_object.get_arp_table())
                 self.cli.insert(tk.END, "\n")
                 self.cli.insert(tk.END, arp_table)
                 self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
@@ -112,9 +111,9 @@ class RouterCli(DeviceCli):
                     self.class_object.update_routing_table(self.working_interface, ip, netmask)
 
             elif command.startswith("no "):
-                command = command.split("no ")[1]
+                next_command = command.split("no ")[1]
 
-                if command == "shutdown":
+                if next_command == "shutdown":
                     self.working_interface.set_administratively_down(False)
                     self.cli.insert(tk.END, "\nInterface " + self.working_interface.get_shortened_name()
                                     + " operational state set to true.\n")

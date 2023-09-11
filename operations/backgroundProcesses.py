@@ -25,7 +25,7 @@ def arp_mac_aging(internal_clock):
         for i in pcs + ros:
             try:
                 node = i.get_class_object()
-                arp_table = node.get_arp_table_actual()
+                arp_table = node.get_arp_table()
 
                 for ip in copy.copy(arp_table):  # shallow copy
                     if arp_table[ip][1] == 'DYNAMIC' and internal_clock.get_time() > arp_table[ip][2] + ARP_AGING_TIME:

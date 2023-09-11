@@ -453,8 +453,8 @@ class RouterCanvasObject:
             self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.focus_set()
-            self.cli_object = RouterCli(self, self.class_object, self.cli_window,
-                                        self.cli_text, "Router> ", self.cli_command_files)
+            self.cli_object = RouterCli(self, self.class_object, self.cli_window, self.cli_text, "Router> ",
+                                        'orange', 'orange', self.cli_command_files)
             self.created_terminal = True
         else:
             self.cli_window.deiconify()

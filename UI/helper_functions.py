@@ -7,12 +7,11 @@ from itertools import groupby
 from operator import itemgetter
 from textwrap import wrap
 from tkinter import filedialog
-import markdown
 import numpy as np
 from UI import loadIcons
 from operations import globalVars
-from tkinterweb import HtmlFrame
-
+from tkhtmlview import HTMLLabel
+import tkinterweb
 
 def button_enter(event, btn):
     btn.config(background='gray89', relief=tk.SUNKEN)
@@ -496,39 +495,32 @@ def open_folder_dialogue(preferences_menu, path):
 
 
 def show_info(selected_item, help_menu):
-    info_box = HtmlFrame(help_menu, messages_enabled=False)
-    info_box.grid(row=0, column=1, sticky="nsew", pady=6, padx=10)
 
     file = ''
     match selected_item:
         case 'Network Simulator':
-            file = 'C:\\Users\\kkabbara\\PycharmProjects\\Network-Simulator\\markdown_files\\Network_Simulator.md'
+            file = './markdown_files/Network_Simulator.html'
         case 'PCs':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/PC.md'
+            file = './markdown_files/PC.html'
         case 'Switch':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Switch.md'
+            file = './markdown_files/Switch.md'
         case 'Router':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Router.md'
+            file = './markdown_files/Router.md'
         case 'Firewall':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Firewall.md'
+            file = './markdown_files/Firewall.md'
         case 'Connecting Nodes':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Connecting_Nodes.md'
+            file = './markdown_files/Connecting_Nodes.md'
         case 'Creating Areas and Labels':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Drawing.md'
+            file = './markdown_files/Drawing.md'
         case 'Deleting Things':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Deleting_Things.md'
+            file = './markdown_files/Deleting_Things.md'
 
     if file:
         with open(file, 'r') as f:
-            m_text = f.read()
+            info = f.read()
 
-        m_html = markdown.markdown(m_text)
-        f = open('C:\\Users\\kkabbara\\PycharmProjects\\Network-Simulator\\markdown_files\\temp', mode='w')
-        f.write(m_html)
-        f.flush()
-        info_box.load_file(f.name)
-        f.close()
+    info_box = tkinterweb.HtmlFrame(help_menu, messages_enabled=False)
+    info_box.load_html(info)
 
+    info_box.grid(row=0, column=1, sticky="nsew", pady=6, padx=10)
     help_menu.columnconfigure(1, weight=1)
-
-

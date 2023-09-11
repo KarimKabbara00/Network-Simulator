@@ -3,6 +3,7 @@ import network.network_functions as nf
 from network.Physical_Interface import PhysicalInterface
 from network.Dot1q import Dot1q
 from operations import globalVars
+from network.VLAN import VLAN
 
 
 class Switch:
@@ -213,6 +214,15 @@ class Switch:
 
     def get_vlans(self):
         return self.VLANS
+
+    def get_vlan_by_id(self, v_id):
+        for v in self.VLANS:
+            if v.get_id() == v_id:
+                return v
+
+        new_vlan = VLAN(v_id)
+        self.VLANS.append(new_vlan)
+        return new_vlan
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

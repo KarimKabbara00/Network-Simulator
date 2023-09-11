@@ -1,11 +1,12 @@
 import tkinter as tk
 import UI.helper_functions as hf
 from abc import ABC, abstractmethod
+from network import Switch, Router, PC
 
 
 class DeviceCli(ABC):
 
-    def __init__(self, canvas_object, class_object, popup, cli_text, prefix, files):
+    def __init__(self, canvas_object, class_object, popup, cli_text, prefix, text_color, cursor_color, files):
         self.canvas_object = canvas_object
         self.class_object = class_object
         self.cli_index = None
@@ -19,8 +20,8 @@ class DeviceCli(ABC):
         # CLI Stuff
 
         # CLI initial config
-        self.cli = tk.Text(popup, height=100, width=600, background="black", foreground="orange",
-                           insertbackground="orange")
+        self.cli = tk.Text(popup, height=100, width=600, background="black", foreground=text_color,
+                           insertbackground=cursor_color)
         self.cli.pack(padx=20, pady=10)
         self.cli.insert(tk.END, "Welcome\n")
         self.cli.insert(tk.END, cli_text)
@@ -35,9 +36,14 @@ class DeviceCli(ABC):
         # Interface Configuration
 
         # Sub-interface Configuration
-        self.working_sub_interface = None
         self.sub_interface_configuration = False
+        self.working_sub_interface = None
         # Sub-interface Configuration
+
+        # VLAN configuration
+        self.vlan_configuration = False
+        self.working_vlan = None
+        # VLAN configuration
 
         # Key bindings
         self.cli.bind('<BackSpace>', self.no_del_mov_illegal)
@@ -45,8 +51,9 @@ class DeviceCli(ABC):
         self.cli.bind('<Return>', self.carriage_return)
         self.cli.bind('<Up>', self.command_history_up)
         self.cli.bind('<Down>', self.command_history_down)
-        self.cli.bind('<question>', self.context_help)
-        self.cli.bind('<Tab>', self.auto_complete)
+        if type(self.class_object) is not PC.PC:
+            self.cli.bind('<question>', self.context_help)
+            self.cli.bind('<Tab>', self.auto_complete)
         # Key bindings
 
         # plus two for ">" and " "
@@ -90,19 +97,20 @@ class DeviceCli(ABC):
             self.command_history_index += 1
         else:
             return "break"
-        self.cli.delete('current linestart' + self.cli_hostname_prefix_length, 'current lineend')
-        self.cli.insert(tk.END, self.command_history[self.command_history_index])
+        self.cli.delete('current linestart', 'current lineend+1c')
+        self.cli.insert(tk.END, '\n' + self.cli_text + self.command_history[self.command_history_index])
         return "break"
 
     def command_history_down(self, event):
         if self.command_history_index > 0:
-            self.cli.delete('current linestart' + self.cli_hostname_prefix_length, 'current lineend+1c')
+            self.cli.delete('current linestart', 'current lineend+1c')
             self.command_history_index -= 1
-            self.cli.insert(tk.END, self.command_history[self.command_history_index])
+            self.cli.insert(tk.END, '\n' + self.cli_text + self.command_history[self.command_history_index])
+
         elif self.command_history_index == 0:
             self.command_history_index = -1
-            self.cli.delete('current linestart' + self.cli_hostname_prefix_length, 'current lineend+1c')
-            self.cli.insert(tk.END, "")
+            self.cli.delete('current linestart', 'current lineend+1c')
+            self.cli.insert(tk.END, '\n' + self.cli_text)
         return "break"
 
     def context_help(self, event):
@@ -144,12 +152,22 @@ class DeviceCli(ABC):
         return "break"
 
     def get_possible_commands(self, line):
-        if self.interface_configuration:
-            return hf.get_possible_commands(line, self.cli_command_files[1])
-        elif self.sub_interface_configuration:
-            return hf.get_possible_commands(line, self.cli_command_files[2])
-        else:
-            return hf.get_possible_commands(line, self.cli_command_files[0])
+
+        if type(self.class_object) == Switch.Switch:
+            if self.interface_configuration:
+                return hf.get_possible_commands(line, self.cli_command_files[1])
+            elif self.vlan_configuration:
+                return hf.get_possible_commands(line, self.cli_command_files[2])
+            else:
+                return hf.get_possible_commands(line, self.cli_command_files[0])
+
+        elif type(self.class_object) == Router.Router:
+            if self.interface_configuration:
+                return hf.get_possible_commands(line, self.cli_command_files[1])
+            elif self.sub_interface_configuration:
+                return hf.get_possible_commands(line, self.cli_command_files[2])
+            else:
+                return hf.get_possible_commands(line, self.cli_command_files[0])
 
     def on_closing(self):
         # Save CLI text

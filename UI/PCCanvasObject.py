@@ -1,10 +1,10 @@
-import threading
 import tkinter
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 from UI import helper_functions as hf
 from operations import globalVars
+from UI.PCCLI import PCCli
 
 
 class PCCanvasObject(object):
@@ -76,6 +76,7 @@ class PCCanvasObject(object):
         # CLI Stuff
         self.cli_window = None
         self.cli = None
+        self.cli_object = None
         self.cli_busy = False
         self.cli_text = "PC> "
         self.created_terminal = False
@@ -423,57 +424,6 @@ class PCCanvasObject(object):
 
     def menu_pc_cli(self, main_event):
 
-        # plus two for ">" and " "
-        cli_hostname_prefix_length = "+" + str(len(self.class_object.get_host_name()) + 2) + "c"
-
-        # Disallow deleting line break
-        def no_del_mov_illegal(event):
-
-            # get last line
-            cli_pos = float(self.cli.index('end-1c linestart')) - 1
-            line = self.cli.get(cli_pos, tk.END).split('\n')[-1]
-
-            # if more than 1 > on line, allow delete
-            if line.count(">") > 1:
-                return
-
-            # else
-            if self.cli.get("insert-2c") == ">" and self.cli.get("insert-1c") == " ":
-                return "break"
-
-        def carriage_return(event):
-
-            # Get entered command and process
-            cli_pos = float(self.cli.index('end-1c linestart')) - 1
-            line = self.cli.get(cli_pos, tk.END).split('\n')[1]
-            line = line[line.find('>') + 2:]
-            self.process_command(line)
-
-            # Reset command history index
-            self.command_history_index = -1
-
-            return "break"
-
-        def command_history_up(event):
-            if self.command_history_index < len(self.command_history) - 1:
-                self.command_history_index += 1
-            else:
-                return "break"
-            self.cli.delete('current linestart' + cli_hostname_prefix_length, 'current lineend')
-            self.cli.insert(tk.END, self.command_history[self.command_history_index])
-            return "break"
-
-        def command_history_down(event):
-            if self.command_history_index > 0:
-                self.cli.delete('current linestart' + cli_hostname_prefix_length, 'current lineend+1c')
-                self.command_history_index -= 1
-                self.cli.insert(tk.END, self.command_history[self.command_history_index])
-            elif self.command_history_index == 0:
-                self.command_history_index = -1
-                self.cli.delete('current linestart' + cli_hostname_prefix_length, 'current lineend+1c')
-                self.cli.insert(tk.END, "")
-            return "break"
-
         def hide_window():
             self.cli_window.withdraw()
 
@@ -484,104 +434,18 @@ class PCCanvasObject(object):
             y = (globalVars.screen_height / 2) - (800 / 2) - 50
             self.cli_window.geometry("%dx%d+%d+%d" % (700, 800, x, y))
 
-            self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
-            self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.wm_iconphoto(False, self.icons[2])
             self.cli_window.wm_title("Terminal")
+            self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
+            self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.focus_set()
+            self.cli_object = PCCli(self, self.class_object, self.cli_window, self.cli_text, "PC> ", 'white', 'white')
+
             self.created_terminal = True
-
-            # CLI initial config
-            self.cli = tk.Text(self.cli_window, height=100, width=600, background="black", foreground="white",
-                               insertbackground="white")
-            self.cli.pack(padx=20, pady=10)
-            self.cli.insert(tk.END, "Welcome\n")
-            self.cli.insert(tk.END, self.cli_text)
-            pos = self.cli.index(tk.END)
-            self.cli.mark_set("insert", pos)
-            self.cli.see(tk.END)
-            # CLI initial config
-
-            # Key bindings
-            self.cli.bind('<BackSpace>', no_del_mov_illegal)
-            self.cli.bind('<Left>', no_del_mov_illegal)
-            self.cli.bind('<Return>', carriage_return)
-            self.cli.bind('<Up>', command_history_up)
-            self.cli.bind('<Down>', command_history_down)
-            # Key bindings
         else:
             self.cli_window.deiconify()
 
         self.hide_menu()
-
-    def process_command(self, command):
-
-        valid_command = True
-        globalVars.prompt_save = True
-
-        if command.startswith("add arp "):
-            args = command.split('add arp ')[1]
-            ip = args.split(' ')[0]
-            mac = args.split(' ')[1]
-            self.class_object.add_arp_entry(ip, mac, "STATIC")
-
-        if not command:
-            self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "> ")
-            valid_command = False
-
-        elif command == "ipconfig":
-            configurations = self.class_object.get_configurations()
-            self.cli.insert(tk.END, "\n")
-            for i in configurations:
-                output = "\n" + i + "   " + configurations[i]
-                self.cli.insert(tk.END, output)
-            self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
-
-        elif command.startswith("ping"):
-            args = command.split("ping ")[1]
-
-            count = 4
-            if "-n " in args:
-                ip_address = args.split(" -n ")[0]
-                count = int(args.split(" -n ")[1])
-            else:
-                ip_address = args
-
-            is_valid = hf.check_ipv4(ip_address)
-            if is_valid:
-                self.cli.insert(tk.END, "\n\n")
-                self.cli.insert(tk.END,
-                                "Sending " + str(count) + " pings to " + ip_address + " with 32 bytes of data:\n")
-                threading.Thread(target=self.class_object.icmp_echo_request, args=(ip_address, count)).start()
-            else:
-                self.cli.insert(tk.END, "\n")
-                self.cli.insert(tk.END, "Unknown Command")
-                self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
-
-        elif command == "arp -a":
-            arp_table = self.class_object.get_arp_table()
-            self.cli.insert(tk.END, "\n")
-            self.cli.insert(tk.END, arp_table)
-            self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
-
-        elif command == "cls":
-            self.cli.delete("1.0", tk.END)
-            self.cli.insert(tk.END, self.class_object.get_host_name() + "> ")
-
-        else:
-            self.cli.insert(tk.END, "\nUnknown Command\n" + "\n" + self.class_object.get_host_name() + "> ")
-            valid_command = False
-
-        if valid_command:
-            if self.command_history:
-                if self.command_history[0] != command:
-                    self.command_history.insert(0, command)
-            else:
-                self.command_history.insert(0, command)
-
-        pos = self.cli.index(tk.END)
-        self.cli.mark_set("insert", pos)
-        self.cli.see(tk.END)
 
     def get_class_object(self):
         return self.class_object

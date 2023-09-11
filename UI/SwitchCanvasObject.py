@@ -72,7 +72,8 @@ class SwitchCanvasObject:
         # CLI Stuff
         self.cli_object = None
         self.cli_window = None
-        self.cli_command_files = ['commands/sw_general_command_list', 'commands/sw_interface_command_list']
+        self.cli_command_files = ['commands/sw_general_command_list', 'commands/sw_interface_command_list',
+                                  'commands/sw_vlan_command_list']
         self.cli_text = "Switch> "
         self.created_terminal = False
         # CLI Stuff
@@ -310,11 +311,6 @@ class SwitchCanvasObject:
             button.bind('<Enter>', button_enter)
             button.bind('<Leave>', button_leave)
 
-        def test(event):
-            button.config(state='disabled')
-            button.unbind('<Enter>')
-            button.unbind('<Leave>')
-
         def disconnect(event):
             for selected_item in tree.selection():
                 items = tree.item(selected_item)['values']
@@ -456,7 +452,7 @@ class SwitchCanvasObject:
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.focus_set()
             self.cli_object = SwitchCli(self, self.class_object, self.cli_window, self.cli_text,
-                                        "Switch> ", self.cli_command_files)
+                                        "Switch> ", 'orange', 'orange', self.cli_command_files)
             self.created_terminal = True
         else:
             self.cli_window.deiconify()
