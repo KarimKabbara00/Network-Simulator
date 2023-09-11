@@ -41,7 +41,7 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
 
         # if the host is in the same network, get (or learn) the mac address of the destination host
         dst_mac = ""
-        host_not_found = False
+        destination_host_unreachable = False
         broadcast_ping = False
 
         if same_subnet:
@@ -51,29 +51,29 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
                 broadcast_ping = True
 
             else:
-                if dest_ip not in host.get_arp_table_actual():
+                if dest_ip not in host.get_arp_table():
                     host.arp_request(dest_ip)
 
                 try:
-                    dst_mac = host.get_arp_table_actual()[dest_ip][0]
+                    dst_mac = host.get_arp_table()[dest_ip][0]
                 except KeyError:
-                    host_not_found = True
+                    destination_host_unreachable = True
 
         # if the host is in another network, get (or learn) the mac address of the default route
         elif not same_subnet:
             if not default_gateway:
-                host_not_found = True
-            elif default_gateway not in host.get_arp_table_actual():
+                destination_host_unreachable = True
+            elif default_gateway not in host.get_arp_table():
                 host.arp_request(default_gateway)
                 # PROXY ARP REQUEST. Should the router send a reply without the PC having to send this?
                 # if original_sender_ipv4 not in host.get_arp_table_actual():
                 #     host.arp_request(original_sender_ipv4)
             try:
-                dst_mac = host.get_arp_table_actual()[default_gateway][0]
+                dst_mac = host.get_arp_table()[default_gateway][0]
             except KeyError:
-                host_not_found = True
+                destination_host_unreachable = True
 
-        if host_not_found:
+        if destination_host_unreachable:
             canvas.get_info(info="Reply from " + source_ip + ": Destination Host Unreachable",
                             linebreak=True, last=False)
         else:
@@ -85,9 +85,8 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
         if _ != count - 1:
             time.sleep(time_between_pings)
 
-        if host.get_received_ping_count() != _ + 1 and not host_not_found and not broadcast_ping:
-            canvas.get_info(info="Reply from " + source_ip + ": Destination Host Unreachable!",
-                            linebreak=True, last=False)
+        if host.get_received_ping_count() != _ + 1 and not destination_host_unreachable and not broadcast_ping:
+            canvas.get_info(info="Request timed out.", linebreak=True, last=False)
 
 
 def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, netmask, arp_table, host, default_gateway=None, dot1q=None):
@@ -97,7 +96,7 @@ def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, netmask, arp_ta
     dst_mac = ''
 
     if same_subnet:
-        if original_sender_ipv4 not in host.get_arp_table_actual():
+        if original_sender_ipv4 not in host.get_arp_table():
             host.arp_request(original_sender_ipv4)
         try:
             dst_mac = arp_table[original_sender_ipv4][0]
@@ -105,13 +104,13 @@ def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, netmask, arp_ta
             host_not_found = True
 
     else:
-        if default_gateway not in host.get_arp_table_actual():
+        if default_gateway not in host.get_arp_table():
             host.arp_request(default_gateway)
             # PROXY ARP REQUEST. Should the router send a reply without the PC having to send this?
             # if original_sender_ipv4 not in host.get_arp_table_actual():
             #     host.arp_request(original_sender_ipv4)
         try:
-            dst_mac = host.get_arp_table_actual()[default_gateway][0]
+            dst_mac = host.get_arp_table()[default_gateway][0]
         except KeyError:
             host_not_found = True
 
@@ -149,31 +148,6 @@ def create_arp_reply(source_mac, source_ip, dest_mac, dest_ip, dot1q=None):
     frame = EthernetFrame(dest_mac, source_mac, dot1q, arp_packet, None)
 
     return frame
-
-
-def get_arp_table(arp_table):
-    header = "{:<25} {:<25} {:<15}".format('Internet Address', 'Physical Address', 'Type')
-    header += '\n-----------------------------------------------------------\n'
-    entries = ''
-    for ip in arp_table:
-        entries += "{:<25} {:<25} {:<15}".format(ip, arp_table[ip][0], arp_table[ip][1])
-        entries += "\n"
-    return header + entries
-
-
-def get_same_subnet_sub_interface_vid(receiving_interface, forwarding_interface, frame):
-
-    packet = frame.get_packet()
-    original_sender_ipv4 = packet.get_src_ip()
-
-    dot1q_header = None
-    for x in receiving_interface.get_sub_interfaces():
-        if hf.is_same_subnet(x.get_ipv4_address(), x.get_netmask(), original_sender_ipv4):
-            receiving_interface = x
-            if frame.get_dot1q():  # Check if the frame had a dot1q header
-                dot1q_header = Dot1q(forwarding_interface.get_vlan_id())
-
-    return receiving_interface, dot1q_header
 
 
 def interface_or_sub_interface(receiving_interface, forwarding_interface, original_sender_ipv4, packet_identifier, frame):

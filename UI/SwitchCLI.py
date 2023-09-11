@@ -6,8 +6,8 @@ from operations import globalVars
 
 
 class SwitchCli(DeviceCli):
-    def __init__(self, canvas_object, class_object, popup, cli_text, prefix, files):
-        super().__init__(canvas_object, class_object, popup, cli_text, prefix, files)
+    def __init__(self, canvas_object, class_object, popup, cli_text, prefix, text_color, cursor_color, files):
+        super().__init__(canvas_object, class_object, popup, cli_text, prefix, text_color, cursor_color, files)
 
     def process_command(self, command):
 
@@ -18,7 +18,7 @@ class SwitchCli(DeviceCli):
             self.cli.insert(tk.END, "\n" + self.cli_text)
             return
 
-        if not self.interface_configuration:
+        if not self.interface_configuration and not self.vlan_configuration:
 
             if command == "show mac-address-table":
                 mac_table = Show.cam_table(self.class_object.get_cam_table())
@@ -54,10 +54,28 @@ class SwitchCli(DeviceCli):
                 self.working_interface = self.class_object.get_interface_by_name(interface)
                 if self.working_interface:
                     self.interface_configuration = True
+                    self.vlan_configuration = False
                     self.cli_text = self.class_object.get_host_name() + "(int-config)> "
                     self.cli.insert(tk.END, "\n" + self.cli_text)
                 else:
                     self.cli.insert(tk.END, "\nInterface Not Found")
+                    self.cli.insert(tk.END, "\n" + self.cli_text)
+
+            elif command.startswith('vlan '):
+                try:
+                    vlan_id = int(command.split(' ')[1])
+                    self.working_vlan = self.class_object.get_vlan_by_id(vlan_id)
+                    if self.working_vlan:
+                        self.vlan_configuration = True
+                        self.interface_configuration = False
+                        self.cli_text = self.class_object.get_host_name() + "(vlan-config)> "
+                        self.cli.insert(tk.END, "\n" + self.cli_text)
+                    else:
+                        self.cli.insert(tk.END, "\nError entering VLAN configuration")
+                        self.cli.insert(tk.END, "\n" + self.cli_text)
+
+                except ValueError:
+                    self.cli.insert(tk.END, "\nMust be a numbered VLAN")
                     self.cli.insert(tk.END, "\n" + self.cli_text)
 
             elif command == "clear":
@@ -97,6 +115,7 @@ class SwitchCli(DeviceCli):
                 self.working_interface = self.class_object.get_interface_by_name(interface)
                 if self.working_interface:
                     self.interface_configuration = True
+                    self.vlan_configuration = False
                     self.cli_text = self.class_object.get_host_name() + "(int-config)> "
                     self.cli.insert(tk.END, "\n" + self.cli_text)
                 else:
@@ -104,12 +123,12 @@ class SwitchCli(DeviceCli):
                     self.cli.insert(tk.END, "\n" + self.cli_text)
 
             elif command.startswith("switchport"):
-                command = command.split("switchport ")[1]
+                next_command = command.split("switchport ")[1]
                 self.cli.insert(tk.END, "\n" + self.cli_text)
 
-                if command.startswith("mode "):
+                if next_command.startswith("mode "):
                     try:
-                        mode = command.split("mode ")[1].capitalize()
+                        mode = next_command.split("mode ")[1].capitalize()
                         if mode != "Access" and mode != "Trunk":
                             raise IndexError
                         self.working_interface.set_switchport_type(mode)
@@ -117,43 +136,55 @@ class SwitchCli(DeviceCli):
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False
 
-                elif command.startswith("access vlan "):
+                elif next_command.startswith("access vlan "):
                     try:
-                        vlan_id = int(command.split("access vlan ")[1])
+                        vlan_id = int(next_command.split("access vlan ")[1])
                         self.working_interface.set_access_vlan_id(vlan_id)
                         self.class_object.add_vlan(VLAN(vlan_id), self.working_interface)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False
+                    except ValueError:
+                        self.cli.insert(tk.END, "\nInvalid VLAN\n" + "\n" + self.cli_text)
+                        valid_command = False
 
-                elif command.startswith("trunk allowed-vlans add "):
+                elif next_command.startswith("trunk allowed-vlans add "):
                     try:
-                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans add ")[1].split(',')]
+                        vlan_ids = [int(i) for i in next_command.split("trunk allowed-vlans add ")[1].split(',')]
                         self.working_interface.add_allowed_trunk_vlan(vlan_ids)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False
+                    except ValueError:
+                        self.cli.insert(tk.END, "\nInvalid VLAN(s)\n" + "\n" + self.cli_text)
+                        valid_command = False
 
-                elif command.startswith("trunk allowed-vlans remove "):
+                elif next_command.startswith("trunk allowed-vlans remove "):
                     try:
-                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans remove ")[1].split(',')]
+                        vlan_ids = [int(i) for i in next_command.split("trunk allowed-vlans remove ")[1].split(',')]
                         self.working_interface.remove_allowed_trunk_vlan(vlan_ids)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False
+                    except ValueError:
+                        self.cli.insert(tk.END, "\nInvalid VLAN(s)\n" + "\n" + self.cli_text)
+                        valid_command = False
 
-                elif command.startswith("trunk allowed-vlans "):
+                elif next_command.startswith("trunk allowed-vlans "):
                     try:
-                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans ")[1].split(',')]
+                        vlan_ids = [int(i) for i in next_command.split("trunk allowed-vlans ")[1].split(',')]
                         self.working_interface.set_allowed_trunk_vlan(vlan_ids)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False
+                    except ValueError:
+                        self.cli.insert(tk.END, "\nInvalid VLAN(s)\n" + "\n" + self.cli_text)
+                        valid_command = False
 
-                elif command.startswith("trunk native-vlan "):
+                elif next_command.startswith("trunk native-vlan "):
                     try:
-                        vlan_id = command.split("trunk native-vlan ")[1]
-                        self.working_interface.set_native_vlan(vlan_id)
+                        vlan_id = next_command.split("trunk native-vlan ")[1]
+                        self.working_interface.set_native_vlan(int(vlan_id))
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False
@@ -162,9 +193,9 @@ class SwitchCli(DeviceCli):
                         valid_command = False
 
             elif command.startswith("no "):
-                command = command.split("no ")[1]
+                next_command = command.split("no ")[1]
 
-                if command == "shutdown":
+                if next_command == "shutdown":
                     self.working_interface.set_administratively_down(False)
                     self.cli.insert(tk.END, "\nInterface " + self.working_interface.get_shortened_name()
                                     + " operational state set to true.\n")
@@ -173,6 +204,22 @@ class SwitchCli(DeviceCli):
             else:
                 self.cli.insert(tk.END, "\nUnknown Command\n" + "\n" + self.cli_text)
                 valid_command = False
+
+        elif self.vlan_configuration:
+            if command.startswith("name "):
+                name = command.split("name ")[1]
+                self.working_vlan.set_name(name)
+                self.cli_text = self.class_object.get_host_name() + "(vlan-config)> "
+                self.cli.insert(tk.END, "\n" + self.cli_text)
+            elif command == 'exit':
+                self.vlan_configuration = False
+                self.cli_text = self.class_object.get_host_name() + "> "
+                self.cli.insert(tk.END, "\n" + self.cli_text)
+
+            elif command == "clear":
+                self.cli.delete("1.0", tk.END)
+                self.cli.insert(tk.END, "Welcome\n")
+                self.cli.insert(tk.END, self.cli_text)
 
         if valid_command:
             if self.command_history:

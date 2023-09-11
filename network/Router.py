@@ -64,8 +64,6 @@ class Router:
             # If an ARP packet, use receiving interface to reply so that ARP isn't routed.
             if packet_identifier == "ARP":
 
-                print('receiving ARP from', original_sender_ipv4, 'trying to find', original_dest_ipv4)
-
                 if packet.get_operation_id() == 0x001:
                     # If destined to me, reply with the receiving interface to the sender
                     if original_dest_ipv4 == receiving_interface.get_ipv4_address():
@@ -138,27 +136,6 @@ class Router:
         forwarding_interface.send(frame)
         globalVars.prompt_save = True
 
-    def show_interfaces(self):
-        header = "{:<16} {:<15} {:<15} {:<15}".format('Interface', 'IP Address', 'Connected', 'Operational')
-        header += '\n------------------------------------------------------------\n'
-        entries = ''
-        for interface in self.interfaces:
-            int_co = "False"
-            int_op = "False"
-            if interface.get_is_connected():
-                int_co = "True"
-            if interface.get_is_operational():
-                int_op = "True"
-
-            entries += "{:<16} {:<15} {:<15} {:<15}".format(interface.get_shortened_name(),
-                                                            interface.get_ipv4_address(), int_co, int_op) + '\n'
-
-            for sub_intf in interface.get_sub_interfaces():
-                entries += '--> ' + ("{:<12} {:<15}".format(sub_intf.get_shortened_name(),
-                                                            sub_intf.get_ipv4_address()) + '\n')
-
-        return header + entries
-
     def update_routing_table(self, interface, ip, netmask):
 
         try:
@@ -170,24 +147,6 @@ class Router:
         self.routing_table[interface] = [["Connected", hf.get_network_portion_ipv4(ip, netmask) + prefix, ip],
                                          ["Local", ip + "/32", "----"]]
         globalVars.prompt_save = True
-
-    def show_routing_table(self):
-        header = "{:<14} {:<10} {:<20} {:<15}".format('At Interface', 'Type', 'Destination Network',
-                                                      'Next Hop/Exit Interface')
-        header += '\n----------------------------------------------------------------------\n'
-
-        entries = ''
-        for route in self.routing_table:
-            flag = True
-            for i in self.routing_table[route]:
-                if flag:
-                    entries += "{:<14} {:<10} {:<20} {:<15}".format(route.get_shortened_name(), i[0], i[1], i[2])
-                    flag = False
-                else:
-                    entries += "{:<14} {:<10} {:<20} {:<15}".format("", i[0], i[1], i[2])
-
-                entries += "\n"
-        return header + entries
 
     def decide_route(self, packet):
         destination_ip = packet.get_dest_ip()
@@ -219,6 +178,9 @@ class Router:
     def get_mac_address(self):
         return self.MAC_Address
 
+    def get_routing_table(self):
+        return self.routing_table
+
     def get_interface_by_name(self, name):
 
         for i in self.interfaces:
@@ -245,9 +207,6 @@ class Router:
         return self.Model_Number
 
     def get_arp_table(self):
-        return nf.get_arp_table(self.ARP_table)
-
-    def get_arp_table_actual(self):
         return self.ARP_table
 
     # -------------------------- Save & Load Methods -------------------------- #

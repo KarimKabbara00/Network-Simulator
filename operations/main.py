@@ -25,7 +25,7 @@ def create_menu(canvas_obj, master):
 
     help_menu = Menu(menu_bar, tearoff=0)
     help_menu.add_command(label="Help", command=lambda m=master: button_handler.open_help_menu(m))
-    help_menu.add_command(label="About/Email me/Suggestions/Even needed?")
+    # help_menu.add_command(label="About/Email me/Suggestions/Even needed?")
     menu_bar.add_cascade(label="Help", menu=help_menu)
 
     return menu_bar
@@ -124,12 +124,12 @@ router_button.grid(column=0, row=1, padx=10, pady=5)
 router_button.bind('<Enter>', lambda e, btn=router_button: button_handler.hf.button_enter(e, btn))
 router_button.bind('<Leave>', lambda e, btn=router_button: button_handler.hf.button_leave(e, btn))
 
-fw_button = Button(device_frame, image=fw1, width=60, height=60, relief=GROOVE,
+fw_button = Button(device_frame, image=fw1, width=60, height=60, relief=GROOVE, state='disabled',
                    command=lambda: button_handler.handle_button_click(tk, canvas, "firewall",
                                                                       globalVars.internal_clock))
 fw_button.grid(column=1, row=1, pady=5)
-fw_button.bind('<Enter>', lambda e, btn=fw_button: button_handler.hf.button_enter(e, btn))
-fw_button.bind('<Leave>', lambda e, btn=fw_button: button_handler.hf.button_leave(e, btn))
+# fw_button.bind('<Enter>', lambda e, btn=fw_button: button_handler.hf.button_enter(e, btn))
+# fw_button.bind('<Leave>', lambda e, btn=fw_button: button_handler.hf.button_leave(e, btn))
 
 eth_button = Button(cable_frame, image=eth_cable1, width=60, height=60, relief=GROOVE,
                     command=lambda: button_handler.handle_button_click(tk, canvas, "Eth_cable",
@@ -138,10 +138,10 @@ eth_button.grid(column=0, row=0)
 eth_button.bind('<Enter>', lambda e, btn=eth_button: button_handler.hf.button_enter(e, btn))
 eth_button.bind('<Leave>', lambda e, btn=eth_button: button_handler.hf.button_leave(e, btn))
 
-ser_button = Button(cable_frame, image=ser_cable1, width=60, height=60, relief=GROOVE)
+ser_button = Button(cable_frame, image=ser_cable1, width=60, height=60, relief=GROOVE, state='disabled')
 ser_button.grid(column=0, row=1, pady=5)
-ser_button.bind('<Enter>', lambda e, btn=ser_button: button_handler.hf.button_enter(e, btn))
-ser_button.bind('<Leave>', lambda e, btn=ser_button: button_handler.hf.button_leave(e, btn))
+# ser_button.bind('<Enter>', lambda e, btn=ser_button: button_handler.hf.button_enter(e, btn))
+# ser_button.bind('<Leave>', lambda e, btn=ser_button: button_handler.hf.button_leave(e, btn))
 
 # Toggle Button Stuff
 toggle_frame = LabelFrame(action_frame, text="Toggle", padx=5, pady=5)
@@ -216,14 +216,8 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
-#   - test native vlans with broadcast ping across two switches over a trunk port
-#   - Find a way to print 'Request timed out.' if broadcast ping fails
-#           Destination host unreachable: IP out of subnet with no default gateway
-#           Request Time Out: valid dest IP, but did not receive a reply in time (1 second)
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 #   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?
-#   - Add About/Feedback menu
 #   - Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
 #                                                            but not writing to mem.
-#   10. Disconnect menu button
 #   11. Other TODOs

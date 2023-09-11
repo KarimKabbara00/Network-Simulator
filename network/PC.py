@@ -2,10 +2,7 @@ import random as random
 import time as time
 import UI.helper_functions as hf
 import network.network_functions as nf
-from network.Ethernet_Frame import EthernetFrame
 from network.Physical_Interface import PhysicalInterface
-from network.UDP import UDP
-from network.ipv4_packet import ipv4_packet
 from operations import globalVars
 
 
@@ -149,16 +146,7 @@ class PC:
             return ""
         return self.prefix
 
-    def get_configurations(self):
-        return {"Hostname: ": self.Host_Name, "MAC Address ": self.MAC_Address,
-                "IPv4 Address: ": self.get_ipv4_address(),
-                "Subnet Mask: ": self.get_netmask(),
-                "IPv6 Address: ": self.get_ipv6_address() + " /" + self.get_prefix()}
-
     def get_arp_table(self):
-        return nf.get_arp_table(self.ARP_table)
-
-    def get_arp_table_actual(self):
         return self.ARP_table
 
     def get_cli_busy(self):

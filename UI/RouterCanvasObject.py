@@ -71,7 +71,8 @@ class RouterCanvasObject:
 
         # CLI Stuff
         self.cli_object = None
-        self.cli_command_files = ["commands/ro_general_command_list", "commands/ro_interface_command_list"]
+        self.cli_command_files = ["commands/ro_general_command_list", "commands/ro_interface_command_list",
+                                  "commands/ro_sub_interface_command_list"]
         self.cli_text = "Router> "
         self.cli_window = None
         self.created_terminal = False
@@ -285,9 +286,9 @@ class RouterCanvasObject:
         self.delete_button.place_forget()
 
         if on_delete:
-            self.terminal_button = None
-            self.disconnect_button = None
-            self.delete_button = None
+            self.terminal_button.destroy()
+            self.disconnect_button.destroy()
+            self.delete_button.destroy()
 
     def unbind_menu_temporarily(self):
         self.canvas.tag_unbind(self.hover_area, '<Enter>')
@@ -452,8 +453,8 @@ class RouterCanvasObject:
             self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.focus_set()
-            self.cli_object = RouterCli(self, self.class_object, self.cli_window,
-                                        self.cli_text, "Router> ", self.cli_command_files)
+            self.cli_object = RouterCli(self, self.class_object, self.cli_window, self.cli_text, "Router> ",
+                                        'orange', 'orange', self.cli_command_files)
             self.created_terminal = True
         else:
             self.cli_window.deiconify()
@@ -504,12 +505,16 @@ class RouterCanvasObject:
         return self.line_connections[line_obj][2], self.line_connections[line_obj][3]
 
     def on_start_hover(self, event):
-        if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
-            self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
-            self.terminal_button.place(x=self._x + 57, y=self._y - 42)
-            self.disconnect_button.place(x=self._x + 57, y=self._y - 9)
-            self.delete_button.place(x=self._x + 57, y=self._y + 24)
-        return
+        try:
+            if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
+                self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
+                self.terminal_button.place(x=self._x + 57, y=self._y - 42)
+                self.disconnect_button.place(x=self._x + 57, y=self._y - 9)
+                self.delete_button.place(x=self._x + 57, y=self._y + 24)
+            return
+        except tk.TclError:
+            pass
+
 
     def on_end_hover(self, event):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')

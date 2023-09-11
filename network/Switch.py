@@ -3,6 +3,7 @@ import network.network_functions as nf
 from network.Physical_Interface import PhysicalInterface
 from network.Dot1q import Dot1q
 from operations import globalVars
+from network.VLAN import VLAN
 
 
 class Switch:
@@ -42,8 +43,6 @@ class Switch:
         original_dst_mac = frame.get_dst_mac()
         src_dot1q = frame.get_dot1q()
 
-        do_not_tag = False
-
         # If received on a trunk port, check if it is allowed on the trunk
         if receiving_interface.get_switchport_type() == 'Trunk':
 
@@ -59,10 +58,6 @@ class Switch:
             else:
                 forwarding_interface, vlan_id = None, None
 
-            # If the forwarding interface's vlan matches the source vlan id, do not tag the frame
-            if forwarding_interface and vlan_id != forwarding_interface.get_native_vlan():
-                do_not_tag = True
-
         # If received on an access port, get the receiving interface's vlan id
         else:
             src_dot1q = receiving_interface.get_access_vlan_id()
@@ -70,13 +65,15 @@ class Switch:
                                                                  receiving_interface, src_dot1q)
 
         # If dot1q header exists, and its equal to the native vlan, tag the frame
-        if vlan_id and not do_not_tag:
+        # If dot1q doesn't exist, or if fwd intf exists, it is a trunk, and native vlan matches the src vlan, untag it
+        if vlan_id:
             frame.set_dot1q(Dot1q(vlan_id))
-        else:
+        elif (not vlan_id or forwarding_interface and forwarding_interface.get_switchport_type() == 'Trunk' and
+              vlan_id == forwarding_interface.get_native_vlan()):
             frame.set_dot1q(None)
 
-        print('SWITCH', forwarding_interface, hf.bin_to_hex(frame.get_dst_mac()), hf.bin_to_hex(frame.get_src_mac()),
-              frame.get_packet().get_identifier(), src_dot1q, vlan_id)
+        # print('SWITCH', forwarding_interface, hf.bin_to_hex(frame.get_dst_mac()), hf.bin_to_hex(frame.get_src_mac()),
+        #       frame.get_packet().get_identifier(), src_dot1q, vlan_id)
 
         if forwarding_interface:  # Unicast
             self.unicast(frame, forwarding_interface, vlan_id)
@@ -146,10 +143,7 @@ class Switch:
         forwarding_interfaces = list(set(forwarding_interfaces))
 
         for i in forwarding_interfaces:
-            print(i.get_shortened_name())
             i.send(frame)
-
-        print()
 
     def disable_interface(self, interface):
         for i in self.interfaces:
@@ -220,6 +214,15 @@ class Switch:
 
     def get_vlans(self):
         return self.VLANS
+
+    def get_vlan_by_id(self, v_id):
+        for v in self.VLANS:
+            if v.get_id() == v_id:
+                return v
+
+        new_vlan = VLAN(v_id)
+        self.VLANS.append(new_vlan)
+        return new_vlan
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
