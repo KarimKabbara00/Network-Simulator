@@ -2,6 +2,7 @@ import tkinter as tk
 import UI.helper_functions as hf
 from UI.DeviceCLI import DeviceCli
 from network.SubInterface import SubInterface
+from operations import globalVars
 
 
 class RouterCli(DeviceCli):
@@ -13,6 +14,7 @@ class RouterCli(DeviceCli):
     def process_command(self, command):
 
         valid_command = True
+        globalVars.prompt_save = True
 
         if not command:
             self.cli.insert(tk.END, "\n" + self.cli_text)

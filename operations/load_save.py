@@ -15,22 +15,95 @@ from network.PC import PC
 from network.Router import Router
 from network.SubInterface import SubInterface
 from network.VLAN import VLAN
+from tkinter import messagebox
 
 
-def save_file():
+def prompt_save(master, canvas, action):
+    answer = messagebox.askyesnocancel("Exit", 'Save changes?')
+
+    match answer:
+        case True:
+            if action == 'new_file':
+                if not globalVars.working_file:
+                    save_as_new_file(canvas, clear=True)
+                else:
+                    save_current_file(canvas)
+                new_file(canvas, master)
+
+            elif action == 'load_file':
+                if not globalVars.working_file:
+                    save_as_new_file(canvas, clear=True)
+                else:
+                    save_current_file(canvas)
+                load_file(canvas, master, ask=False)
+
+            elif action == 'quit':
+                if not globalVars.working_file:
+                    save_as_new_file(canvas, clear=True)
+                else:
+                    save_current_file(canvas)
+                master.quit()
+
+        case False:
+            globalVars.clear_all_objects()
+            globalVars.internal_clock.clear_all()
+            canvas.delete("all")
+            globalVars.prompt_save = False
+
+            if action == 'new_file':
+                new_file(canvas, master)
+
+            elif action == 'load_file':
+                load_file(canvas, master, ask=False)
+
+        case None:
+            return
+
+
+def save_as_new_file(canvas, clear=False):
     f = asksaveasfile(initialdir=globalVars.file_directory, initialfile='.json',
                       defaultextension=".json", filetypes=[("json", ".json")])
     if f:
-        save(f.name)
+        save(canvas, f.name, clear)  # Clear will be true if saving file after pressing new
 
 
-def load_file(canvas, master):
-    f = askopenfilename(initialdir=globalVars.file_directory)
-    if f:
-        load(canvas, master, f)
+def save_current_file(canvas):
+    if not globalVars.working_file:
+        save_as_new_file(canvas, clear=False)
+    else:
+        save(canvas, globalVars.working_file, clear=False)
 
 
-def save(file_name):
+def load_file(canvas, master, ask=True):
+    if globalVars.prompt_save and ask:
+        prompt_save(master, canvas, 'load_file')
+    else:
+        f = askopenfilename(initialdir=globalVars.file_directory)
+        if f:
+            load(canvas, master, f)
+
+
+def new_file(canvas, master):
+    # Clear everything first
+
+    if globalVars.prompt_save:
+        prompt_save(master, canvas, 'new_file')
+    else:
+        globalVars.clear_all_objects()
+        globalVars.internal_clock.clear_all()
+        canvas.delete("all")
+        globalVars.prompt_save = False
+        master.winfo_toplevel().title('Network Simulator')
+
+
+def quit_program(canvas, master):
+    if globalVars.prompt_save:
+        prompt_save(master, canvas, 'quit')
+    else:
+        master.quit()
+
+
+def save(canvas, file_name, clear):
     save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
                  'OTHER': {}}
 
@@ -72,16 +145,24 @@ def save(file_name):
     save_info['OTHER']['Time'] = globalVars.internal_clock.get_time()
 
     # Write json to file
-    with open(file_name, 'a') as F:
+    with open(file_name, 'w') as F:
         F.write(json.dumps(save_info))
+
+    if clear:
+        globalVars.clear_all_objects()
+        globalVars.internal_clock.clear_all()
+        canvas.delete("all")
+
+    globalVars.prompt_save = False
+    globalVars.working_file = file_name
 
 
 def load(canvas, master, file):
 
     # Clear everything first
-    globalVars.clear_all_objects()
-    globalVars.internal_clock.clear_all()
-    canvas.delete("all")
+    new_file(canvas, master)
+
+    globalVars.working_file = file
 
     # Use the json dumps method to write data to file
     with open(file, 'r') as F:
@@ -118,7 +199,6 @@ def load(canvas, master, file):
         # ----- Rebuild Interfaces ----- #
 
         # ----- Rebuild Canvas PC ----- #
-
         pc_canvas_obj = PCCanvasObject(canvas, pc['block_name'], pc_icons, pc_obj, master, globalVars.internal_clock,
                                        load=True)
         pc_canvas_obj.set_pos(pc['x_coord'], pc['y_coord'])
@@ -149,6 +229,7 @@ def load(canvas, master, file):
             intf.set_switchport_type(interface[8])
             intf.set_access_vlan_id(interface[9])
             intf.set_allowed_trunk_vlans(interface[10])
+            intf.set_native_vlan(interface[11])
             sw_obj.set_interfaces_on_load(intf)
             sw_interface_to_light_mapping[intf] = [interface[6], interface[7]]
         # ----- Rebuild Interfaces ----- #
@@ -280,3 +361,6 @@ def load(canvas, master, file):
 
     button_handler.toggle_link_lights(canvas, checkbox=True)
     # ----- Set Lights ----- #
+
+    # Set title as file name
+    master.winfo_toplevel().title('Network Simulator' + ' - ' + file.split('/')[-1].split('.')[0])

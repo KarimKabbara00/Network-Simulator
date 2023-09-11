@@ -258,6 +258,9 @@ class EthernetCableCanvasObject:
 
             self.canvas.delete(self.canvas_object)
 
+            # Prompt save
+            globalVars.prompt_save = True
+
             # If persistent cable connect, create a new instance of this class
             if globalVars.persistent_cable_connect:
                 cursor_x = self.master.winfo_pointerx() - self.master.winfo_rootx()

@@ -161,6 +161,22 @@ def is_broadcast_mac(mac_address):
     return all(x == 'FF' for x in mac)
 
 
+def get_broadcast_ipv4(dest_ip, source_netmask):
+    broadcast_address = ''
+    for x in range(4):
+        if source_netmask.split('.')[x] == '255':
+            broadcast_address += dest_ip.split('.')[x] + '.'
+            continue
+        elif source_netmask.split('.')[x] == '0':
+            broadcast_address += '255' + '.'
+        else:
+            broadcast_address += str(int(str(bin(int(dest_ip.split('.')[x]))[2:].zfill(8)[
+                                             :bin(int(source_netmask.split('.')[x]))[2:].rfind("1") + 1]) + '1' * (
+                                                     8 - bin(int(source_netmask.split('.')[x]))[2:].rfind("1") - 1),
+                                         2)) + '.'
+    return broadcast_address[:-1]
+
+
 def check_ipv4(ip):
     x = ip.split('.')
     ip_address = ''
@@ -514,3 +530,5 @@ def show_info(selected_item, help_menu):
         f.close()
 
     help_menu.columnconfigure(1, weight=1)
+
+

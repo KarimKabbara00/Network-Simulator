@@ -10,11 +10,12 @@ import operations.backgroundProcesses as bp
 def create_menu(canvas_obj, master):
     menu_bar = Menu(tk)
     file_menu = Menu(menu_bar, tearoff=0)
-    file_menu.add_command(label="New")
+    file_menu.add_command(label="New", command=lambda c=canvas_obj, m=master: ls.new_file(c, m))
     file_menu.add_command(label="Open", command=lambda c=canvas_obj, m=master: ls.load_file(c, m))
-    file_menu.add_command(label="Save", command=ls.save_file)
+    file_menu.add_command(label="Save", command=lambda c=canvas_obj: ls.save_current_file(c))
+    file_menu.add_command(label="Save as New File", command=lambda c=canvas_obj: ls.save_as_new_file(c))
     file_menu.add_separator()
-    file_menu.add_command(label="Exit", command=tk.quit)
+    file_menu.add_command(label="Exit", command=lambda c=canvas_obj, m=master: ls.quit_program(c, m))
     menu_bar.add_cascade(label="File", menu=file_menu)
 
     preferences_menu = Menu(menu_bar, tearoff=0)
@@ -37,6 +38,7 @@ width = tk.winfo_screenwidth()
 height = tk.winfo_screenheight()
 tk.geometry("%dx%d" % (width - 10, height - 10))
 tk.state('zoomed')
+tk.winfo_toplevel().title('Network Simulator')
 
 # Screen dimensions
 globalVars.screen_width = tk.winfo_screenwidth()
@@ -214,12 +216,14 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
-#   - Are you sure you want to exit? / Prompt save if anything changes
-#           (global var, set true in any class if something happens)
+#   - test native vlans with broadcast ping across two switches over a trunk port
+#   - Find a way to print 'Request timed out.' if broadcast ping fails
+#           Destination host unreachable: IP out of subnet with no default gateway
+#           Request Time Out: valid dest IP, but did not receive a reply in time (1 second)
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 #   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?
-#   8. Add About/Feedback menu
-#   9. Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
-#                                                             but not writing to mem.
+#   - Add About/Feedback menu
+#   - Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
+#                                                            but not writing to mem.
 #   10. Disconnect menu button
 #   11. Other TODOs

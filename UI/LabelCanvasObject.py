@@ -54,6 +54,8 @@ class LabelCanvasObject:
         if str(event.type) == "4":
             self.canvas.tag_unbind(self.block_name, "<Motion>")
             self.canvas.tag_unbind(self.block_name, "<Button-1>")
+
+        globalVars.prompt_save = True
         return
 
     def toggle_label(self, reset):
@@ -73,6 +75,7 @@ class LabelCanvasObject:
     def delete(self):
         self.canvas.delete(self.label)
         self.canvas.delete(self.label_bg)
+        globalVars.prompt_save = True
 
     def get_block_name(self):
         return self.block_name

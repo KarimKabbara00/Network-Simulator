@@ -6,6 +6,7 @@ from network.Ethernet_Frame import EthernetFrame
 from network.Physical_Interface import PhysicalInterface
 from network.UDP import UDP
 from network.ipv4_packet import ipv4_packet
+from operations import globalVars
 
 
 def generate_ip_address():
@@ -44,41 +45,33 @@ class PC:
     def set_interface(self):
         return [PhysicalInterface('0/0', 1000, self)]
 
-    def send_message(self, message, destination_mac):
-
-        segment = UDP(50000, 80, message)
-        packet = ipv4_packet(segment, '000000', '00', '0000000000000000', '000', '0000000000000', '01000000',
-                             self.ipv4_address, '192.168.1.1', '')
-        frame = EthernetFrame(destination_mac, self.MAC_Address, None, packet, None)
-        self.interface[0].send(frame)
-
     def icmp_echo_request(self, dest_ipv4_address, count):
-
         nf.icmp_echo_request(self.ipv4_address, self.MAC_Address, self.netmask, self.default_gateway, dest_ipv4_address,
                              count, self.canvas_object, self, self.time_between_pings, self.interface[0])
 
         hf.compute_ping_stats(self.ping_rtt_times, dest_ipv4_address, count, self.received_ping_count,
                               self.canvas_object, self)
+        globalVars.prompt_save = True
 
     def icmp_echo_reply(self, original_sender_ipv4):
-        if original_sender_ipv4 not in self.ARP_table:
-            self.arp_request(original_sender_ipv4)
-        frame = nf.icmp_echo_reply(self.MAC_Address, self.ipv4_address, original_sender_ipv4, self.ARP_table)
+        frame = nf.icmp_echo_reply(self.MAC_Address, self.ipv4_address, original_sender_ipv4, self.netmask,
+                                   self.ARP_table, self, default_gateway=self.default_gateway)
         self.interface[0].send(frame)
+        globalVars.prompt_save = True
 
     def arp_request(self, dst_ipv4_address):
         arp_frame = nf.create_arp_request(self.MAC_Address, self.ipv4_address, dst_ipv4_address)
         self.interface[0].send(arp_frame)
+        globalVars.prompt_save = True
 
     def arp_reply(self, dest_mac, dest_ip):
         frame = nf.create_arp_reply(self.MAC_Address, self.ipv4_address, dest_mac, dest_ip)
         self.interface[0].send(frame)
+        globalVars.prompt_save = True
 
     def de_encapsulate(self, frame, receiving_interface):
         packet = frame.get_packet()
         packet_identifier = packet.get_identifier()
-
-        # print(packet.get_src_ip())
 
         if packet_identifier == "ARP":
             if packet.get_dest_ip() == self.ipv4_address:  # if ARP request is destined to this host
@@ -118,6 +111,8 @@ class PC:
                     info="Reply from " + original_sender_ipv4 + ": bytes=" + str(
                         segment.get_size()) + " time=" + time_taken + " TTL=" + str(int(packet.get_ttl(), 2)),
                     linebreak=True, last=False)
+
+        globalVars.prompt_save = True
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
         self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.get_time()]

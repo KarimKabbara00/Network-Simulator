@@ -31,6 +31,7 @@ def create_dot1q_header(vlan_id):
 
 def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, dest_ip, count, canvas, host,
                       time_between_pings, interface):
+
     same_subnet = hf.is_same_subnet(source_ip, source_netmask, dest_ip)
 
     canvas.toggle_cli_busy()
@@ -41,13 +42,22 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
         # if the host is in the same network, get (or learn) the mac address of the destination host
         dst_mac = ""
         host_not_found = False
+        broadcast_ping = False
+
         if same_subnet:
-            if dest_ip not in host.get_arp_table_actual():
-                host.arp_request(dest_ip)
-            try:
-                dst_mac = host.get_arp_table_actual()[dest_ip][0]
-            except KeyError:
-                host_not_found = True
+
+            if hf.get_broadcast_ipv4(dest_ip, source_netmask) == dest_ip:
+                dst_mac = 'FF:FF:FF:FF:FF:FF'
+                broadcast_ping = True
+
+            else:
+                if dest_ip not in host.get_arp_table_actual():
+                    host.arp_request(dest_ip)
+
+                try:
+                    dst_mac = host.get_arp_table_actual()[dest_ip][0]
+                except KeyError:
+                    host_not_found = True
 
         # if the host is in another network, get (or learn) the mac address of the default route
         elif not same_subnet:
@@ -55,6 +65,9 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
                 host_not_found = True
             elif default_gateway not in host.get_arp_table_actual():
                 host.arp_request(default_gateway)
+                # PROXY ARP REQUEST. Should the router send a reply without the PC having to send this?
+                # if original_sender_ipv4 not in host.get_arp_table_actual():
+                #     host.arp_request(original_sender_ipv4)
             try:
                 dst_mac = host.get_arp_table_actual()[default_gateway][0]
             except KeyError:
@@ -72,23 +85,47 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
         if _ != count - 1:
             time.sleep(time_between_pings)
 
-        if host.get_received_ping_count() != _ + 1 and not host_not_found:
-            canvas.get_info(info="Reply from " + source_ip + ": Destination Host Unreachable meow" + dest_ip,
+        if host.get_received_ping_count() != _ + 1 and not host_not_found and not broadcast_ping:
+            canvas.get_info(info="Reply from " + source_ip + ": Destination Host Unreachable!",
                             linebreak=True, last=False)
 
 
-def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, arp_table, dot1q=None):
+def icmp_echo_reply(source_mac, source_ip, original_sender_ipv4, netmask, arp_table, host, default_gateway=None, dot1q=None):
 
-    dst_mac = arp_table[original_sender_ipv4][0]
+    same_subnet = hf.is_same_subnet(source_ip, netmask, original_sender_ipv4)
+    host_not_found = False
+    dst_mac = ''
 
-    # Type 0 and code 0 indicate Echo Reply
-    icmp_segment = create_icmp_reply_segment()
-    packet = ipv4_packet(icmp_segment, dscp='000000', ecn='00', identification='0000000000000000', flags='000',
-                         f_offset='0000000000000', ttl='10000000',
-                         src_ip=source_ip, dst_ip=original_sender_ipv4, options='')
-    frame = EthernetFrame(dst_mac=dst_mac, src_mac=source_mac, dot1q=dot1q, packet=packet, FCS=None)
+    if same_subnet:
+        if original_sender_ipv4 not in host.get_arp_table_actual():
+            host.arp_request(original_sender_ipv4)
+        try:
+            dst_mac = arp_table[original_sender_ipv4][0]
+        except KeyError:
+            host_not_found = True
 
-    return frame
+    else:
+        if default_gateway not in host.get_arp_table_actual():
+            host.arp_request(default_gateway)
+            # PROXY ARP REQUEST. Should the router send a reply without the PC having to send this?
+            # if original_sender_ipv4 not in host.get_arp_table_actual():
+            #     host.arp_request(original_sender_ipv4)
+        try:
+            dst_mac = host.get_arp_table_actual()[default_gateway][0]
+        except KeyError:
+            host_not_found = True
+
+    # dst_mac = arp_table[original_sender_ipv4][0]
+
+    if not host_not_found:
+        # Type 0 and code 0 indicate Echo Reply
+        icmp_segment = create_icmp_reply_segment()
+        packet = ipv4_packet(icmp_segment, dscp='000000', ecn='00', identification='0000000000000000', flags='000',
+                             f_offset='0000000000000', ttl='10000000',
+                             src_ip=source_ip, dst_ip=original_sender_ipv4, options='')
+        frame = EthernetFrame(dst_mac=dst_mac, src_mac=source_mac, dot1q=dot1q, packet=packet, FCS=None)
+
+        return frame
 
 
 def create_arp_request(source_mac, source_ipv4, dest_ipv4, dot1q=None):
@@ -135,5 +172,22 @@ def get_same_subnet_sub_interface_vid(receiving_interface, forwarding_interface,
             receiving_interface = x
             if frame.get_dot1q():  # Check if the frame had a dot1q header
                 dot1q_header = Dot1q(forwarding_interface.get_vlan_id())
+
+    return receiving_interface, dot1q_header
+
+
+def interface_or_sub_interface(receiving_interface, forwarding_interface, original_sender_ipv4, packet_identifier, frame):
+    dot1q_header = None
+    if not receiving_interface.get_netmask():
+        for x in receiving_interface.get_sub_interfaces():
+            if hf.is_same_subnet(x.get_ipv4_address(), x.get_netmask(), original_sender_ipv4):
+                receiving_interface = x
+                if frame.get_dot1q():  # Check if the frame had a dot1q header
+                    if packet_identifier == 'ipv4':
+                        dot1q_header = create_dot1q_header(forwarding_interface.get_vlan_id())
+                    elif packet_identifier == 'ARP':
+                        dot1q_header = create_dot1q_header(receiving_interface.get_vlan_id())
+    else:
+        dot1q_header = frame.get_dot1q()
 
     return receiving_interface, dot1q_header

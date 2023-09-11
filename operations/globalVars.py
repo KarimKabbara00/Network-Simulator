@@ -21,6 +21,7 @@ internal_clock = InternalTime()
 # ------------ States ------------ #
 light_state = True      # True as in showing
 label_state = False     # False as in not hiding
+prompt_save = False     # Has anything changed
 # ------------ States ------------ #
 
 # ------------ Pop up variables to ensure only 1 of the same window is open at a time ------------ #
@@ -45,8 +46,12 @@ ask_before_delete = True
 ask_before_quick_delete = True
 show_link_lights = True
 persistent_cable_connect = True
-file_directory = "/"
 # ------------ Preference Variables ------------ #
+
+# ---------- File Stuff ---------- #
+file_directory = "/"
+working_file = ''
+# ---------- File Stuff ---------- #
 
 
 # ------------ Reset Canvas ------------ #

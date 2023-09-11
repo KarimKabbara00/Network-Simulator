@@ -2,6 +2,8 @@ import tkinter as tk
 from UI.DeviceCLI import DeviceCli
 import network.show_commands.SwitchShowCommands as Show
 from network.VLAN import VLAN
+from operations import globalVars
+
 
 class SwitchCli(DeviceCli):
     def __init__(self, canvas_object, class_object, popup, cli_text, prefix, files):
@@ -10,6 +12,7 @@ class SwitchCli(DeviceCli):
     def process_command(self, command):
 
         valid_command = True
+        globalVars.prompt_save = True
 
         if not command:
             self.cli.insert(tk.END, "\n" + self.cli_text)
@@ -123,12 +126,39 @@ class SwitchCli(DeviceCli):
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
                         valid_command = False
 
-                elif command.startswith("trunk allowed-vlans "):
+                elif command.startswith("trunk allowed-vlans add "):
                     try:
-                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans ")[1].split(',')]
+                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans add ")[1].split(',')]
                         self.working_interface.add_allowed_trunk_vlan(vlan_ids)
                     except IndexError:
                         self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
+                        valid_command = False
+
+                elif command.startswith("trunk allowed-vlans remove "):
+                    try:
+                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans remove ")[1].split(',')]
+                        self.working_interface.remove_allowed_trunk_vlan(vlan_ids)
+                    except IndexError:
+                        self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
+                        valid_command = False
+
+                elif command.startswith("trunk allowed-vlans "):
+                    try:
+                        vlan_ids = [int(i) for i in command.split("trunk allowed-vlans ")[1].split(',')]
+                        self.working_interface.set_allowed_trunk_vlan(vlan_ids)
+                    except IndexError:
+                        self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
+                        valid_command = False
+
+                elif command.startswith("trunk native-vlan "):
+                    try:
+                        vlan_id = command.split("trunk native-vlan ")[1]
+                        self.working_interface.set_native_vlan(vlan_id)
+                    except IndexError:
+                        self.cli.insert(tk.END, "\nIncomplete Command\n" + "\n" + self.cli_text)
+                        valid_command = False
+                    except ValueError:
+                        self.cli.insert(tk.END, "\nInvalid Native VLAN\n" + "\n" + self.cli_text)
                         valid_command = False
 
             elif command.startswith("no "):

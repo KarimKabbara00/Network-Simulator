@@ -1,7 +1,7 @@
 import UI.helper_functions as hf
 import network.network_functions as nf
 from network.Physical_Interface import PhysicalInterface
-from network.Dot1q import Dot1q
+from operations import globalVars
 
 
 class Router:
@@ -39,43 +39,35 @@ class Router:
 
     def de_encapsulate(self, frame, receiving_interface):
 
+        # Get information from frame and packet
         packet = frame.get_packet()
         packet_identifier = packet.get_identifier()
-        forwarding_interface = self.decide_route(packet)
-
         original_sender_ipv4 = packet.get_src_ip()
         original_sender_mac = hf.bin_to_hex(frame.get_src_mac())
-
         original_dest_ipv4 = packet.get_dest_ip()
+        original_dest_mac = hf.bin_to_hex(frame.get_dst_mac())
 
-        # TODO: CLEAN!!!!!!!!!
+        forwarding_interface = self.decide_route(packet)
+
         # Adjust for sub-interfaces
-        dot1q_header = None
-        if not receiving_interface.get_netmask():
-            for x in receiving_interface.get_sub_interfaces():
-                if hf.is_same_subnet(x.get_ipv4_address(), x.get_netmask(), original_sender_ipv4):
-                    receiving_interface = x
-                    if frame.get_dot1q():  # Check if the frame had a dot1q header
-                        if packet_identifier == 'ipv4':
-                            dot1q_header = Dot1q(forwarding_interface.get_vlan_id())
-                        elif packet_identifier == 'ARP':
-                            dot1q_header = Dot1q(receiving_interface.get_vlan_id())
+        receiving_interface, dot1q_header = nf.interface_or_sub_interface(receiving_interface, forwarding_interface,
+                                                                          original_sender_ipv4, packet_identifier,
+                                                                          frame)
 
         # Only deal with the packet if the receiving interface is operational
         if receiving_interface.get_is_operational():
 
-            # Check if the dest is in the router's ARP table
-            if original_dest_ipv4 not in self.ARP_table:
+            # Check if the dest is in the router's ARP table, and the packet is already not an ARP packet
+            if original_dest_ipv4 not in self.ARP_table and packet_identifier != 'ARP':
                 self.arp_request(original_dest_ipv4, forwarding_interface, dot1q_header)
 
-            # TODO: MAKE THIS CLEANER: nf.process_request(packet_identifier, packet, ...)
-            # Do not route ARP
             # If an ARP packet, use receiving interface to reply so that ARP isn't routed.
             if packet_identifier == "ARP":
 
+                print('receiving ARP from', original_sender_ipv4, 'trying to find', original_dest_ipv4)
+
                 if packet.get_operation_id() == 0x001:
                     # If destined to me, reply with the receiving interface to the sender
-
                     if original_dest_ipv4 == receiving_interface.get_ipv4_address():
                         self.arp_reply(receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
                                        original_sender_ipv4, dot1q_header)
@@ -84,19 +76,15 @@ class Router:
                     elif not hf.is_same_subnet(receiving_interface.get_ipv4_address(), receiving_interface.get_netmask(),
                                                original_dest_ipv4):
 
-                        print('ROUTER', receiving_interface, receiving_interface.get_ipv4_address(), original_sender_mac,
-                              original_sender_ipv4, original_dest_ipv4, dot1q_header.get_VID())
-                        print()
-
                         # If not in ARP table, but in routing table (forwarding interface not None), send an ARP request
                         # to discover the original intended destination
                         if original_dest_ipv4 not in self.ARP_table and forwarding_interface:
                             self.arp_request(original_dest_ipv4, forwarding_interface, dot1q_header)
 
-                        # TODO: This is needed, and mostly works. Sender does not create an ARP entry but receiver does????
-                        # If in ARP table, send a reply to the original sender
+                        # If in ARP table, send a reply to the original destination
                         if original_dest_ipv4 in self.ARP_table:
-                            self.arp_reply(receiving_interface, original_dest_ipv4, original_sender_mac,
+                            # Goes to original dest
+                            self.arp_reply(forwarding_interface, original_dest_ipv4, original_sender_mac,
                                            original_sender_ipv4, dot1q_header)
 
                     self.add_arp_entry(original_sender_ipv4, original_sender_mac, "DYNAMIC")
@@ -129,21 +117,26 @@ class Router:
                                                          dot1q_header, packet, None)
                         forwarding_interface.send(frame)
 
+        globalVars.prompt_save = True
+
     def icmp_echo_reply(self, original_sender_ipv4, interface, dot1q=None):
         if original_sender_ipv4 not in self.ARP_table:
             self.arp_request(original_sender_ipv4, interface, dot1q)
         frame = nf.icmp_echo_reply(self.MAC_Address, interface.get_ipv4_address(), original_sender_ipv4, self.ARP_table,
-                                   dot1q)
+                                   self, dot1q)
         interface.send(frame)
+        globalVars.prompt_save = True
 
     def arp_request(self, dst_ipv4_address, forwarding_interface, dot1q=None):
         arp_frame = nf.create_arp_request(self.MAC_Address, forwarding_interface.get_ipv4_address(), dst_ipv4_address,
                                           dot1q)
         forwarding_interface.send(arp_frame)
+        globalVars.prompt_save = True
 
     def arp_reply(self, forwarding_interface, fwd_int_ip, dest_mac, dest_ip, dot1q=None):
         frame = nf.create_arp_reply(self.MAC_Address, fwd_int_ip, dest_mac, dest_ip, dot1q)
         forwarding_interface.send(frame)
+        globalVars.prompt_save = True
 
     def show_interfaces(self):
         header = "{:<16} {:<15} {:<15} {:<15}".format('Interface', 'IP Address', 'Connected', 'Operational')
@@ -176,6 +169,7 @@ class Router:
         prefix = "/" + hf.get_ipv4_prefix_length(netmask)
         self.routing_table[interface] = [["Connected", hf.get_network_portion_ipv4(ip, netmask) + prefix, ip],
                                          ["Local", ip + "/32", "----"]]
+        globalVars.prompt_save = True
 
     def show_routing_table(self):
         header = "{:<14} {:<10} {:<20} {:<15}".format('At Interface', 'Type', 'Destination Network',

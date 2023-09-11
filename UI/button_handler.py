@@ -280,14 +280,13 @@ def delete_object(canvas, icon):
             for i in globalVars.objects:
                 if i.get_block_name() == canvas_object_tag:
                     try:
+                        globalVars.objects.remove(i)
                         globalVars.pc_objects.remove(i)
                         globalVars.sw_objects.remove(i)
                         globalVars.ro_objects.remove(i)
                         globalVars.fw_objects.remove(i)
                     except ValueError:
                         pass
-
-                    globalVars.objects.remove(i)
                     i.menu_delete(None, True)
                     return
 

@@ -243,6 +243,7 @@ class SwitchCanvasObject:
         except StopIteration:
             pass
 
+        globalVars.prompt_save = True
         self._x = event_x
         self._y = event_y
         return
@@ -274,11 +275,16 @@ class SwitchCanvasObject:
         if event:
             self.on_start_hover(event)
 
-    def hide_menu(self):
+    def hide_menu(self, on_delete=False):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
         self.terminal_button.place_forget()
         self.disconnect_button.place_forget()
         self.delete_button.place_forget()
+
+        if on_delete:
+            self.terminal_button = None
+            self.disconnect_button = None
+            self.delete_button = None
 
     def unbind_menu_temporarily(self):
         self.canvas.tag_unbind(self.hover_area, '<Enter>')
@@ -386,6 +392,7 @@ class SwitchCanvasObject:
         scrollbar.grid(row=0, column=1, sticky='ns')
 
         self.hide_menu()
+        globalVars.prompt_save = True
 
     def menu_delete(self, event, is_quick_del, reset=False):
 
@@ -405,13 +412,15 @@ class SwitchCanvasObject:
                 pass
 
             self.internal_clock.remove_switch(self)
-            globalVars.sw_objects.remove(self)
-            globalVars.objects.remove(self)
+
+            if not is_quick_del:
+                globalVars.sw_objects.remove(self)
+                globalVars.objects.remove(self)
 
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)
-            self.canvas.delete()
+
             self.class_object = None
 
             # Destroy windows when deleting node
@@ -426,7 +435,8 @@ class SwitchCanvasObject:
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
 
-        self.hide_menu()
+        self.hide_menu(on_delete=True)
+        globalVars.prompt_save = True
 
     def menu_switch_cli(self, event):
 
