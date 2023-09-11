@@ -1,3 +1,6 @@
+from operations import globalVars
+
+
 class RectangleCanvasObject:
     def __init__(self, canvas, color_code, rect_id, load=False):
         self.canvas = canvas
@@ -54,10 +57,13 @@ class RectangleCanvasObject:
                                                              tags=(self.block_name, "Rectangle"))
         self.canvas.tag_lower(self.block_name)
         self.canvas.config(cursor="")
+
+        globalVars.prompt_save = True
         return
 
     def delete(self):
         self.canvas.delete(self.rectangle_object)
+        globalVars.prompt_save = True
 
     def get_block_name(self):
         return self.block_name

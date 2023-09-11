@@ -161,6 +161,22 @@ def is_broadcast_mac(mac_address):
     return all(x == 'FF' for x in mac)
 
 
+def get_broadcast_ipv4(dest_ip, source_netmask):
+    broadcast_address = ''
+    for x in range(4):
+        if source_netmask.split('.')[x] == '255':
+            broadcast_address += dest_ip.split('.')[x] + '.'
+            continue
+        elif source_netmask.split('.')[x] == '0':
+            broadcast_address += '255' + '.'
+        else:
+            broadcast_address += str(int(str(bin(int(dest_ip.split('.')[x]))[2:].zfill(8)[
+                                             :bin(int(source_netmask.split('.')[x]))[2:].rfind("1") + 1]) + '1' * (
+                                                     8 - bin(int(source_netmask.split('.')[x]))[2:].rfind("1") - 1),
+                                         2)) + '.'
+    return broadcast_address[:-1]
+
+
 def check_ipv4(ip):
     x = ip.split('.')
     ip_address = ''
@@ -486,7 +502,7 @@ def show_info(selected_item, help_menu):
     file = ''
     match selected_item:
         case 'Network Simulator':
-            file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/Network_Simulator.md'
+            file = 'C:\\Users\\kkabbara\\PycharmProjects\\Network-Simulator\\markdown_files\\Network_Simulator.md'
         case 'PCs':
             file = 'C:/Users/karim/PycharmProjects/Network-Simulator/markdown_files/PC.md'
         case 'Switch':
@@ -507,10 +523,12 @@ def show_info(selected_item, help_menu):
             m_text = f.read()
 
         m_html = markdown.markdown(m_text)
-        f = open('markdown_files/temp', mode='w')
+        f = open('C:\\Users\\kkabbara\\PycharmProjects\\Network-Simulator\\markdown_files\\temp', mode='w')
         f.write(m_html)
         f.flush()
         info_box.load_file(f.name)
         f.close()
 
     help_menu.columnconfigure(1, weight=1)
+
+

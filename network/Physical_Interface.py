@@ -23,7 +23,7 @@ class PhysicalInterface:
             self.switchport_type = 'Access'  # If none, then all vlan traffic is allowed
             self.access_vlan_id = 1
             self.trunk_vlan_ids = []
-            self.native_vlan = 1 # TODO: SERIALIZE
+            self.native_vlan = 1
 
     @staticmethod
     def set_name(speed):
@@ -182,8 +182,19 @@ class PhysicalInterface:
     def set_switchport_type(self, sw_type):
         self.switchport_type = sw_type
 
-    def add_allowed_trunk_vlan(self, vlan_ids):
+    def set_allowed_trunk_vlan(self, vlan_ids):
         self.trunk_vlan_ids = vlan_ids
+
+    def add_allowed_trunk_vlan(self, vlan_ids):
+        for i in vlan_ids:
+            self.trunk_vlan_ids.append(i)
+
+    def remove_allowed_trunk_vlan(self, vlan_ids):
+        try:
+            for i in vlan_ids:
+                self.trunk_vlan_ids.remove(i)
+        except ValueError:  # Not in list
+            pass
 
     def get_native_vlan(self):
         return self.native_vlan
@@ -220,7 +231,7 @@ class PhysicalInterface:
         elif self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
             return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
                     self.connected_to_MAC, self.operational, self.administratively_down, self.switchport_type,
-                    self.access_vlan_id, self.trunk_vlan_ids]
+                    self.access_vlan_id, self.trunk_vlan_ids, self.native_vlan]
 
         else:
             return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,

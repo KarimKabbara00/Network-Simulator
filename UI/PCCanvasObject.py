@@ -188,6 +188,7 @@ class PCCanvasObject(object):
 
         self._x = event_x
         self._y = event_y
+        globalVars.prompt_save = True
         return
 
     def button_release(self, event):
@@ -221,12 +222,18 @@ class PCCanvasObject(object):
         if event:
             self.on_start_hover(event)
 
-    def hide_menu(self):
+    def hide_menu(self, on_delete=False):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
         self.config_button.place_forget()
         self.terminal_button.place_forget()
         self.disconnect_button.place_forget()
         self.delete_button.place_forget()
+
+        if on_delete:
+            self.config_button.destroy()
+            self.terminal_button.destroy()
+            self.disconnect_button.destroy()
+            self.delete_button.destroy()
 
     def unbind_menu_temporarily(self):
         self.canvas.tag_unbind(self.hover_area, '<Enter>')
@@ -321,6 +328,7 @@ class PCCanvasObject(object):
             pass
 
         self.hide_menu()
+        globalVars.prompt_save = True
 
         # Disable the hover area when disconnect cable is clicked because mouse lands on the hover area causing the menu
         # to reappear instantly. It is re-enabled in self.on_end_hover()
@@ -338,13 +346,15 @@ class PCCanvasObject(object):
 
             self.disconnect_cable(event)
             self.internal_clock.remove_pc(self)
-            globalVars.pc_objects.remove(self)
-            globalVars.objects.remove(self)
+
+            if not is_quick_del:
+                globalVars.pc_objects.remove(self)
+                globalVars.objects.remove(self)
 
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)
-            self.canvas.delete()
+
             self.class_object = None
 
             # Destroy windows when deleting node
@@ -360,7 +370,8 @@ class PCCanvasObject(object):
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
 
-        self.hide_menu()
+        self.hide_menu(on_delete=True)
+        globalVars.prompt_save = True
 
     def save_general_parameters(self, hostname, mac_address, ipv4, netmask, ipv6, prefix, default_route, parent):
 
@@ -395,6 +406,7 @@ class PCCanvasObject(object):
             self.class_object.set_prefix(prefix)
             self.class_object.set_default_gateway(default_route)
             parent.destroy()
+            globalVars.prompt_save = True
         else:
             if not hostname_flag:
                 messagebox.showerror('Invalid Parameter', 'Please Enter a Hostname', parent=parent)
@@ -505,6 +517,7 @@ class PCCanvasObject(object):
     def process_command(self, command):
 
         valid_command = True
+        globalVars.prompt_save = True
 
         if command.startswith("add arp "):
             args = command.split('add arp ')[1]
@@ -616,13 +629,16 @@ class PCCanvasObject(object):
         self.interface_2 = int2
 
     def on_start_hover(self, event):
-        if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
-            self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
-            self.config_button.place(x=self._x + 57, y=self._y - 65)
-            self.terminal_button.place(x=self._x + 57, y=self._y - 31)
-            self.disconnect_button.place(x=self._x + 57, y=self._y + 3)
-            self.delete_button.place(x=self._x + 57, y=self._y + 37)
-        return
+        try:
+            if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
+                self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
+                self.config_button.place(x=self._x + 57, y=self._y - 65)
+                self.terminal_button.place(x=self._x + 57, y=self._y - 31)
+                self.disconnect_button.place(x=self._x + 57, y=self._y + 3)
+                self.delete_button.place(x=self._x + 57, y=self._y + 37)
+            return
+        except tkinter.TclError:
+            pass
 
     def on_end_hover(self, event):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')

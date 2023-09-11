@@ -2,17 +2,19 @@ import tkinter as tk
 import UI.helper_functions as hf
 from UI.DeviceCLI import DeviceCli
 from network.SubInterface import SubInterface
+from operations import globalVars
 
 
 class RouterCli(DeviceCli):
     def __init__(self, canvas_object, class_object,  popup, cli_text, prefix, files):
         super().__init__(canvas_object, class_object, popup, cli_text, prefix, files)
-        self.working_sub_interface = None
-        self.sub_interface_configuration = False
+        # self.working_sub_interface = None
+        # self.sub_interface_configuration = False
 
     def process_command(self, command):
 
         valid_command = True
+        globalVars.prompt_save = True
 
         if not command:
             self.cli.insert(tk.END, "\n" + self.cli_text)

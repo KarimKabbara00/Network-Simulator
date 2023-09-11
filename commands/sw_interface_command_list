@@ -12,6 +12,8 @@ switchport mode access
 switchport mode trunk
 switchport access
 switchport access vlan
-switchport access vlan <1-4094>
+switchport trunk
 switchport trunk allowed-vlans
-switchport trunk allowed-vlans <1-4094>
+switchport trunk allowed-vlans add
+switchport trunk allowed-vlans remove
+switchport trunk native-vlan

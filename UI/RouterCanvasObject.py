@@ -71,7 +71,8 @@ class RouterCanvasObject:
 
         # CLI Stuff
         self.cli_object = None
-        self.cli_command_files = ["commands/ro_general_command_list", "commands/ro_interface_command_list"]
+        self.cli_command_files = ["commands/ro_general_command_list", "commands/ro_interface_command_list",
+                                  "commands/ro_sub_interface_command_list"]
         self.cli_text = "Router> "
         self.cli_window = None
         self.created_terminal = False
@@ -246,6 +247,7 @@ class RouterCanvasObject:
         except StopIteration:
             pass
 
+        globalVars.prompt_save = True
         self._x = event_x
         self._y = event_y
         return
@@ -277,11 +279,16 @@ class RouterCanvasObject:
         if event:
             self.on_start_hover(event)
 
-    def hide_menu(self):
+    def hide_menu(self, on_delete=False):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
         self.terminal_button.place_forget()
         self.disconnect_button.place_forget()
         self.delete_button.place_forget()
+
+        if on_delete:
+            self.terminal_button.destroy()
+            self.disconnect_button.destroy()
+            self.delete_button.destroy()
 
     def unbind_menu_temporarily(self):
         self.canvas.tag_unbind(self.hover_area, '<Enter>')
@@ -384,6 +391,7 @@ class RouterCanvasObject:
         scrollbar.grid(row=0, column=1, sticky='ns')
 
         self.hide_menu()
+        globalVars.prompt_save = True
 
     def menu_delete(self, event, is_quick_del, reset=False):
 
@@ -403,8 +411,10 @@ class RouterCanvasObject:
                 pass
 
             self.internal_clock.remove_router(self)
-            globalVars.ro_objects.remove(self)
-            globalVars.objects.remove(self)
+
+            if not is_quick_del:
+                globalVars.ro_objects.remove(self)
+                globalVars.objects.remove(self)
 
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
@@ -424,7 +434,8 @@ class RouterCanvasObject:
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
 
-        self.hide_menu()
+        self.hide_menu(on_delete=True)
+        globalVars.prompt_save = True
 
     def menu_router_cli(self, main_event):
         def hide_window():
@@ -494,12 +505,16 @@ class RouterCanvasObject:
         return self.line_connections[line_obj][2], self.line_connections[line_obj][3]
 
     def on_start_hover(self, event):
-        if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
-            self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
-            self.terminal_button.place(x=self._x + 57, y=self._y - 42)
-            self.disconnect_button.place(x=self._x + 57, y=self._y - 9)
-            self.delete_button.place(x=self._x + 57, y=self._y + 24)
-        return
+        try:
+            if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
+                self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
+                self.terminal_button.place(x=self._x + 57, y=self._y - 42)
+                self.disconnect_button.place(x=self._x + 57, y=self._y - 9)
+                self.delete_button.place(x=self._x + 57, y=self._y + 24)
+            return
+        except tk.TclError:
+            pass
+
 
     def on_end_hover(self, event):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')

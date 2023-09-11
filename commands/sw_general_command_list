@@ -1,5 +1,7 @@
 show
 show interfaces
+show interfaces trunk
+show vlans
 show mac-address-table
 interface
 interface Fa

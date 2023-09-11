@@ -10,11 +10,12 @@ import operations.backgroundProcesses as bp
 def create_menu(canvas_obj, master):
     menu_bar = Menu(tk)
     file_menu = Menu(menu_bar, tearoff=0)
-    file_menu.add_command(label="New")
+    file_menu.add_command(label="New", command=lambda c=canvas_obj, m=master: ls.new_file(c, m))
     file_menu.add_command(label="Open", command=lambda c=canvas_obj, m=master: ls.load_file(c, m))
-    file_menu.add_command(label="Save", command=ls.save_file)
+    file_menu.add_command(label="Save", command=lambda c=canvas_obj: ls.save_current_file(c))
+    file_menu.add_command(label="Save as New File", command=lambda c=canvas_obj: ls.save_as_new_file(c))
     file_menu.add_separator()
-    file_menu.add_command(label="Exit", command=tk.quit)
+    file_menu.add_command(label="Exit", command=lambda c=canvas_obj, m=master: ls.quit_program(c, m))
     menu_bar.add_cascade(label="File", menu=file_menu)
 
     preferences_menu = Menu(menu_bar, tearoff=0)
@@ -37,6 +38,7 @@ width = tk.winfo_screenwidth()
 height = tk.winfo_screenheight()
 tk.geometry("%dx%d" % (width - 10, height - 10))
 tk.state('zoomed')
+tk.winfo_toplevel().title('Network Simulator')
 
 # Screen dimensions
 globalVars.screen_width = tk.winfo_screenwidth()
@@ -122,12 +124,12 @@ router_button.grid(column=0, row=1, padx=10, pady=5)
 router_button.bind('<Enter>', lambda e, btn=router_button: button_handler.hf.button_enter(e, btn))
 router_button.bind('<Leave>', lambda e, btn=router_button: button_handler.hf.button_leave(e, btn))
 
-fw_button = Button(device_frame, image=fw1, width=60, height=60, relief=GROOVE,
+fw_button = Button(device_frame, image=fw1, width=60, height=60, relief=GROOVE, state='disabled',
                    command=lambda: button_handler.handle_button_click(tk, canvas, "firewall",
                                                                       globalVars.internal_clock))
 fw_button.grid(column=1, row=1, pady=5)
-fw_button.bind('<Enter>', lambda e, btn=fw_button: button_handler.hf.button_enter(e, btn))
-fw_button.bind('<Leave>', lambda e, btn=fw_button: button_handler.hf.button_leave(e, btn))
+# fw_button.bind('<Enter>', lambda e, btn=fw_button: button_handler.hf.button_enter(e, btn))
+# fw_button.bind('<Leave>', lambda e, btn=fw_button: button_handler.hf.button_leave(e, btn))
 
 eth_button = Button(cable_frame, image=eth_cable1, width=60, height=60, relief=GROOVE,
                     command=lambda: button_handler.handle_button_click(tk, canvas, "Eth_cable",
@@ -136,10 +138,10 @@ eth_button.grid(column=0, row=0)
 eth_button.bind('<Enter>', lambda e, btn=eth_button: button_handler.hf.button_enter(e, btn))
 eth_button.bind('<Leave>', lambda e, btn=eth_button: button_handler.hf.button_leave(e, btn))
 
-ser_button = Button(cable_frame, image=ser_cable1, width=60, height=60, relief=GROOVE)
+ser_button = Button(cable_frame, image=ser_cable1, width=60, height=60, relief=GROOVE, state='disabled')
 ser_button.grid(column=0, row=1, pady=5)
-ser_button.bind('<Enter>', lambda e, btn=ser_button: button_handler.hf.button_enter(e, btn))
-ser_button.bind('<Leave>', lambda e, btn=ser_button: button_handler.hf.button_leave(e, btn))
+# ser_button.bind('<Enter>', lambda e, btn=ser_button: button_handler.hf.button_enter(e, btn))
+# ser_button.bind('<Leave>', lambda e, btn=ser_button: button_handler.hf.button_leave(e, btn))
 
 # Toggle Button Stuff
 toggle_frame = LabelFrame(action_frame, text="Toggle", padx=5, pady=5)
@@ -214,12 +216,10 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
-#   - Are you sure you want to exit? / Prompt save if anything changes
-#           (global var, set true in any class if something happens)
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 #   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?
-#   8. Add About/Feedback menu
-#   9. Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
-#                                                             but not writing to mem.
+#   - Add About/Feedback menu
+#   - Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
+#                                                            but not writing to mem.
 #   10. Disconnect menu button
 #   11. Other TODOs

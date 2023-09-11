@@ -82,7 +82,7 @@ def handle_button_click(master, canvas, device_type, time_class):
             frame = tk.LabelFrame(globalVars.TL_pc, padx=5, pady=5)
             frame.place(x=10, y=10, height=300, width=425)
 
-            pc_button = tk.Button(frame, width=10, height=5, text="PC", relief=tk.GROOVE,
+            pc_button = tk.Button(frame, width=10, height=5, text="Create PC", relief=tk.GROOVE,
                                   command=lambda: create_pc(globalVars.TL_pc, canvas, "SecondGen", master, pc_icons, time_class))
             pc_button.place(x=165, y=80)
             pc_button.bind('<Enter>', lambda e, btn=pc_button: hf.button_enter(e, btn))
@@ -113,13 +113,13 @@ def handle_button_click(master, canvas, device_type, time_class):
             frame = tk.LabelFrame(globalVars.TL_sw, padx=5, pady=5)
             frame.place(x=10, y=10, height=300, width=525)
 
-            l2sw_btn = tk.Button(frame, width=10, height=5, text="TSA1000X", relief=tk.GROOVE,
+            l2sw_btn = tk.Button(frame, width=10, height=5, text="Create Switch\n(Layer 2)", relief=tk.GROOVE,
                                  command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "TSA1000X", master, time_class))
             l2sw_btn.place(x=100, y=30)
             l2sw_btn.bind('<Enter>', lambda e, btn=l2sw_btn: hf.button_enter(e, btn))
             l2sw_btn.bind('<Leave>', lambda e, btn=l2sw_btn: hf.button_leave(e, btn))
 
-            l3sw_btn = tk.Button(frame, width=10, height=5, text="RTSA1000X", relief=tk.GROOVE,
+            l3sw_btn = tk.Button(frame, width=10, height=5, text="Create Switch\n(Layer 3)", relief=tk.GROOVE,
                                  command=lambda: create_switch(globalVars.TL_sw, canvas, sw_icons, "RTSA1000X", master, time_class))
             l3sw_btn.place(x=340, y=30)
             # l3sw_btn.bind('<Enter>', lambda e, btn=l3sw_btn: button_enter(e, btn))
@@ -158,13 +158,13 @@ def handle_button_click(master, canvas, device_type, time_class):
             frame = tk.LabelFrame(globalVars.TL_ro, padx=5, pady=5)
             frame.place(x=10, y=10, height=300, width=425)
 
-            ro_btn = tk.Button(frame, width=10, height=5, text="R94X", relief=tk.GROOVE,
+            ro_btn = tk.Button(frame, width=10, height=5, text="Create Router", relief=tk.GROOVE,
                                command=lambda: create_router(globalVars.TL_ro, canvas, r_icons, master, time_class))
             ro_btn.place(x=165, y=80)
             ro_btn.bind('<Enter>', lambda e, btn=ro_btn: hf.button_enter(e, btn))
             ro_btn.bind('<Leave>', lambda e, btn=ro_btn: hf.button_leave(e, btn))
 
-            tk.Label(frame, text="Standard Router").place(x=158, y=180)
+            tk.Label(frame, text="8 Gigabit Ethernet Interface\n(1000 mbps)").place(x=125, y=180)
 
             globalVars.TL_ro.focus_set()
         else:
@@ -280,14 +280,13 @@ def delete_object(canvas, icon):
             for i in globalVars.objects:
                 if i.get_block_name() == canvas_object_tag:
                     try:
+                        globalVars.objects.remove(i)
                         globalVars.pc_objects.remove(i)
                         globalVars.sw_objects.remove(i)
                         globalVars.ro_objects.remove(i)
                         globalVars.fw_objects.remove(i)
                     except ValueError:
                         pass
-
-                    globalVars.objects.remove(i)
                     i.menu_delete(None, True)
                     return
 

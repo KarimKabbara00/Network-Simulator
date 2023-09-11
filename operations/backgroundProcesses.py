@@ -1,5 +1,6 @@
 import time
 import copy
+from operations import globalVars
 
 
 def count_time(internal_clock):
@@ -22,23 +23,34 @@ def arp_mac_aging(internal_clock):
 
         # PCs and routers have ARP tables
         for i in pcs + ros:
-            node = i.get_class_object()
-            arp_table = node.get_arp_table_actual()
+            try:
+                node = i.get_class_object()
+                arp_table = node.get_arp_table_actual()
 
-            for ip in copy.copy(arp_table):  # shallow copy
-                if arp_table[ip][1] == 'DYNAMIC' and internal_clock.get_time() > arp_table[ip][2] + ARP_AGING_TIME:
-                    arp_table.pop(ip)
-                    node.set_arp_table(arp_table)
+                for ip in copy.copy(arp_table):  # shallow copy
+                    if arp_table[ip][1] == 'DYNAMIC' and internal_clock.get_time() > arp_table[ip][2] + ARP_AGING_TIME:
+                        arp_table.pop(ip)
+                        node.set_arp_table(arp_table)
+                        globalVars.prompt_save = True
+
+            except AttributeError:
+                pass
 
         # Switches have MAC tables:
         for i in sws:
-            node = i.get_class_object()
-            mac_table = node.get_cam_table()
+            try:
+                node = i.get_class_object()
+                mac_table = node.get_cam_table()
 
-            for entry in copy.copy(mac_table):
-                if mac_table[entry][2] == 'DYNAMIC' and internal_clock.get_time() > mac_table[entry][
-                    4] + MAC_AGING_TIME:
-                    mac_table.pop(entry)
-                    node.set_cam_table(mac_table)
+                for entry in copy.copy(mac_table):
+                    if (mac_table[entry][2] == 'DYNAMIC' and internal_clock.get_time() > mac_table[entry][4] +
+                            MAC_AGING_TIME):
+                        mac_table.pop(entry)
+                        node.set_cam_table(mac_table)
+                        globalVars.prompt_save = True
+
+            except AttributeError:
+                pass
+
 
         time.sleep(5)

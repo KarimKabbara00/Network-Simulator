@@ -34,6 +34,11 @@ class DeviceCli(ABC):
         self.working_interface = None
         # Interface Configuration
 
+        # Sub-interface Configuration
+        self.working_sub_interface = None
+        self.sub_interface_configuration = False
+        # Sub-interface Configuration
+
         # Key bindings
         self.cli.bind('<BackSpace>', self.no_del_mov_illegal)
         self.cli.bind('<Left>', self.no_del_mov_illegal)
@@ -139,10 +144,12 @@ class DeviceCli(ABC):
         return "break"
 
     def get_possible_commands(self, line):
-        if not self.interface_configuration:
-            return hf.get_possible_commands(line, self.cli_command_files[0])
-        else:
+        if self.interface_configuration:
             return hf.get_possible_commands(line, self.cli_command_files[1])
+        elif self.sub_interface_configuration:
+            return hf.get_possible_commands(line, self.cli_command_files[2])
+        else:
+            return hf.get_possible_commands(line, self.cli_command_files[0])
 
     def on_closing(self):
         # Save CLI text
