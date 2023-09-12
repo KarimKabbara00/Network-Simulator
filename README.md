@@ -1,5 +1,18 @@
-# Network-Simulator
-- A simple network simulator to create network topologies, featuring devices like PCs, routers, and switches.
-- Each device features a command line/interface for configuring IP addresses, VLANs, access/trunk ports, default gateways, and more.
-- Current working functionality includes ICMP pings, ARP learning process, and dynamic MAC address learning.
-- Defined PDUs for OSI layers 2, 3 and 4, including encapsulation and de-encapsulation at each layer.
+<h1>&emsp;Network-Simulator</h1> <br>
+
+<ul>
+
+<li style="font-size:15px; margin:10px 0;"> A simple network simulator to create network topologies, featuring devices like PCs, routers, and switches. </li> <br>
+<li style="font-size:15px; margin:10px 0;"> Each device features a command line/interface for configuring IP addresses, VLANs, access/trunk ports, default gateways, and more. </li>
+<li style="font-size:15px; margin:10px 0;"> Defined PDUs for OSI layers 2, 3 and 4, including encapsulation and de-encapsulation at each layer. </li>
+<li style="font-size:15px; margin:10px 0;"> Current working functionality includes:</li>
+    <ul>
+        <li>ICMP Pings</li>
+        <li>ARP Learning Process</li>
+        <li>Dynamic MAC address Learning</li>
+        <li>Switchport configuration (Access/Trunk)</li>
+        <li>VLAN Configuration</li>
+        <li>Router on a Stick (ROAS)</li>
+    </ul>
+
+</ul>
