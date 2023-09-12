@@ -45,6 +45,9 @@ class PCCanvasObject(object):
                                                      x + 95, y + 75, x + 45, y + 75, x + 45, y + 50, x - 50, y + 50,
                                                      fill="")
         self.canvas.lower(self.hover_area)
+        for rect in self.canvas.find_withtag('Rectangle'):
+            self.canvas.tag_raise(self.hover_area, rect)
+
         self.menu_buttons = self.canvas.create_polygon(x + 40, y + 0, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50, y + 72, x + 50, y + 5,
                                                        outline="black", fill="navajo white", width=1,
@@ -260,6 +263,8 @@ class PCCanvasObject(object):
 
         self.config_window.wm_iconphoto(False, self.icons[1])
         self.config_window.wm_title("Configure PC")
+        self.config_window.resizable(False, False)
+
 
         configure_menu = ttk.Notebook(self.config_window)
         general_tab = ttk.Frame(configure_menu)
@@ -371,7 +376,9 @@ class PCCanvasObject(object):
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
 
-        self.hide_menu(on_delete=True)
+            self.hide_menu(on_delete=True)
+        else:
+            self.hide_menu()
         globalVars.prompt_save = True
 
     def save_general_parameters(self, hostname, mac_address, ipv4, netmask, ipv6, prefix, default_route, parent):
@@ -436,10 +443,10 @@ class PCCanvasObject(object):
 
             self.cli_window.wm_iconphoto(False, self.icons[2])
             self.cli_window.wm_title("Terminal")
-            self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
             self.cli_window.focus_set()
             self.cli_object = PCCli(self, self.class_object, self.cli_window, self.cli_text, "PC> ", 'white', 'white')
+            self.cli = self.cli_object.get_cli()
 
             self.created_terminal = True
         else:
@@ -468,11 +475,6 @@ class PCCanvasObject(object):
             self.cli_busy = False
             self.cli.unbind("<Key>")
             self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
-
-    def on_closing(self):
-        # Save CLI text
-        self.cli_text = self.cli.get("2.0", "end-1c")
-        self.config_window.destroy()
 
     def add_line_connection(self, tag1, tag2, ignored_1, ignored_2, canvas_cable_object):
         self.line_connections[canvas_cable_object] = [tag1, tag2]

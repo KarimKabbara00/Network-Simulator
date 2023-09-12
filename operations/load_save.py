@@ -52,9 +52,10 @@ def prompt_save(master, canvas, action):
 
             if action == 'new_file':
                 new_file(canvas, master)
-
             elif action == 'load_file':
                 load_file(canvas, master, ask=False)
+            elif action == 'quit':
+                master.quit()
 
         case None:
             return

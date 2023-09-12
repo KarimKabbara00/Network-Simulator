@@ -176,3 +176,6 @@ class DeviceCli(ABC):
     @abstractmethod
     def process_command(self, command):
         raise NotImplementedError("Implement in subclass")
+
+    def get_cli(self):
+        return self.cli

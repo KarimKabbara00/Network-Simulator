@@ -493,10 +493,9 @@ def open_folder_dialogue(preferences_menu, path):
     preferences_menu.focus_set()
 
 
-def show_info(selected_item, help_menu, master):
+def show_info(selected_item, help_menu):
 
     file = ''
-    print(selected_item)
     match selected_item:
         case 'Network Simulator':
             file = './markdown_files/Network_Simulator.html'

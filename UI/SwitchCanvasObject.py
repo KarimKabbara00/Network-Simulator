@@ -43,6 +43,9 @@ class SwitchCanvasObject:
                                                      x + 97, y + 65,
                                                      x + 45, y + 65, x + 45, y + 45, x - 50, y + 45, fill="")
         self.canvas.lower(self.hover_area)
+        for rect in self.canvas.find_withtag('Rectangle'):
+            self.canvas.tag_raise(self.hover_area, rect)
+
         self.menu_buttons = self.canvas.create_polygon(x + 40, y - 5, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50,
                                                        y + 72, x + 50, y + 5, outline="black", fill="navajo white",
@@ -329,6 +332,7 @@ class SwitchCanvasObject:
         self.disconnect_menu.wm_title("Disconnect Cable")
         self.disconnect_menu.wm_iconphoto(False, self.icons[2])
         self.disconnect_menu.focus_set()
+        self.disconnect_menu.resizable(False, False)
 
         frame = tk.LabelFrame(self.disconnect_menu, padx=5, pady=5)
         frame.place(x=10, y=10, height=245, width=653)
@@ -431,7 +435,9 @@ class SwitchCanvasObject:
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Disconnect_Tooltip")]
             [self.canvas.delete(i) for i in self.canvas.find_withtag("Delete_Tooltip")]
 
-        self.hide_menu(on_delete=True)
+            self.hide_menu(on_delete=True)
+        else:
+            self.hide_menu()
         globalVars.prompt_save = True
 
     def menu_switch_cli(self, event):
@@ -448,8 +454,8 @@ class SwitchCanvasObject:
 
             self.cli_window.wm_iconphoto(False, self.icons[1])
             self.cli_window.wm_title("Terminal")
-            self.cli_window.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
+
             self.cli_window.focus_set()
             self.cli_object = SwitchCli(self, self.class_object, self.cli_window, self.cli_text,
                                         "Switch> ", 'orange', 'orange', self.cli_command_files)
@@ -458,11 +464,6 @@ class SwitchCanvasObject:
             self.cli_window.deiconify()
 
         self.hide_menu()
-
-    def on_closing(self):
-        # Save CLI text
-        self.cli_text = self.cli_object.on_closing()
-        self.cli_window.destroy()
 
     def get_block_name(self):
         return self.block_name

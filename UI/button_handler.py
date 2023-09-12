@@ -74,6 +74,7 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_pc.title("Add End Host")
             globalVars.TL_pc.iconphoto(False, pc_icons[0])
             globalVars.TL_pc.protocol("WM_DELETE_WINDOW", lambda w=globalVars.TL_pc: hf.window_closed(w))
+            globalVars.TL_pc.resizable(False, False)
 
             x = (globalVars.screen_width / 2) - (450 / 2)
             y = (globalVars.screen_height / 2) - (325 / 2) - 100
@@ -105,6 +106,7 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_sw.title("Add Switch")
             globalVars.TL_sw.iconphoto(False, sw_icons[0])
             globalVars.TL_sw.protocol("WM_DELETE_WINDOW", lambda w=globalVars.TL_sw: hf.window_closed(w))
+            globalVars.TL_sw.resizable(False, False)
 
             x = (globalVars.screen_width / 2) - (550 / 2)
             y = (globalVars.screen_height / 2) - (325 / 2) - 100
@@ -150,6 +152,7 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_ro.title("Add Router")
             globalVars.TL_ro.iconphoto(False, r_icons[0])
             globalVars.TL_ro.protocol("WM_DELETE_WINDOW", lambda w=globalVars.TL_ro: hf.window_closed(w))
+            globalVars.TL_ro.resizable(False, False)
 
             x = (globalVars.screen_width / 2) - (450 / 2)
             y = (globalVars.screen_height / 2) - (325 / 2) - 100
@@ -189,6 +192,7 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.tl_lb.title("Add Label")
             globalVars.tl_lb.iconphoto(False, loadIcons.get_label_icon()[0])
             globalVars.tl_lb.protocol("WM_DELETE_WINDOW", lambda w=globalVars.tl_lb: hf.window_closed(w))
+            globalVars.tl_lb.resizable(False, False)
 
             x = (globalVars.screen_width / 2) - (250 / 2)
             y = (globalVars.screen_height / 2) - (150 / 2) - 100
@@ -454,13 +458,14 @@ def open_help_menu(master):
     def show_help_description(event):
         selected_item = help_items.focus()
         selected_item = help_items.item(selected_item)['text']
-        hf.show_info(selected_item, help_menu, master)
+        hf.show_info(selected_item, help_menu)
 
     icon = loadIcons.get_help_menu_icon()
 
     help_menu = tk.Toplevel(master)
     help_menu.title("Help Menu")
     help_menu.iconphoto(False, icon)
+    help_menu.resizable(False, False)
 
     x = (globalVars.screen_width / 2) - (800 / 2)
     y = (globalVars.screen_height / 2) - (610 / 2) - 50

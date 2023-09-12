@@ -25,8 +25,10 @@ def create_menu(canvas_obj, master):
 
     help_menu = Menu(menu_bar, tearoff=0)
     help_menu.add_command(label="Help", command=lambda m=master: button_handler.open_help_menu(m))
-    # help_menu.add_command(label="About/Email me/Suggestions/Even needed?")
     menu_bar.add_cascade(label="Help", menu=help_menu)
+
+    # Bind X button
+    master.protocol("WM_DELETE_WINDOW", lambda c=canvas_obj, m=master: ls.quit_program(c, m))
 
     return menu_bar
 
@@ -215,10 +217,6 @@ arp_mac_aging.start()
 # launch
 tk.mainloop()
 
-# TODO Order:
-#   - Hover area under rectangle
+# TODO:
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
-#   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?
-#   - Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
-#                                                            but not writing to mem.
-#   11. Other TODOs
+

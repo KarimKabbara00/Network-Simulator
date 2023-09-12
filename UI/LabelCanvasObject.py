@@ -24,9 +24,10 @@ class LabelCanvasObject:
 
             self.label_bg = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, fill="gray94",
                                                          tags=(self.block_name + "_bg", "Label"))
-            self.canvas.tag_lower(self.label_bg, self.label)
             for menu in self.canvas.find_withtag('Hover_Menus'):
                 self.canvas.tag_lower(self.label, menu)
+            self.canvas.tag_lower(self.label_bg, self.label)
+
 
             self.hidden_label = False
             # Label Stuff
