@@ -10,7 +10,6 @@ from tkinter import filedialog
 import numpy as np
 from UI import loadIcons
 from operations import globalVars
-from tkhtmlview import HTMLLabel
 import tkinterweb
 
 def button_enter(event, btn):
@@ -494,35 +493,41 @@ def open_folder_dialogue(preferences_menu, path):
     preferences_menu.focus_set()
 
 
-def show_info(selected_item, help_menu):
+def show_info(selected_item, help_menu, master):
 
     file = ''
+    print(selected_item)
     match selected_item:
         case 'Network Simulator':
             file = './markdown_files/Network_Simulator.html'
         case 'PCs':
             file = './markdown_files/PC.html'
-        case 'Switch':
-            file = './markdown_files/Switch.md'
-        case 'Router':
-            file = './markdown_files/Router.md'
-        case 'Firewall':
-            file = './markdown_files/Firewall.md'
+        case 'Switches':
+            file = './markdown_files/Switch.html'
+        case 'Routers':
+            file = './markdown_files/Router.html'
+        case 'Firewalls':
+            file = './markdown_files/Firewall.html'
         case 'Connecting Nodes':
-            file = './markdown_files/Connecting_Nodes.md'
-        case 'Creating Areas and Labels':
-            file = './markdown_files/Drawing.md'
+            file = './markdown_files/Connecting_Nodes.html'
+        case 'Areas':
+            file = './markdown_files/Areas.html'
+        case 'Labels':
+            file = './markdown_files/Labels.html'
         case 'Deleting Things':
-            file = './markdown_files/Deleting_Things.md'
+            file = './markdown_files/Deleting_Things.html'
+        case _:
+            info = None
 
     if file:
         with open(file, 'r') as f:
             info = f.read()
 
     info_box = tkinterweb.HtmlFrame(help_menu, messages_enabled=False)
-    info_box.load_html(info)
+    if info:
+        info_box.load_html(info)
+    else:
+        info_box.load_html('')
 
     info_box.grid(row=0, column=1, sticky="nsew", pady=6, padx=10)
     help_menu.columnconfigure(1, weight=1)
-
-

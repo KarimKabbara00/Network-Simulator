@@ -454,7 +454,7 @@ def open_help_menu(master):
     def show_help_description(event):
         selected_item = help_items.focus()
         selected_item = help_items.item(selected_item)['text']
-        hf.show_info(selected_item, help_menu)
+        hf.show_info(selected_item, help_menu, master)
 
     icon = loadIcons.get_help_menu_icon()
 
@@ -462,10 +462,8 @@ def open_help_menu(master):
     help_menu.title("Help Menu")
     help_menu.iconphoto(False, icon)
 
-    ws = master.winfo_screenwidth()
-    hs = master.winfo_screenheight()
-    x = (ws / 2) - (800 / 2)
-    y = (hs / 2) - (610 / 2) - 50
+    x = (globalVars.screen_width / 2) - (800 / 2)
+    y = (globalVars.screen_height / 2) - (610 / 2) - 50
     help_menu.geometry('%dx%d+%d+%d' % (800, 610, x, y))
 
     help_menu.focus_set()
@@ -481,7 +479,7 @@ def open_help_menu(master):
     help_items.insert("", 1, text="Network Simulator")
     nodes = help_items.insert("", 2, text="Nodes")
     help_items.insert("", 3, text="Connecting Nodes")
-    help_items.insert("", 4, text="Creating Areas and Labels")
+    draw = help_items.insert("", 4, text="Creating Areas and Labels")
     help_items.insert("", 5, text="Deleting Things")
     help_items.grid(row=0, column=0, padx=(5, 0), pady=(5, 0))
 
@@ -490,5 +488,8 @@ def open_help_menu(master):
     help_items.insert(nodes, 2, text="Switches")
     help_items.insert(nodes, 3, text="Routers")
     help_items.insert(nodes, 4, text="Firewalls")
+
+    help_items.insert(draw, 1, text="Areas")
+    help_items.insert(draw, 2, text="Labels")
 
     help_items.bind('<<TreeviewSelect>>', show_help_description)

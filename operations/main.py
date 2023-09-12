@@ -165,7 +165,7 @@ label_button.bind('<Leave>', lambda e, btn=label_button: button_handler.hf.butto
 canvas_drawing = LabelFrame(action_frame, text="Canvas", padx=5, pady=5)
 canvas_drawing.place(x=width - 475, y=(((height * 0.25) - 175) / 2), height=175, width=225)
 
-rect_button = Button(canvas_drawing, command=lambda: button_handler.create_rectangle(canvas), text="  Create Rectangle",
+rect_button = Button(canvas_drawing, command=lambda: button_handler.create_rectangle(canvas), text="     Create Area   ",
                      image=rectangle1, compound="left", width=175, height=50, relief=GROOVE)
 rect_button.grid(column=0, row=0, pady=5, padx=12)
 rect_button.bind('<Enter>', lambda e, btn=rect_button: button_handler.hf.button_enter(e, btn))
@@ -216,6 +216,7 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO Order:
+#   - Hover area under rectangle
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 #   - Preferences: Generate random MAC and IP for end hosts: provide an option for subnet mask?
 #   - Reboot devices (Introduce startup/running configs) --> See if packet tracer saves configuration after closing
