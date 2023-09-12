@@ -183,8 +183,8 @@ new_label_button.bind('<Leave>', lambda e, btn=new_label_button: button_handler.
 # Canvas Drawing Stuff
 
 # Delete Button Stuff
-canvas_delete = LabelFrame(action_frame, text="Quick Delete", padx=16, pady=3)
-canvas_delete.place(x=width - 567, y=((height * 0.25) / 2) + 11, height=75, width=75)
+canvas_delete = LabelFrame(action_frame, text="Quick Delete", padx=13, pady=3, font="TkDefaultFont 8")
+canvas_delete.place(x=width - 566, y=((height * 0.25) / 2) + 11, height=75, width=75)
 
 del_button = Button(canvas_delete, command=lambda: button_handler.delete_object(canvas, x1),
                     image=x1, width=40, height=40, relief=GROOVE)
@@ -195,7 +195,7 @@ del_button.bind('<Leave>', lambda e, btn=del_button: button_handler.hf.button_le
 
 # Load Preferences
 try:
-    with open('../preferences.json', 'r+') as F:
+    with open('./preferences.json', 'r+') as F:
         preferences = json.load(F)
         globalVars.file_directory = preferences[0]
         globalVars.ask_before_delete = preferences[1]
@@ -203,7 +203,7 @@ try:
         globalVars.show_link_lights = preferences[3]
         globalVars.persistent_cable_connect = preferences[4]
 except FileNotFoundError:
-    with open('../preferences.json', 'w+') as F:
+    with open('./preferences.json', 'w+') as F:
         F.write('["/", true, true, true, true]')
 
 # Threads
