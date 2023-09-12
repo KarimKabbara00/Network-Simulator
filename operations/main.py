@@ -214,7 +214,7 @@ arp_mac_aging = threading.Thread(target=bp.arp_mac_aging, args=(globalVars.inter
 arp_mac_aging.start()
 
 
-# launch
+# launch app
 tk.mainloop()
 
 # TODO:
