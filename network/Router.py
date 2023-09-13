@@ -17,6 +17,7 @@ class Router:
             self.interfaces = self.set_interfaces()
 
         self.routing_table = {}
+        self.rt_count = 0
         self.ARP_table = {}
 
         self.canvas_object = None
@@ -71,7 +72,8 @@ class Router:
                                        original_sender_ipv4, dot1q_header)
 
                     # If destined to someone on another subnet
-                    elif not hf.is_same_subnet(receiving_interface.get_ipv4_address(), receiving_interface.get_netmask(),
+                    elif not hf.is_same_subnet(receiving_interface.get_ipv4_address(),
+                                               receiving_interface.get_netmask(),
                                                original_dest_ipv4):
 
                         # If not in ARP table, but in routing table (forwarding interface not None), send an ARP request
@@ -136,16 +138,24 @@ class Router:
         forwarding_interface.send(frame)
         globalVars.prompt_save = True
 
-    def update_routing_table(self, interface, ip, netmask):
+    def update_routing_table(self, interface, ip, netmask, route_type='DEFAULT', next_hop_or_exit_interface=None):
 
         try:
-            del self.routing_table[interface]
+            self.routing_table[self.rt_count]
         except KeyError:
-            pass
+            self.routing_table[self.rt_count] = []
 
         prefix = "/" + hf.get_ipv4_prefix_length(netmask)
-        self.routing_table[interface] = [["Connected", hf.get_network_portion_ipv4(ip, netmask) + prefix, ip],
-                                         ["Local", ip + "/32", "----"]]
+
+        if route_type == 'DEFAULT':
+            self.routing_table[self.rt_count].append(["Connected", hf.get_network_portion_ipv4(ip, netmask) + prefix,
+                                                      interface.get_shortened_name()])
+            self.routing_table[self.rt_count].append(["Local", ip + "/32", interface.get_shortened_name()])
+
+        elif route_type == 'STATIC':
+            self.routing_table[self.rt_count].append(
+                ['Static', hf.get_network_portion_ipv4(ip, netmask) + prefix, next_hop_or_exit_interface])
+
         globalVars.prompt_save = True
 
     def decide_route(self, packet):
@@ -161,7 +171,7 @@ class Router:
         for i in self.routing_table:
             for j in self.routing_table[i]:
                 if j[1] == most_specific_route:
-                    forwarding_interface = i
+                    forwarding_interface = self.get_interface(j[2])
                     break
 
         return forwarding_interface
@@ -171,6 +181,12 @@ class Router:
 
     def get_interfaces(self):
         return self.interfaces
+
+    def get_interface(self, next_hop_or_exit_interface):
+        if '/' in next_hop_or_exit_interface:
+            return self.get_interface_by_name(next_hop_or_exit_interface)
+        else:
+            return self.get_interface_by_next_hop(next_hop_or_exit_interface)
 
     def get_host_name(self):
         return self.Host_Name
@@ -193,6 +209,11 @@ class Router:
                     return sub_intf
 
         return None
+
+    def get_interface_by_next_hop(self, next_hop):
+        for i in self.interfaces:
+            if i.get_ipv4_address() == next_hop:
+                return next_hop
 
     def get_canvas_object(self):
         return self.canvas_object
@@ -219,17 +240,23 @@ class Router:
 
     def save_routing_table(self):
         routing_table = {}
+        count = 0
         for interface in self.routing_table:  # For every interface
-            routing_table[interface.get_shortened_name()] = []  # Create a dict entry with the interface's name
             for route in self.routing_table[interface]:  # For every route associated with the interface
-                routing_table[interface.get_shortened_name()].append([route[0], route[1], route[2]])  # Append
+                try:
+                    routing_table[count]
+                except KeyError:
+                    routing_table[count] = []
+                routing_table[count].append([route[0], route[1], route[2]])  # Append
+                count += 1
         return routing_table
 
     def set_arp_table(self, arp):
         self.ARP_table = arp
 
-    def set_routing_table(self, rt_table):
+    def set_routing_table(self, rt_table, count):
         self.routing_table = rt_table
+        self.rt_count = count
 
     def set_interfaces_on_load(self, interface):
         self.interfaces.append(interface)

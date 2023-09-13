@@ -50,7 +50,7 @@ class PCCanvasObject(object):
 
         self.menu_buttons = self.canvas.create_polygon(x + 40, y + 0, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50, y + 72, x + 50, y + 5,
-                                                       outline="black", fill="navajo white", width=1,
+                                                       outline="black", fill="deep sky blue", width=1,
                                                        tags=('Hover_Menus'))
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
 

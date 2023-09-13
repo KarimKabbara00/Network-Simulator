@@ -218,5 +218,5 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO:
+#   - https://stackoverflow.com/questions/33051944/how-obfuscate-python-bytecode-with-pyinstaller-3-0
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
-

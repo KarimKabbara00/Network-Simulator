@@ -299,11 +299,10 @@ def load(canvas, master, file):
         # ----- Rebuild Routing Table ----- #
         routing_table = {}
         for intf in ro_class_info[3]:
-            interface_name = ro_obj.get_interface_by_name(intf)
-            routing_table[interface_name] = []
+            routing_table[intf] = []
             for route in ro_class_info[3][intf]:
-                routing_table[interface_name].append([route[0], route[1], route[2]])
-        ro_obj.set_routing_table(routing_table)
+                routing_table[intf].append([route[0], route[1], route[2]])
+        ro_obj.set_routing_table(routing_table, len(routing_table))
         # ----- Rebuild Routing Table ----- #
 
         # ----- Rebuild Canvas RO ----- #

@@ -7,7 +7,7 @@ import network.show_commands.RouterShowCommands as Show
 
 
 class RouterCli(DeviceCli):
-    def __init__(self, canvas_object, class_object,  popup, cli_text, prefix, text_color, cursor_color, files):
+    def __init__(self, canvas_object, class_object, popup, cli_text, prefix, text_color, cursor_color, files):
         super().__init__(canvas_object, class_object, popup, cli_text, prefix, text_color, cursor_color, files)
 
     def process_command(self, command):
@@ -65,6 +65,36 @@ class RouterCli(DeviceCli):
                 else:
                     self.cli.insert(tk.END, "\nInterface Not Found")
                     self.cli.insert(tk.END, "\n" + self.cli_text)
+
+            elif command.startswith("ip route "):
+
+                try:
+                    destination = command.split("ip route ")[1].split(" ")[0]
+                    netmask = command.split("ip route ")[1].split(" ")[1]
+                    next_hop_or_exit_interface = command.split("ip route ")[1].split(" ")[2]
+
+                    if not hf.check_ipv4(destination):
+                        self.cli.insert(tk.END, "\nInvalid Destination Address\n")
+                    elif not hf.check_subnet_mask(netmask):
+                        self.cli.insert(tk.END, "\nInvalid Subnet Mask\n")
+
+                    else:
+                        if '/' in next_hop_or_exit_interface:  # interface names will contain /
+                            interface = self.class_object.get_interface_by_name(next_hop_or_exit_interface)
+                            self.class_object.update_routing_table(interface, destination, netmask, route_type='STATIC',
+                                                                   next_hop_or_exit_interface=interface.get_shortened_name())
+                        else:
+                            if not hf.check_ipv4(next_hop_or_exit_interface):
+                                self.cli.insert(tk.END, "\nInvalid Next Hop Address\n")
+                            else:
+                                interface = self.class_object.get_interface_by_next_hop(next_hop_or_exit_interface)
+                                self.class_object.update_routing_table(interface, destination, netmask,
+                                                                       route_type='STATIC',
+                                                                       next_hop_or_exit_interface=next_hop_or_exit_interface)
+                except IndexError:
+                    self.cli.insert(tk.END, "\nIncomplete Command\n")
+
+                self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "> ")
 
             elif command == "clear":
                 self.cli.delete("1.0", tk.END)

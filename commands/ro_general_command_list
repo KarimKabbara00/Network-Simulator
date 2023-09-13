@@ -5,3 +5,5 @@ show arp
 interface
 interface G
 interface 10G
+ip
+ip route

@@ -21,19 +21,18 @@ def interfaces(interface_list):
 
 
 def routing_table(rt_table):
-    header = "{:<14} {:<10} {:<20} {:<15}".format('At Interface', 'Type', 'Destination Network',
-                                                  'Next Hop/Exit Interface')
-    header += '\n----------------------------------------------------------------------\n'
+    header = "{:<10} {:<20} {:<15}".format('Type', 'Destination Network', 'Next Hop/Exit Interface')
+    header += '\n--------------------------------------------------------\n'
 
     entries = ''
     for route in rt_table:
         flag = True
         for i in rt_table[route]:
             if flag:
-                entries += "{:<14} {:<10} {:<20} {:<15}".format(route.get_shortened_name(), i[0], i[1], i[2])
+                entries += "{:<10} {:<20} {:<15}".format(i[0], i[1], i[2])
                 flag = False
             else:
-                entries += "{:<14} {:<10} {:<20} {:<15}".format("", i[0], i[1], i[2])
+                entries += "{:<10} {:<20} {:<15}".format(i[0], i[1], i[2])
 
             entries += "\n"
     return header + entries

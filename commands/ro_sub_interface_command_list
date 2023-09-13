@@ -2,3 +2,7 @@ encapsulation
 encapsulation dot1q
 ip
 ip address
+interface
+interface G
+interface 10G
+exit
