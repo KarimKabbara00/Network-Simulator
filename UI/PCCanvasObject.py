@@ -43,7 +43,7 @@ class PCCanvasObject(object):
         # Hover menu Stuff
         self.hover_area = self.canvas.create_polygon(x - 50, y - 50, x + 45, y - 50, x + 45, y - 75, x + 95, y - 75,
                                                      x + 95, y + 75, x + 45, y + 75, x + 45, y + 50, x - 50, y + 50,
-                                                     fill="")
+                                                     fill="red")
         self.canvas.lower(self.hover_area)
         for rect in self.canvas.find_withtag('Rectangle'):
             self.canvas.tag_raise(self.hover_area, rect)
@@ -190,8 +190,8 @@ class PCCanvasObject(object):
         except StopIteration:
             pass
 
-        self._x = event_x
-        self._y = event_y
+        self._x = self.canvas.canvasx(event_x)
+        self._y = self.canvas.canvasy(event_y)
         globalVars.prompt_save = True
         return
 

@@ -41,7 +41,7 @@ height = tk.winfo_screenheight()
 tk.geometry("%dx%d" % (width - 10, height - 10))
 tk.state('zoomed')
 tk.winfo_toplevel().title('Network Simulator')
-tk.wm_iconphoto(False, loadIcons.get_app_icon()[0])
+tk.wm_iconphoto(False, loadIcons.get_app_icon())
 
 # Screen dimensions
 globalVars.screen_width = tk.winfo_screenwidth()
@@ -218,5 +218,6 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO:
+#   - ROAS canvasx() fill red
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 
