@@ -103,3 +103,10 @@ def get_help_menu_icon():
     help_menu_icon1 = ImageTk.PhotoImage(help_menu_icon)
 
     return [help_menu_icon1]
+
+
+def get_app_icon():
+    app_icon = Image.open('icons/net-sim.png')
+    app_icon = app_icon.resize((25, 25))
+    app_icon1 = ImageTk.PhotoImage(app_icon)
+    return [app_icon1]

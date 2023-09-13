@@ -14,3 +14,4 @@ Switch: <a href="https://www.flaticon.com/free-icons/network-switch" title="netw
 Terminal: <a href="https://www.flaticon.com/free-icons/terminal" title="terminal icons">Terminal icons created by Royyan Wijaya - Flaticon</a> <br>
 Tooltip: <a href="https://www.flaticon.com/free-icons/info" title="info icons">Info icons created by Anggara - Flaticon</a> <br>
 X: <a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by Pixel perfect - Flaticon</a> <br>
+Net-Sim: <a href="https://www.flaticon.com/free-icons/metaverse" title="metaverse icons">Metaverse icons created by tulpahn - Flaticon</a><br>

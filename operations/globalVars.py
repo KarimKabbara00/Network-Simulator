@@ -49,7 +49,7 @@ persistent_cable_connect = True
 # ------------ Preference Variables ------------ #
 
 # ---------- File Stuff ---------- #
-file_directory = "/"
+file_directory = "./save_files"
 working_file = ''
 # ---------- File Stuff ---------- #
 

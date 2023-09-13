@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 from UI import button_handler
 from operations import load_save as ls, globalVars
 import operations.backgroundProcesses as bp
-
+from UI import loadIcons
 
 def create_menu(canvas_obj, master):
     menu_bar = Menu(tk)
@@ -41,6 +41,7 @@ height = tk.winfo_screenheight()
 tk.geometry("%dx%d" % (width - 10, height - 10))
 tk.state('zoomed')
 tk.winfo_toplevel().title('Network Simulator')
+tk.wm_iconphoto(False, loadIcons.get_app_icon()[0])
 
 # Screen dimensions
 globalVars.screen_width = tk.winfo_screenwidth()
@@ -147,7 +148,6 @@ ser_button.grid(column=0, row=1, pady=5)
 
 # Toggle Button Stuff
 toggle_frame = LabelFrame(action_frame, text="Toggle", padx=5, pady=5)
-# toggle_frame.place(x=width - 230, y=825, height=175, width=200)
 toggle_frame.place(x=width - 230, y=(((height * 0.25) - 175) / 2), height=175, width=200)
 
 light_button = Button(toggle_frame, command=lambda c=canvas: button_handler.toggle_link_lights(c),
