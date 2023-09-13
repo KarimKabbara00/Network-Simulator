@@ -43,7 +43,7 @@ class PCCanvasObject(object):
         # Hover menu Stuff
         self.hover_area = self.canvas.create_polygon(x - 50, y - 50, x + 45, y - 50, x + 45, y - 75, x + 95, y - 75,
                                                      x + 95, y + 75, x + 45, y + 75, x + 45, y + 50, x - 50, y + 50,
-                                                     fill="red")
+                                                     fill="")
         self.canvas.lower(self.hover_area)
         for rect in self.canvas.find_withtag('Rectangle'):
             self.canvas.tag_raise(self.hover_area, rect)
@@ -63,6 +63,11 @@ class PCCanvasObject(object):
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+
+        self.config_button_window = self.canvas.create_window(x + 57, y - 65, window=self.config_button, state='hidden')
+        self.terminal_button_window = self.canvas.create_window(x + 57, y - 31, window=self.terminal_button, state='hidden')
+        self.disconnect_button_window = self.canvas.create_window(x + 57, y + 3, window=self.disconnect_button, state='hidden')
+        self.delete_button_window = self.canvas.create_window(x + 57, y + 37, window=self.delete_button, state='hidden')
         # Hover menu Stuff
 
         # Button Bindings
@@ -102,36 +107,34 @@ class PCCanvasObject(object):
         if not event:
             event_x = self.canvas.coords(self.block_name)[0] + 0.000005
             event_y = self.canvas.coords(self.block_name)[1] + 0.000005
+
         else:
-            event_x = event.x
-            event_y = event.y
+            event_x = self.canvas.canvasx(event.x)
+            event_y = self.canvas.canvasy(event.y)
 
             # Hide the menu
             self.unbind_menu_temporarily()
 
-        # Hide the menu
-        # self.unbind_menu_temporarily()
-
         # Move the object
-        self.canvas.coords(self.block_name, self.canvas.canvasx(event_x), self.canvas.canvasy(event_y))
+        self.canvas.coords(self.block_name, event_x, event_y)
 
         # Move the hover area and menu buttons
-        self.canvas.coords(self.hover_area, self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) - 50,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 50,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 75,
-                           self.canvas.canvasx(event_x) + 95, self.canvas.canvasy(event_y) - 75,
-                           self.canvas.canvasx(event_x) + 95, self.canvas.canvasy(event_y) + 75,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 75,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 50,
-                           self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) + 50)
+        self.canvas.coords(self.hover_area, event_x - 50, event_y - 50,
+                           event_x + 45, event_y - 50,
+                           event_x + 45, event_y - 75,
+                           event_x + 95, event_y - 75,
+                           event_x + 95, event_y + 75,
+                           event_x + 45, event_y + 75,
+                           event_x + 45, event_y + 50,
+                           event_x - 50, event_y + 50)
 
-        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event_x) + 40, self.canvas.canvasy(event_y),
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 5,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 72,
-                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) - 72,
-                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) + 72,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 72,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 5)
+        self.canvas.coords(self.menu_buttons, event_x + 40, event_y,
+                           event_x + 50, event_y - 5,
+                           event_x + 50, event_y - 72,
+                           event_x + 92, event_y - 72,
+                           event_x + 92, event_y + 72,
+                           event_x + 50, event_y + 72,
+                           event_x + 50, event_y + 5)
 
 
         try:
@@ -171,18 +174,18 @@ class PCCanvasObject(object):
                     self.canvas.itemconfig(self.l1, state='hidden')
                     self.canvas.itemconfig(self.l2, state='hidden')
 
-                if 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
-                        self.canvas.canvasy(event_y) - self.canvas.coords(line)[1]) <= 30:
-                    self.canvas.coords(line, self.canvas.canvasx(event_x), self.canvas.canvasy(event_y),
+                if 0 <= abs(event_x - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
+                        event_y - self.canvas.coords(line)[1]) <= 30:
+                    self.canvas.coords(line, event_x, event_y,
                                        self.canvas.coords(line)[2], self.canvas.coords(line)[3])
 
                     self.canvas.itemconfig(self.l1, fill=hf.get_color_from_op(self.interface_1.get_is_operational()))
                     self.canvas.itemconfig(self.l2, fill=hf.get_color_from_op(self.interface_2.get_is_operational()))
 
-                elif 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[2]) <= 30 and 0 <= abs(
-                        self.canvas.canvasy(event_y) - self.canvas.coords(line)[3]) <= 30:
+                elif 0 <= abs(event_x - self.canvas.coords(line)[2]) <= 30 and 0 <= abs(
+                        event_y - self.canvas.coords(line)[3]) <= 30:
                     self.canvas.coords(line, self.canvas.coords(line)[0], self.canvas.coords(line)[1],
-                                       self.canvas.canvasx(event_x), self.canvas.canvasy(event_y))
+                                       event_x, event_y)
 
                     self.canvas.itemconfig(self.l2, fill=hf.get_color_from_op(self.interface_1.get_is_operational()))
                     self.canvas.itemconfig(self.l1, fill=hf.get_color_from_op(self.interface_2.get_is_operational()))
@@ -190,8 +193,8 @@ class PCCanvasObject(object):
         except StopIteration:
             pass
 
-        self._x = self.canvas.canvasx(event_x)
-        self._y = self.canvas.canvasy(event_y)
+        self._x = event_x
+        self._y = event_y
         globalVars.prompt_save = True
         return
 
@@ -228,6 +231,12 @@ class PCCanvasObject(object):
 
     def hide_menu(self, on_delete=False):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+
+        self.canvas.itemconfigure(self.config_button_window, state='hidden')
+        self.canvas.itemconfigure(self.terminal_button_window, state='hidden')
+        self.canvas.itemconfigure(self.disconnect_button_window, state='hidden')
+        self.canvas.itemconfigure(self.delete_button_window, state='hidden')
+
         self.config_button.place_forget()
         self.terminal_button.place_forget()
         self.disconnect_button.place_forget()
@@ -264,7 +273,6 @@ class PCCanvasObject(object):
         self.config_window.wm_iconphoto(False, self.icons[1])
         self.config_window.wm_title("Configure PC")
         self.config_window.resizable(False, False)
-
 
         configure_menu = ttk.Notebook(self.config_window)
         general_tab = ttk.Frame(configure_menu)
@@ -379,6 +387,7 @@ class PCCanvasObject(object):
             self.hide_menu(on_delete=True)
         else:
             self.hide_menu()
+
         globalVars.prompt_save = True
 
     def save_general_parameters(self, hostname, mac_address, ipv4, netmask, ipv6, prefix, default_route, parent):
@@ -495,27 +504,56 @@ class PCCanvasObject(object):
         self.interface_2 = int2
 
     def on_start_hover(self, event):
+
+        for item in globalVars.objects:
+            item.hide_menu()
+
         try:
             if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
                 self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
-                self.config_button.place(x=self._x + 57, y=self._y - 65)
-                self.terminal_button.place(x=self._x + 57, y=self._y - 31)
-                self.disconnect_button.place(x=self._x + 57, y=self._y + 3)
-                self.delete_button.place(x=self._x + 57, y=self._y + 37)
-            return
+
+                self.canvas.itemconfigure(self.config_button_window, state='normal')
+                self.canvas.moveto(self.config_button_window, self._x + 57, self._y - 65)
+
+                self.canvas.itemconfigure(self.terminal_button_window, state='normal')
+                self.canvas.moveto(self.terminal_button_window, self._x + 57, self._y - 31)
+
+                self.canvas.itemconfigure(self.disconnect_button_window, state='normal')
+                self.canvas.moveto(self.disconnect_button_window, self._x + 57, self._y + 3)
+
+                self.canvas.itemconfigure(self.delete_button_window, state='normal')
+                self.canvas.moveto(self.delete_button_window, self._x + 57, self._y + 37)
+
+                self.config_button.place()
+                self.terminal_button.place()
+                self.disconnect_button.place()
+                self.delete_button.place()
+
+                return
         except tkinter.TclError:
             pass
 
+        self.master.update()  # Program hangs without calling update
+
+
     def on_end_hover(self, event):
-        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
         self.config_button.place_forget()
         self.terminal_button.place_forget()
         self.disconnect_button.place_forget()
         self.delete_button.place_forget()
 
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+        self.canvas.itemconfigure(self.config_button_window, state='hidden')
+        self.canvas.itemconfigure(self.terminal_button_window, state='hidden')
+        self.canvas.itemconfigure(self.disconnect_button_window, state='hidden')
+        self.canvas.itemconfigure(self.delete_button_window, state='hidden')
+
         # The hover area is disabled when a cable is disconnected because the mouse will land in the hove area and
         # make the menu reappear instantly. This line re-enables it.
         self.canvas.itemconfigure(self.hover_area, state="normal")
+
+        self.master.update()  # Program hangs without calling update
+
         return
 
     def get_lights(self, ignored):
@@ -578,22 +616,22 @@ class PCCanvasObject(object):
         self.canvas.coords(self.canvas_object, x_pos, y_pos)
 
         # Move the hover area and menu buttons
-        self.canvas.coords(self.hover_area, self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) - 50,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 50,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 75,
-                           self.canvas.canvasx(self._x) + 95, self.canvas.canvasy(self._y) - 75,
-                           self.canvas.canvasx(self._x) + 95, self.canvas.canvasy(self._y) + 75,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 75,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 50,
-                           self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) + 50)
+        self.canvas.coords(self.hover_area, self._x - 50, self._y - 50,
+                           self._x + 45, self._y - 50,
+                           self._x + 45, self._y - 75,
+                           self._x + 95, self._y - 75,
+                           self._x + 95, self._y + 75,
+                           self._x + 45, self._y + 75,
+                           self._x + 45, self._y + 50,
+                           self._x - 50, self._y + 50)
 
-        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(self._x) + 40, self.canvas.canvasy(self._y),
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 5,
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 72,
-                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) - 72,
-                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) + 72,
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 72,
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 5)
+        self.canvas.coords(self.menu_buttons, self._x + 40, self._y,
+                           self._x + 50, self._y - 5,
+                           self._x + 50, self._y - 72,
+                           self._x + 92, self._y - 72,
+                           self._x + 92, self._y + 72,
+                           self._x + 50, self._y + 72,
+                           self._x + 50, self._y + 5)
 
         self.button_release(None)
 

@@ -530,3 +530,102 @@ def show_info(selected_item, help_menu):
 
     info_box.grid(row=0, column=1, sticky="nsew", pady=6, padx=10)
     help_menu.columnconfigure(1, weight=1)
+
+
+def clean_up_ui(dont_close, canvas):
+
+    for eth in globalVars.cable_objects:
+        if not eth.get_cable_end_1():
+            eth.self_delete_on_duplicate()
+
+    for q in canvas.find_withtag('Quick_Delete'):
+        canvas.delete(q)
+
+    match dont_close:
+        case "PC":
+            try:
+                globalVars.TL_ro.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.TL_sw.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.tl_lb.destroy()
+            except AttributeError:
+                pass
+
+        case "SW":
+            try:
+                globalVars.TL_ro.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.TL_pc.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.tl_lb.destroy()
+            except AttributeError:
+                pass
+
+        case "RO":
+            try:
+                globalVars.TL_sw.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.TL_pc.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.tl_lb.destroy()
+            except AttributeError:
+                pass
+
+        case "LB":
+            try:
+                globalVars.TL_ro.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.TL_pc.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.TL_sw.destroy()
+            except AttributeError:
+                pass
+
+        case "ALL":
+            try:
+                globalVars.TL_ro.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.TL_pc.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.TL_sw.destroy()
+            except AttributeError:
+                pass
+
+            try:
+                globalVars.tl_lb.destroy()
+            except AttributeError:
+                pass
+
+        case _:
+            pass

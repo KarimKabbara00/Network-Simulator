@@ -88,6 +88,7 @@ class EthernetCableCanvasObject:
 
             # if cable clicked on nothing
             if len(overlap) < 2:
+                globalVars.cable_objects.remove(self)
                 self.canvas.delete(self.canvas_object)
                 self.cable_end_1 = None
                 self.cable_end_2 = None
@@ -304,6 +305,11 @@ class EthernetCableCanvasObject:
 
     def get_class_object_2(self):
         return self.class_object_2
+
+    def self_delete_on_duplicate(self):
+        # If eth icon or another button is clicked, this is called to remove duplicate cable
+        globalVars.cable_objects.remove(self)
+        self.canvas.delete(self.canvas_object)
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

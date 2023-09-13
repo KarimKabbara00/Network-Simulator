@@ -45,6 +45,9 @@ def create_router(popup, canvas, icons, master, time_class):
 
 
 def create_rectangle(canvas):
+
+    hf.clean_up_ui("ALL", canvas)
+
     color_code = colorchooser.askcolor(title="Choose Box Color")
     if color_code[0]:
         rectangle = RectangleCanvasObject(canvas, color_code, hf.get_next_rectangle(canvas))
@@ -63,6 +66,8 @@ def create_label(popup, canvas, text):
 
 def handle_button_click(master, canvas, device_type, time_class):
     if device_type == "endhost":
+
+        hf.clean_up_ui('PC', canvas)
 
         if not globalVars.open_TL_pc:
 
@@ -95,6 +100,8 @@ def handle_button_click(master, canvas, device_type, time_class):
             globalVars.TL_pc.focus_set()
 
     elif device_type == "switch":
+
+        hf.clean_up_ui("SW", canvas)
 
         if not globalVars.open_TL_sw:
 
@@ -142,6 +149,8 @@ def handle_button_click(master, canvas, device_type, time_class):
 
     elif device_type == "router":
 
+        hf.clean_up_ui("RO", canvas)
+
         if not globalVars.open_TL_ro:
 
             globalVars.open_TL_ro = True
@@ -177,12 +186,17 @@ def handle_button_click(master, canvas, device_type, time_class):
     #     pass
 
     elif device_type == "Eth_cable":
+
+        hf.clean_up_ui("ALL", canvas)
+
         eth_icon = loadIcons.get_ethernet_icon()[0]
         cable = EthernetCableCanvasObject(canvas, hf.get_next_cable(canvas), eth_icon,
                                           network.Ethernet_Cable.EthernetCable(), master)
         globalVars.cable_objects.append(cable)
 
     elif device_type == "Label":
+
+        hf.clean_up_ui("LB", canvas)
 
         if not globalVars.open_TL_lb:
 
@@ -248,6 +262,9 @@ def toggle_labels(canvas):
 
 
 def delete_object(canvas, icon):
+
+    hf.clean_up_ui("ALL", canvas)
+
     def motion(event):
         canvas.coords(canvas_object, canvas.canvasx(event.x), canvas.canvasy(event.y))
 
@@ -316,7 +333,7 @@ def delete_object(canvas, icon):
     x = canvas.canvasx(canvas.winfo_pointerx() - canvas.winfo_rootx())
     y = canvas.canvasy(canvas.winfo_pointery() - canvas.winfo_rooty())
 
-    canvas_object = canvas.create_image(x, y, image=icon)
+    canvas_object = canvas.create_image(x, y, image=icon, tag='Quick_Delete')
     canvas.photo = icon
 
     canvas.tag_bind(canvas_object, "<Motion>", motion)

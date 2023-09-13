@@ -59,6 +59,10 @@ class RouterCanvasObject:
         self.terminal_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
+
+        self.terminal_button_window = self.canvas.create_window(x + 57, y - 31, window=self.terminal_button, state='hidden')
+        self.disconnect_button_window = self.canvas.create_window(x + 57, y + 3, window=self.disconnect_button, state='hidden')
+        self.delete_button_window = self.canvas.create_window(x + 57, y + 37, window=self.delete_button, state='hidden')
         # Hover menu Stuff
 
         # Button Bindings
@@ -95,35 +99,35 @@ class RouterCanvasObject:
             event_x = self.canvas.coords(self.block_name)[0] + 0.000005
             event_y = self.canvas.coords(self.block_name)[1] + 0.000005
         else:
-            event_x = event.x
-            event_y = event.y
+            event_x = self.canvas.canvasx(event.x)
+            event_y = self.canvas.canvasy(event.y)
 
             # Hide the menu
             self.unbind_menu_temporarily()
 
         # Move the hover area and menu buttons
-        self.canvas.coords(self.hover_area, self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) - 35,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 35,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) - 55,
-                           self.canvas.canvasx(event_x) + 97, self.canvas.canvasy(event_y) - 55,
-                           self.canvas.canvasx(event_x) + 97, self.canvas.canvasy(event_y) + 65,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 65,
-                           self.canvas.canvasx(event_x) + 45, self.canvas.canvasy(event_y) + 45,
-                           self.canvas.canvasx(event_x) - 50, self.canvas.canvasy(event_y) + 45)
+        self.canvas.coords(self.hover_area, event_x - 50, event_y - 35,
+                           event_x + 45, event_y - 35,
+                           event_x + 45, event_y - 55,
+                           event_x + 97, event_y - 55,
+                           event_x + 97, event_y + 65,
+                           event_x + 45, event_y + 65,
+                           event_x + 45, event_y + 45,
+                           event_x - 50, event_y + 45)
 
-        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(event_x) + 40, self.canvas.canvasy(event_y),
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 5,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) - 50,
-                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) - 50,
-                           self.canvas.canvasx(event_x) + 92, self.canvas.canvasy(event_y) + 60,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 60,
-                           self.canvas.canvasx(event_x) + 50, self.canvas.canvasy(event_y) + 5)
+        self.canvas.coords(self.menu_buttons, event_x + 40, event_y,
+                           event_x + 50, event_y - 5,
+                           event_x + 50, event_y - 50,
+                           event_x + 92, event_y - 50,
+                           event_x + 92, event_y + 60,
+                           event_x + 50, event_y + 60,
+                           event_x + 50, event_y + 5)
 
         # Move the object
-        self.canvas.coords(self.block_name, self.canvas.canvasx(event_x), self.canvas.canvasy(event_y))
+        self.canvas.coords(self.block_name, event_x, event_y)
 
         # Move the Label
-        self.canvas.coords(self.block_name + "_tag", self.canvas.canvasx(event_x), self.canvas.canvasy(event_y) + 60)
+        self.canvas.coords(self.block_name + "_tag", event_x, event_y + 60)
 
         try:
             for i in self.line_connections:
@@ -221,11 +225,11 @@ class RouterCanvasObject:
                                 self.canvas.itemconfig(l1, state='hidden')
                                 self.canvas.itemconfig(l2, state='hidden')
 
-                        if 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
-                                self.canvas.canvasy(event_y) - self.canvas.coords(line)[1]) <= 30:
+                        if 0 <= abs(event_x - self.canvas.coords(line)[0]) <= 30 and 0 <= abs(
+                                event_y - self.canvas.coords(line)[1]) <= 30:
 
-                            self.canvas.coords(line, self.canvas.canvasx(event_x) + x_shift,
-                                               self.canvas.canvasy(event_y) + y_shift,
+                            self.canvas.coords(line, event_x + x_shift,
+                                               event_y + y_shift,
                                                self.canvas.coords(line)[2], self.canvas.coords(line)[3])
 
                             if event:
@@ -234,12 +238,12 @@ class RouterCanvasObject:
                                 self.canvas.itemconfig(l2, fill=hf.get_color_from_op(
                                     self.line_interface_relations[line[0]][1].get_is_operational()))
 
-                        elif 0 <= abs(self.canvas.canvasx(event_x) - self.canvas.coords(line)[2]) <= 30 and 0 <= abs(
-                                self.canvas.canvasy(event_y) - self.canvas.coords(line)[3]) <= 30:
+                        elif 0 <= abs(event_x - self.canvas.coords(line)[2]) <= 30 and 0 <= abs(
+                                event_y - self.canvas.coords(line)[3]) <= 30:
 
                             self.canvas.coords(line, self.canvas.coords(line)[0], self.canvas.coords(line)[1],
-                                               self.canvas.canvasx(event_x) + x_shift,
-                                               self.canvas.canvasy(event_y) + y_shift)
+                                               event_x + x_shift,
+                                               event_y + y_shift)
 
                             if event:
                                 self.canvas.itemconfig(l2, fill=hf.get_color_from_op(
@@ -250,9 +254,9 @@ class RouterCanvasObject:
         except StopIteration:
             pass
 
-        globalVars.prompt_save = True
         self._x = event_x
         self._y = event_y
+        globalVars.prompt_save = True
         return
 
     def button_release(self, event):
@@ -284,9 +288,10 @@ class RouterCanvasObject:
 
     def hide_menu(self, on_delete=False):
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
-        self.terminal_button.place_forget()
-        self.disconnect_button.place_forget()
-        self.delete_button.place_forget()
+
+        self.canvas.itemconfigure(self.terminal_button_window, state='hidden')
+        self.canvas.itemconfigure(self.disconnect_button_window, state='hidden')
+        self.canvas.itemconfigure(self.delete_button_window, state='hidden')
 
         if on_delete:
             self.terminal_button.destroy()
@@ -505,22 +510,44 @@ class RouterCanvasObject:
         return self.line_connections[line_obj][2], self.line_connections[line_obj][3]
 
     def on_start_hover(self, event):
+
+        for item in globalVars.objects:
+            item.hide_menu()
+
         try:
             if type(self.master.focus_displayof()) == tkinter.Tk:  # If the root has focus
                 self.canvas.itemconfigure(self.menu_buttons, state='normal')  # Add the frame to the canvas
-                self.terminal_button.place(x=self._x + 57, y=self._y - 42)
-                self.disconnect_button.place(x=self._x + 57, y=self._y - 9)
-                self.delete_button.place(x=self._x + 57, y=self._y + 24)
-            return
-        except tk.TclError:
+
+                self.canvas.itemconfigure(self.terminal_button_window, state='normal')
+                self.canvas.moveto(self.terminal_button_window, self._x + 57, self._y - 42)
+
+                self.canvas.itemconfigure(self.disconnect_button_window, state='normal')
+                self.canvas.moveto(self.disconnect_button_window, self._x + 57, self._y - 9)
+
+                self.canvas.itemconfigure(self.delete_button_window, state='normal')
+                self.canvas.moveto(self.delete_button_window, self._x + 57, self._y + 24)
+
+                self.terminal_button.place()
+                self.disconnect_button.place()
+                self.delete_button.place()
+
+                return
+        except tkinter.TclError:
             pass
 
+        self.master.update()  # Program hangs without calling update
 
     def on_end_hover(self, event):
-        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
         self.terminal_button.place_forget()
         self.disconnect_button.place_forget()
         self.delete_button.place_forget()
+
+        self.canvas.itemconfigure(self.menu_buttons, state='hidden')
+        self.canvas.itemconfigure(self.terminal_button_window, state='hidden')
+        self.canvas.itemconfigure(self.disconnect_button_window, state='hidden')
+        self.canvas.itemconfigure(self.delete_button_window, state='hidden')
+
+        self.master.update()  # Program hangs without calling update
         return
 
     def terminal_button_bg_enter(self, event):
@@ -567,22 +594,22 @@ class RouterCanvasObject:
         self.canvas.coords(self.canvas_object, x_pos, y_pos)
 
         # Move the hover area and menu buttons
-        self.canvas.coords(self.hover_area, self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) - 35,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 35,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) - 55,
-                           self.canvas.canvasx(self._x) + 97, self.canvas.canvasy(self._y) - 55,
-                           self.canvas.canvasx(self._x) + 97, self.canvas.canvasy(self._y) + 65,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 65,
-                           self.canvas.canvasx(self._x) + 45, self.canvas.canvasy(self._y) + 45,
-                           self.canvas.canvasx(self._x) - 50, self.canvas.canvasy(self._y) + 45)
+        self.canvas.coords(self.hover_area, self._x - 50, self._y - 35,
+                           self._x + 45, self._y - 35,
+                           self._x + 45, self._y - 55,
+                           self._x + 97, self._y - 55,
+                           self._x + 97, self._y + 65,
+                           self._x + 45, self._y + 65,
+                           self._x + 45, self._y + 45,
+                           self._x - 50, self._y + 45)
 
-        self.canvas.coords(self.menu_buttons, self.canvas.canvasx(self._x) + 40, self.canvas.canvasy(self._y),
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 5,
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) - 50,
-                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) - 50,
-                           self.canvas.canvasx(self._x) + 92, self.canvas.canvasy(self._y) + 60,
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 60,
-                           self.canvas.canvasx(self._x) + 50, self.canvas.canvasy(self._y) + 5)
+        self.canvas.coords(self.menu_buttons, self._x + 40, self._y,
+                           self._x + 50, self._y - 5,
+                           self._x + 50, self._y - 50,
+                           self._x + 92, self._y - 50,
+                           self._x + 92, self._y + 60,
+                           self._x + 50, self._y + 60,
+                           self._x + 50, self._y + 5)
 
         self.button_release(None)
 

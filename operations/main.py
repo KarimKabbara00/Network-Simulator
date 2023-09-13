@@ -218,6 +218,5 @@ arp_mac_aging.start()
 tk.mainloop()
 
 # TODO:
-#   - ROAS canvasx() fill red
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
 
