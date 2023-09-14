@@ -22,10 +22,9 @@ class RouterCanvasObject:
         self.internal_clock.add_router(self)
         self.class_object.set_internal_clock(self.internal_clock)
 
-
         # Cursor Location when object is created
-        x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()
-        y = self.canvas.winfo_pointery() - self.canvas.winfo_rooty()
+        x = self.canvas.canvasx(self.canvas.winfo_pointerx() - self.canvas.winfo_rootx())
+        y = self.canvas.canvasy(self.canvas.winfo_pointery() - self.canvas.winfo_rooty())
         # Cursor Location when object is created
 
         # Icon Stuff

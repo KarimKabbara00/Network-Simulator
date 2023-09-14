@@ -13,7 +13,7 @@ def count_time(internal_clock):
 
 def arp_mac_aging(internal_clock):
     ARP_AGING_TIME = 120  # Dynamic ARP Entry Aging = 2 minutes
-    MAC_AGING_TIME = 100  # Dynamic MAC Address Aging = 5 minutes
+    MAC_AGING_TIME = 300  # Dynamic MAC Address Aging = 5 minutes
 
     while True:
 

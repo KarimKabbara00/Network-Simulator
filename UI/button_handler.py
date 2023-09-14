@@ -221,11 +221,15 @@ def handle_button_click(master, canvas, device_type, time_class):
 
             label_btn = tk.Button(frame, width=10, height=1, text="Create Label", relief=tk.GROOVE,
                                   command=lambda: create_label(globalVars.tl_lb, canvas, text.get()))
+
+            text.bind('<Return>', lambda e: create_label(globalVars.tl_lb, canvas, text.get()))
+
             label_btn.place(x=67, y=75)
             label_btn.bind('<Enter>', lambda e, btn=label_btn: hf.button_enter(e, btn))
             label_btn.bind('<Leave>', lambda e, btn=label_btn: hf.button_leave(e, btn))
 
             globalVars.tl_lb.focus_set()
+            text.focus_set()
 
         else:
             globalVars.tl_lb.focus_set()

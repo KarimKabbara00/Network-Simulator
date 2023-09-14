@@ -1,4 +1,5 @@
 from operations import globalVars
+import UI.helper_functions as hf
 
 
 class LabelCanvasObject:
@@ -9,18 +10,20 @@ class LabelCanvasObject:
 
         if not load:
             # Label Stuff
-            x = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx()  # Current Cursor Location
-            y = self.canvas.winfo_pointery() - self.canvas.winfo_rooty()  # Current Cursor Location
+            x = self.canvas.canvasx(805)  # hard coded coordinates because it's easier that way
+            y = self.canvas.canvasy(368)
+
+            hf.move_mouse_to(805, 410)
+
             self.label = self.canvas.create_text(x, y, text=self.text, fill="black", font=("Arial", 10),
                                                  tags=(self.block_name, "Label"))
-
             self.x = self.canvas.bbox(self.label)[0] - 10
             self.y = self.canvas.bbox(self.label)[1] - 8
             self.a = self.canvas.bbox(self.label)[2] + 10
             self.b = self.canvas.bbox(self.label)[3] + 8
 
             globalVars.label_state = False  # If a new label is created, the label_state should be true.
-                                            # If it causes a mismatch, a reset will occur, showing all. 
+            # If it causes a mismatch, a reset will occur, showing all. ^
 
             self.label_bg = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, fill="gray94",
                                                          tags=(self.block_name + "_bg", "Label"))
@@ -28,11 +31,10 @@ class LabelCanvasObject:
                 self.canvas.tag_lower(self.label, menu)
             self.canvas.tag_lower(self.label_bg, self.label)
 
-
             self.hidden_label = False
             # Label Stuff
 
-        # Button Bindings
+            # Button Bindings
             self.canvas.tag_bind(self.block_name, '<Motion>', self.motion)  # When creating the object
             self.canvas.tag_bind(self.block_name, '<Button-1>', self.motion)  # When creating the object
 

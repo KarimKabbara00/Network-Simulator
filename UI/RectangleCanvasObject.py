@@ -58,6 +58,11 @@ class RectangleCanvasObject:
         self.canvas.tag_lower(self.block_name)
         self.canvas.config(cursor="")
 
+        self.x = self.canvas.canvasx(self.x)
+        self.y = self.canvas.canvasy(self.y)
+        self.a = self.canvas.canvasx(self.a)
+        self.b = self.canvas.canvasy(self.b)
+
         globalVars.prompt_save = True
         return
 
@@ -80,13 +85,9 @@ class RectangleCanvasObject:
         self.y = y
         self.a = a
         self.b = b
-        self.rectangle_object = self.canvas.create_rectangle(self.canvas.canvasx(self.x),
-                                                             self.canvas.canvasy(self.y),
-                                                             self.canvas.canvasx(self.a),
-                                                             self.canvas.canvasy(self.b),
-                                                             outline="black", fill=self.color_code, width=1.2,
+        self.rectangle_object = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, outline="black",
+                                                             fill=self.color_code, width=1.2,
                                                              tags=(self.block_name, "Rectangle"))
         self.canvas.tag_lower(self.block_name)
         self.is_set = True
     # -------------------------- Save & Load Methods -------------------------- #
-

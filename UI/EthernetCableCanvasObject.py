@@ -150,9 +150,6 @@ class EthernetCableCanvasObject:
             if self.cable_end_1.get_host() != interface.get_host():
                 self.cable_end_2 = interface
 
-                print(self.cable_end_1.get_host())
-                print(self.cable_end_2.get_host())
-
             else:
                 messagebox.showerror('Invalid Connection', 'Cannot connect cable to same device', parent=self.canvas)
 

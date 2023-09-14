@@ -48,7 +48,7 @@ class Router:
         original_dest_ipv4 = packet.get_dest_ip()
         original_dest_mac = hf.bin_to_hex(frame.get_dst_mac())
 
-        # Second and Third values are True and next hop IP if routing table specifies next hop, otherwise, False, None
+        # Second and Third values are False and next hop IP if routing table specifies next hop, otherwise, True, None
         forwarding_interface, destination_directly_attached, next_hop_ip = self.decide_route(packet)
 
         # Adjust for sub-interfaces, if necessary
@@ -58,12 +58,12 @@ class Router:
 
         # Only deal with the packet if the receiving interface is operational
         if receiving_interface.get_is_operational():
+            # TODO could 'and forwarding_interface' this cause issues
 
-            # Check if the dest is in the router's ARP table, and the packet is not an ARP packet
+            # # Check if the dest is in the router's ARP table, and the packet is not an ARP packet
             if (original_dest_ipv4 not in self.ARP_table and packet_identifier != 'ARP' and
                     original_dest_ipv4 != forwarding_interface.get_ipv4_address()):
                 self.arp_request(original_dest_ipv4, forwarding_interface, dot1q_header)
-                print('sent_arp_1', original_dest_ipv4)
 
             # If an ARP packet, use receiving interface to reply so that ARP isn't routed.
             if packet_identifier == "ARP":
@@ -85,12 +85,13 @@ class Router:
                                 hf.is_same_subnet(forwarding_interface.get_ipv4_address(),
                                                   forwarding_interface.get_netmask(), original_dest_ipv4)):
                             self.arp_request(original_dest_ipv4, forwarding_interface, dot1q_header)
-                            print('sent_arp_2')
 
                         # If in ARP table, send a reply to the original destination
                         if original_dest_ipv4 in self.ARP_table:
                             # Goes to original dest
-                            self.arp_reply(forwarding_interface, original_dest_ipv4, original_sender_mac,
+                            # self.arp_reply(forwarding_interface, original_dest_ipv4, original_sender_mac,
+                            #                original_sender_ipv4, dot1q_header)
+                            self.arp_reply(receiving_interface, original_dest_ipv4, original_sender_mac,
                                            original_sender_ipv4, dot1q_header)
 
                     self.add_arp_entry(original_sender_ipv4, original_sender_mac, "DYNAMIC")
@@ -104,11 +105,6 @@ class Router:
                 segment_identifier = segment.get_segment_identifier()
 
                 if segment_identifier == "ICMP ECHO REQUEST":
-
-                    # if self.MAC_Address == 'AF:0E:CD:2B:39:52':
-                    print('received a packet destined to', packet.get_dest_ip(), forwarding_interface)
-
-
 
                     if original_dest_ipv4 == forwarding_interface.get_ipv4_address():  # Is this ICMP destined to me?
                         self.icmp_echo_reply(original_sender_ipv4, forwarding_interface, dot1q_header)
@@ -132,6 +128,7 @@ class Router:
                     else:
                         # If routing an ICMP reply, ICMP already reached its dest, therefore ARP entry exists already
                         if destination_directly_attached:
+                            # self.arp_request(original_dest_ipv4, forwarding_interface)
                             frame = nf.create_ethernet_frame(self.ARP_table[original_dest_ipv4][0], self.MAC_Address,
                                                              dot1q_header, packet, None)
                             forwarding_interface.send(frame)
@@ -145,7 +142,6 @@ class Router:
     def icmp_echo_reply(self, original_sender_ipv4, interface, dot1q=None):
         if original_sender_ipv4 not in self.ARP_table:
             self.arp_request(original_sender_ipv4, interface, dot1q)
-            print('sent_arp_4')
 
         frame = nf.icmp_echo_reply(self.MAC_Address, interface.get_ipv4_address(), original_sender_ipv4,
                                    interface.get_netmask(), self.ARP_table, self, dot1q)
