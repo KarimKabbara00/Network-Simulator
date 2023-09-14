@@ -271,6 +271,37 @@ def is_same_subnet(source_ip, subnet_mask, destination_ip):
     return a == b
 
 
+def same_subnet_interface(interfaces, subnet_mask, destination_ip):
+    same_subnet_interfaces = []
+    for intf in interfaces:
+        if intf.get_ipv4_address():
+            if is_same_subnet(intf.get_ipv4_address(), get_subnet_from_prefix_length(subnet_mask), destination_ip):
+                same_subnet_interfaces.append(intf)
+
+    try:
+        return same_subnet_interfaces[0]
+    except KeyError:
+        return None
+
+
+def get_subnet_from_prefix_length(prefix):
+    subnet = ''
+    x = int(prefix) // 8
+    z = int(prefix) % 8
+    c = 0
+
+    for i in range(0, z):
+        c += (128 // 2 ** i)
+
+    for i in range(x):
+        subnet += '255.'
+    subnet += str(c) + '.'
+
+    for i in range(4 - subnet.count('.')):
+        subnet += '0.'
+
+    return subnet[:-1]
+
 def get_ipv4_prefix_length(subnet_mask):
     prefix = 0
 

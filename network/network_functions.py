@@ -6,6 +6,8 @@ from network.Arp import Arp
 from network.Dot1q import Dot1q
 import time
 
+from operations import globalVars
+
 
 def create_icmp_echo_segment():
     # Type 8 and code 0 indicate Echo Request
@@ -37,6 +39,11 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
     canvas.toggle_cli_busy()
 
     for _ in range(count):
+
+        # for node in globalVars.internal_clock.get_pcs() + globalVars.internal_clock.get_routers():
+        #     if source_mac == node.get_class_object().get_mac_address():
+        #         host = node.get_class_object()
+
         host.set_start_time(time.time())
 
         # if the host is in the same network, get (or learn) the mac address of the destination host
@@ -53,7 +60,6 @@ def icmp_echo_request(source_ip, source_mac, source_netmask, default_gateway, de
             else:
                 if dest_ip not in host.get_arp_table():
                     host.arp_request(dest_ip)
-
                 try:
                     dst_mac = host.get_arp_table()[dest_ip][0]
                 except KeyError:

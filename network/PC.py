@@ -70,6 +70,8 @@ class PC:
         packet = frame.get_packet()
         packet_identifier = packet.get_identifier()
 
+        # print('packet', packet_identifier, 'received from', packet.get_src_ip())
+
         if packet_identifier == "ARP":
             if packet.get_dest_ip() == self.ipv4_address:  # if ARP request is destined to this host
                 if packet.get_operation_id() == 0x001:
@@ -91,6 +93,7 @@ class PC:
 
             if segment_identifier == "ICMP ECHO REQUEST":
                 self.icmp_echo_reply(original_sender_ipv4=original_sender_ipv4)
+                print(self.ipv4_address, 'attempting ICMP REPLY')
 
             elif segment_identifier == "ICMP ECHO REPLY":
                 time_taken = time.time() - self.start_time

@@ -10,8 +10,12 @@ def interfaces(interface_list):
         if interface.get_is_operational():
             int_op = "True"
 
-        entries += "{:<16} {:<15} {:<15} {:<15}".format(interface.get_shortened_name(),
-                                                        interface.get_ipv4_address(), int_co, int_op) + '\n'
+        ipv4 = interface.get_ipv4_address()
+        if not ipv4:
+            ipv4 = "   ----"
+
+        entries += "{:<16} {:<15} {:<15} {:<15}".format(interface.get_shortened_name(), ipv4, int_co,
+                                                        int_op) + '\n'
 
         for sub_intf in interface.get_sub_interfaces():
             entries += '--> ' + ("{:<12} {:<15}".format(sub_intf.get_shortened_name(),

@@ -7,6 +7,11 @@ from operations import load_save as ls, globalVars
 import operations.backgroundProcesses as bp
 from UI import loadIcons
 
+
+def on_mousewheel(event, canvas):
+    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+
 def create_menu(canvas_obj, master):
     menu_bar = Menu(tk)
     file_menu = Menu(menu_bar, tearoff=0)
@@ -58,6 +63,8 @@ scroll_y.pack(expand=NO, fill=BOTH, side=RIGHT)
 
 canvas.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
 canvas.configure(scrollregion=canvas.bbox("all"))
+
+tk.bind_all("<MouseWheel>", lambda e, c=canvas: on_mousewheel(e, c))
 
 # create top menu
 menubar = create_menu(canvas, tk)

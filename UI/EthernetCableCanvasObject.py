@@ -250,7 +250,14 @@ class EthernetCableCanvasObject:
             self.cable_end_2.set_is_connected(True)
 
             # Routers are down by default
-            if self.class_object_1.get_model() == "R94X":
+
+            if self.class_object_1.get_model() == self.class_object_2.get_model():
+                self.canvas.itemconfig(self.canvas_line, dash=(10, 1))
+
+            if self.class_object_1.get_model() == "R94X" and self.class_object_2.get_model() == "R94X":
+                self.cable_end_1.set_operational(False)
+                self.cable_end_2.set_operational(False)
+            elif self.class_object_1.get_model() == "R94X":
                 self.cable_end_1.set_operational(False)
                 self.cable_end_2.set_operational(True)
             elif self.class_object_2.get_model() == "R94X":
@@ -418,8 +425,14 @@ class EthernetCableCanvasObject:
         self.cable_end_1.set_is_connected(True)
         self.cable_end_2.set_is_connected(True)
 
+        if self.class_object_1.get_model() == self.class_object_2.get_model():
+            self.canvas.itemconfig(self.canvas_line, dash=(10, 1))
+
         # Routers are down by default
-        if self.class_object_1.get_model() == "R94X":
+        if self.class_object_1.get_model() == "R94X" and self.class_object_2.get_model() == "R94X":
+            self.cable_end_1.set_operational(False)
+            self.cable_end_2.set_operational(False)
+        elif self.class_object_1.get_model() == "R94X":
             self.cable_end_1.set_operational(False)
             self.cable_end_2.set_operational(True)
         elif self.class_object_2.get_model() == "R94X":

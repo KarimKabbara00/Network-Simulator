@@ -106,7 +106,8 @@ class PhysicalInterface:
     def get_ipv4_address(self):
         if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
             if not self.ip_address:
-                return "   ----"
+                # return "   ----"
+                return None
             return self.ip_address
         else:
             raise Exception("What you doin bruh")
