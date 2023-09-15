@@ -20,6 +20,8 @@ class Router:
         self.rt_count = 0
         self.ARP_table = {}
 
+        self.dhcp_pools = []
+
         self.canvas_object = None
         self.internal_clock = None
 
@@ -212,6 +214,13 @@ class Router:
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
         self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.get_time()]
+
+    def add_dhcp_pool(self, pool):
+        for i in self.dhcp_pools:
+            if pool.get_name() == i.get_name():
+                return
+
+        self.dhcp_pools.append(pool)
 
     def get_interfaces(self):
         return self.interfaces

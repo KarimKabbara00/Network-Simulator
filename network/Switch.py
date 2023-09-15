@@ -113,18 +113,19 @@ class Switch:
 
     def unicast(self, frame, forwarding_interface, vlan_id):
 
-        # Unicast
-        if forwarding_interface.get_switchport_type() == 'Access':
-            if forwarding_interface and forwarding_interface.get_is_operational():
-                forwarding_interface.send(frame)
+        if forwarding_interface.get_is_operational():
+            # Unicast
+            if forwarding_interface.get_switchport_type() == 'Access':
+                if forwarding_interface and forwarding_interface.get_is_operational():
+                    forwarding_interface.send(frame)
 
-            # Unicast but interface is down
-            elif forwarding_interface and not forwarding_interface.get_is_operational():
-                pass
+                # Unicast but interface is down
+                elif forwarding_interface and not forwarding_interface.get_is_operational():
+                    pass
 
-        elif forwarding_interface.get_switchport_type() == 'Trunk':
-            if any(v_id == vlan_id for v_id in forwarding_interface.get_trunk_vlan_ids()):
-                forwarding_interface.send(frame)
+            elif forwarding_interface.get_switchport_type() == 'Trunk':
+                if any(v_id == vlan_id for v_id in forwarding_interface.get_trunk_vlan_ids()):
+                    forwarding_interface.send(frame)
 
     def broadcast(self, frame, receiving_interface, broadcast_domain):
 
@@ -143,7 +144,8 @@ class Switch:
         forwarding_interfaces = list(set(forwarding_interfaces))
 
         for i in forwarding_interfaces:
-            i.send(frame)
+            if i.get_is_operational():
+                i.send(frame)
 
     def disable_interface(self, interface):
         for i in self.interfaces:

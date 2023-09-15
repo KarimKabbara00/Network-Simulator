@@ -40,6 +40,11 @@ class DeviceCli(ABC):
         self.working_sub_interface = None
         # Sub-interface Configuration
 
+        # DHCP Configuration
+        self.dhcp_configuration = False
+        self.working_dhcp_pool = None
+        # DHCP Configuration
+
         # VLAN configuration
         self.vlan_configuration = False
         self.working_vlan = None
@@ -166,6 +171,8 @@ class DeviceCli(ABC):
                 return hf.get_possible_commands(line, self.cli_command_files[1])
             elif self.sub_interface_configuration:
                 return hf.get_possible_commands(line, self.cli_command_files[2])
+            elif self.dhcp_configuration:
+                return hf.get_possible_commands(line, self.cli_command_files[3])
             else:
                 return hf.get_possible_commands(line, self.cli_command_files[0])
 

@@ -2,6 +2,7 @@ import tkinter as tk
 import UI.helper_functions as hf
 from UI.DeviceCLI import DeviceCli
 from network.SubInterface import SubInterface
+from network.Protocols.DHCP import DHCP
 from operations import globalVars
 import network.show_commands.RouterShowCommands as Show
 
@@ -19,7 +20,7 @@ class RouterCli(DeviceCli):
             self.cli.insert(tk.END, "\n" + self.cli_text)
             valid_command = False
 
-        if not self.interface_configuration and not self.sub_interface_configuration:
+        if not self.interface_configuration and not self.sub_interface_configuration and not self.dhcp_configuration:
 
             if command == "show interfaces":
                 interfaces = Show.interfaces(self.class_object.get_interfaces())
@@ -95,6 +96,33 @@ class RouterCli(DeviceCli):
                     self.cli.insert(tk.END, "\nIncomplete Command\n")
 
                 self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "> ")
+
+            elif command.startswith('ip dhcp'):
+                next_command = command.split('ip dhcp ')[1]
+
+                if next_command.startswith('pool '):
+                    try:
+                        pool_name = next_command.split('pool ')[1]
+                        dhcp_pool = DHCP(self.class_object, pool_name)
+                        self.class_object.add_dhcp_pool(dhcp_pool)
+                        self.dhcp_configuration = True
+                        self.working_dhcp_pool = dhcp_pool
+
+                        self.cli_text = self.class_object.get_host_name() + "(dhcp-config)> "
+                        self.cli.insert(tk.END, "\n" + self.cli_text)
+
+                    except IndexError:
+                        self.cli.insert(tk.END, "\nIncomplete Command\n")
+
+                elif next_command.startswith('excluded address'):
+                    excluded_ips = next_command.split('excluded address ')[1]
+                    try:
+                        ip_start, ip_end = excluded_ips.split(' ')[0], excluded_ips.split(' ')[1]
+                    except IndexError:
+                        ip_start = excluded_ips
+
+                    # self.class_object.
+
 
             elif command == "clear":
                 self.cli.delete("1.0", tk.END)
@@ -243,6 +271,23 @@ class RouterCli(DeviceCli):
             else:
                 self.cli.insert(tk.END, "\nUnknown Command\n" + "\n" + self.cli_text)
                 valid_command = False
+
+        elif self.dhcp_configuration:
+            if command.startswith('network'):
+
+                # TODO: check for valid ip and subnet hf.
+
+                try:
+                    ip = command.split('network ')[1].split(' ')[0]
+                    subnet = command.split('network ')[1].split(' ')[1]
+                    self.working_dhcp_pool.set_pool(ip, subnet, is_prefix=False)
+                except IndexError:
+                    try:
+                        ip = command.split('network ')[1].split(' ')[0].split('/')[0]
+                        prefix = command.split('network ')[1].split(' ')[0].split('/')[1]
+                        self.working_dhcp_pool.set_pool(ip, prefix, is_prefix=True)
+                    except IndexError:
+                        self.cli.insert(tk.END, "\nIncomplete Command\n")
 
         if valid_command:
             if self.command_history:

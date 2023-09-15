@@ -75,7 +75,7 @@ class RouterCanvasObject:
         # CLI Stuff
         self.cli_object = None
         self.cli_command_files = ["commands/ro_general_command_list", "commands/ro_interface_command_list",
-                                  "commands/ro_sub_interface_command_list"]
+                                  "commands/ro_sub_interface_command_list", "commands/ro_dhcp_command_list"]
         self.cli_text = "Router> "
         self.cli_window = None
         self.created_terminal = False
