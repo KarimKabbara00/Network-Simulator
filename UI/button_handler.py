@@ -299,7 +299,10 @@ def delete_object(canvas, icon):
                 canvas_object_tag = canvas.itemcget(i, "tags").split(" ")[0]
 
             elif i in canvas.find_withtag("Label"):
-                canvas_object_tag = canvas.itemcget(i, "tags").split(" ")[0]
+                canvas_object_tag = canvas.itemcget(i, "tags").split(" ")[-1]
+
+            elif i in canvas.find_withtag("Label_BG"):
+                canvas_object_tag = canvas.itemcget(i, "tags").split(" ")[-1]
 
         # On click, check what was clicked, and delete cable
         if str(event.type) == "4":
@@ -333,7 +336,7 @@ def delete_object(canvas, icon):
                     return
 
             for i in globalVars.canvas_labels:
-                if i.get_block_name() == canvas_object_tag:
+                if i.get_delete_tag() == canvas_object_tag:
                     globalVars.canvas_labels.remove(i)
                     i.delete()
                     return

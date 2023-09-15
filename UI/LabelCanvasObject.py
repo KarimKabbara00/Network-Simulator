@@ -7,6 +7,7 @@ class LabelCanvasObject:
         self.canvas = canvas
         self.block_name = label_id
         self.text = text
+        self.delete_tag = 'Label_Delete'
 
         if not load:
             # Label Stuff
@@ -16,7 +17,7 @@ class LabelCanvasObject:
             hf.move_mouse_to(805, 410)
 
             self.label = self.canvas.create_text(x, y, text=self.text, fill="black", font=("Arial", 9),
-                                                 tags=(self.block_name, "Label"))
+                                                 tags=(self.block_name, "Label", self.delete_tag))
             self.x = self.canvas.bbox(self.label)[0] - 7
             self.y = self.canvas.bbox(self.label)[1] - 4
             self.a = self.canvas.bbox(self.label)[2] + 7
@@ -26,7 +27,7 @@ class LabelCanvasObject:
             # If it causes a mismatch, a reset will occur, showing all. ^
 
             self.label_bg = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, fill="gray94",
-                                                         tags=(self.block_name + "_bg", "Label_BG"))
+                                                         tags=(self.block_name + "_bg", "Label_BG", self.delete_tag))
             self.canvas.tag_lower(self.label_bg, self.label)
             self.canvas.tag_lower(self.label, 'all')
             self.canvas.tag_lower(self.label_bg, 'all')
@@ -76,6 +77,9 @@ class LabelCanvasObject:
     def get_block_name(self):
         return self.block_name
 
+    def get_delete_tag(self):
+        return self.delete_tag
+
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
         c = self.canvas.coords(self.label)
@@ -89,7 +93,7 @@ class LabelCanvasObject:
         self.b = b
 
         self.label = self.canvas.create_text(l_x, l_y, text=self.text, fill="black", font=("Arial", 10),
-                                             tags=(self.block_name, "Label"))
+                                             tags=(self.block_name, "Label", self.delete_tag))
 
         self.x = self.canvas.bbox(self.label)[0] - 7
         self.y = self.canvas.bbox(self.label)[1] - 4
@@ -97,7 +101,7 @@ class LabelCanvasObject:
         self.b = self.canvas.bbox(self.label)[3] + 4
 
         self.label_bg = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, fill="gray94",
-                                                     tags=(self.block_name + "_bg", "Label"))
+                                                     tags=(self.block_name, "Label_BG", self.delete_tag))
 
         self.canvas.tag_lower(self.label_bg, self.label)
         self.canvas.tag_lower(self.label, 'all')

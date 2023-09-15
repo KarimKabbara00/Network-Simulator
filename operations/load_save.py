@@ -18,6 +18,7 @@ from network.VLAN import VLAN
 from tkinter import messagebox
 import UI.helper_functions as hf
 
+
 def prompt_save(master, canvas, action):
     answer = messagebox.askyesnocancel("Exit", 'Save changes?')
 
@@ -25,23 +26,23 @@ def prompt_save(master, canvas, action):
         case True:
             if action == 'new_file':
                 if not globalVars.working_file:
-                    save_as_new_file(canvas, clear=True)
+                    save_as_new_file(master, canvas, clear=True)
                 else:
-                    save_current_file(canvas)
+                    save_current_file(master, canvas)
                 new_file(canvas, master)
 
             elif action == 'load_file':
                 if not globalVars.working_file:
-                    save_as_new_file(canvas, clear=True)
+                    save_as_new_file(master, canvas, clear=True)
                 else:
-                    save_current_file(canvas)
+                    save_current_file(master, canvas)
                 load_file(canvas, master, ask=False)
 
             elif action == 'quit':
                 if not globalVars.working_file:
-                    save_as_new_file(canvas, clear=True)
+                    save_as_new_file(master, canvas, clear=True)
                 else:
-                    save_current_file(canvas)
+                    save_current_file(master, canvas)
                 master.quit()
 
         case False:
@@ -61,18 +62,18 @@ def prompt_save(master, canvas, action):
             return
 
 
-def save_as_new_file(canvas, clear=False):
+def save_as_new_file(master, canvas, clear=False):
     f = asksaveasfile(initialdir=globalVars.file_directory, initialfile='.json',
                       defaultextension=".json", filetypes=[("json", ".json")])
     if f:
-        save(canvas, f.name, clear)  # Clear will be true if saving file after pressing new
+        save(master, canvas, f.name, clear)  # Clear will be true if saving file after pressing new
 
 
-def save_current_file(canvas):
+def save_current_file(master, canvas):
     if not globalVars.working_file:
-        save_as_new_file(canvas, clear=False)
+        save_as_new_file(master, canvas, clear=False)
     else:
-        save(canvas, globalVars.working_file, clear=False)
+        save(master, canvas, globalVars.working_file, clear=False)
 
 
 def load_file(canvas, master, ask=True):
@@ -96,6 +97,8 @@ def new_file(canvas, master):
         globalVars.prompt_save = False
         master.winfo_toplevel().title('Network Simulator')
 
+    globalVars.working_file = ''
+
 
 def quit_program(canvas, master):
     if globalVars.prompt_save:
@@ -104,7 +107,7 @@ def quit_program(canvas, master):
         master.quit()
 
 
-def save(canvas, file_name, clear):
+def save(master, canvas, file_name, clear):
     save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
                  'OTHER': {}}
 
@@ -157,6 +160,7 @@ def save(canvas, file_name, clear):
     globalVars.prompt_save = False
     globalVars.working_file = file_name
 
+    master.winfo_toplevel().title('Network Simulator' + ' - ' + file_name.split('/')[-1].split('.')[0])
 
 def load(canvas, master, file):
 
