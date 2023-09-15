@@ -16,7 +16,7 @@ from network.Router import Router
 from network.SubInterface import SubInterface
 from network.VLAN import VLAN
 from tkinter import messagebox
-
+import UI.helper_functions as hf
 
 def prompt_save(master, canvas, action):
     answer = messagebox.askyesnocancel("Exit", 'Save changes?')
@@ -361,6 +361,9 @@ def load(canvas, master, file):
 
     button_handler.toggle_link_lights(canvas, checkbox=True)
     # ----- Set Lights ----- #
+
+    # Set the layers
+    hf.set_layers(canvas)
 
     # Set title as file name
     master.winfo_toplevel().title('Network Simulator' + ' - ' + file.split('/')[-1].split('.')[0])

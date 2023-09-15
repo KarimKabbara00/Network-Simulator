@@ -660,3 +660,21 @@ def clean_up_ui(dont_close, canvas):
 
         case _:
             pass
+
+
+def set_layers(canvas):
+
+    for i in canvas.find_withtag('Rectangle'):
+        canvas.tag_lower(i, 'all')
+
+    for i in canvas.find_withtag('light'):
+        [canvas.tag_lower(i, node) for node in canvas.find_withtag('Node')]
+        [canvas.tag_raise(i, line) for line in canvas.find_withtag('Ethernet')]
+
+    for i in canvas.find_withtag('Hover_Menus'):
+        [canvas.tag_raise(i, node) for node in canvas.find_withtag('Node')]
+        [canvas.tag_raise(i, light) for light in canvas.find_withtag('light')]
+        [canvas.tag_raise(i, line) for line in canvas.find_withtag('Ethernet')]
+
+    for i in canvas.find_withtag('Node'):
+        canvas.tag_raise(i, 'all')

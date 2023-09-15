@@ -1,4 +1,5 @@
 from operations import globalVars
+import UI.helper_functions as hf
 
 
 class RectangleCanvasObject:
@@ -40,7 +41,8 @@ class RectangleCanvasObject:
                                                                tags=(self.block_name, "Rectangle"))
             self.is_set = True
 
-        self.canvas.tag_lower(self.block_name)
+            hf.set_layers(self.canvas)
+
         self.canvas.coords(self.block_name, self.canvas.canvasx(self.x), self.canvas.canvasy(self.y),
                            self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
         return
@@ -55,13 +57,14 @@ class RectangleCanvasObject:
                                                              self.canvas.canvasx(self.a), self.canvas.canvasy(self.b),
                                                              outline="black", fill=self.color_code, width=1.2,
                                                              tags=(self.block_name, "Rectangle"))
-        self.canvas.tag_lower(self.block_name)
         self.canvas.config(cursor="")
 
         self.x = self.canvas.canvasx(self.x)
         self.y = self.canvas.canvasy(self.y)
         self.a = self.canvas.canvasx(self.a)
         self.b = self.canvas.canvasy(self.b)
+
+        hf.set_layers(self.canvas)
 
         globalVars.prompt_save = True
         return
@@ -88,6 +91,5 @@ class RectangleCanvasObject:
         self.rectangle_object = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, outline="black",
                                                              fill=self.color_code, width=1.2,
                                                              tags=(self.block_name, "Rectangle"))
-        self.canvas.tag_lower(self.block_name)
         self.is_set = True
     # -------------------------- Save & Load Methods -------------------------- #

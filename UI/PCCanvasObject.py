@@ -44,14 +44,12 @@ class PCCanvasObject(object):
         self.hover_area = self.canvas.create_polygon(x - 50, y - 50, x + 45, y - 50, x + 45, y - 75, x + 95, y - 75,
                                                      x + 95, y + 75, x + 45, y + 75, x + 45, y + 50, x - 50, y + 50,
                                                      fill="")
-        self.canvas.lower(self.hover_area)
-        for rect in self.canvas.find_withtag('Rectangle'):
-            self.canvas.tag_raise(self.hover_area, rect)
 
         self.menu_buttons = self.canvas.create_polygon(x + 40, y + 0, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50, y + 72, x + 50, y + 5,
                                                        outline="black", fill="NavajoWhite2", width=1,
-                                                       tags=('Hover_Menus'))
+                                                       tags=('Hover_Menus', ))
+
         self.canvas.itemconfigure(self.menu_buttons, state='hidden')
 
         self.config_button = tk.Button(self.canvas, width=25, height=25, image=self.config_icon)
@@ -155,14 +153,13 @@ class PCCanvasObject(object):
                                          self.canvas.coords(line)[1], 4, self.canvas,
                                          self.tag_2 + "_light_" + self.tag_1 + "_0")
 
-                # Set appropriate layers
-                for lt in self.canvas.find_withtag('light'):
-                    self.canvas.tag_lower(lt)
-                # Nested loop :(
-                for ln in self.canvas.find_withtag('line'):
-                    self.canvas.tag_lower(ln)
-                    for rectangle in self.canvas.find_withtag('Rectangle'):
-                        self.canvas.tag_lower(rectangle, ln)
+                self.canvas.tag_lower(self.l1, list(self.line_connections.keys())[0].get_obj_1().get_canvas_object())
+                self.canvas.tag_lower(self.l2, list(self.line_connections.keys())[0].get_obj_2().get_canvas_object())
+                [self.canvas.tag_raise(self.menu_buttons, light) for light in self.canvas.find_withtag('light')]
+                [self.canvas.tag_raise(label, self.l1) for label in self.canvas.find_withtag('Label_BG')]
+                [self.canvas.tag_raise(label, self.l2) for label in self.canvas.find_withtag('Label_BG')]
+                for i in self.canvas.find_withtag('Label'):
+                    [self.canvas.tag_raise(i, label) for label in self.canvas.find_withtag('Label_BG')]
 
                 if ((globalVars.show_link_lights and globalVars.light_state) or
                         (not globalVars.show_link_lights and globalVars.light_state)):
@@ -465,6 +462,9 @@ class PCCanvasObject(object):
 
     def get_class_object(self):
         return self.class_object
+
+    def get_canvas_object(self):
+        return self.canvas_object
 
     def get_block_name(self):
         return self.block_name

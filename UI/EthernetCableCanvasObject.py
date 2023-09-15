@@ -156,8 +156,6 @@ class EthernetCableCanvasObject:
         # If both ends are connected
         if self.cable_end_1 and self.cable_end_2:
 
-
-
             # The class objects
             self.class_object_1 = self.cable_end_1.get_host()
             self.class_object_2 = self.cable_end_2.get_host()
@@ -215,16 +213,6 @@ class EthernetCableCanvasObject:
                                           self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
                                           "_" + str(self.existing_line_count))
 
-            # Lower line and lights one layer to underlap the hover menu and canvas object
-            for light in self.canvas.find_withtag('light'):
-                self.canvas.tag_lower(light)
-
-            for line in self.canvas.find_withtag('line'):
-                self.canvas.tag_lower(line)
-
-            for rectangle in self.canvas.find_withtag('Rectangle'):
-                self.canvas.tag_lower(rectangle)
-
             # Add each light to the cable class
             self.cable_end_1.set_canvas_object(self)
             self.cable_end_2.set_canvas_object(self)
@@ -246,11 +234,11 @@ class EthernetCableCanvasObject:
             self.cable_end_1.set_is_connected(True)
             self.cable_end_2.set_is_connected(True)
 
-            # Routers are down by default
-
+            # Same devices use crossover cables, dash the line
             if self.class_object_1.get_model() == self.class_object_2.get_model():
                 self.canvas.itemconfig(self.canvas_line, dash=(10, 1))
 
+            # Routers are down by default
             if self.class_object_1.get_model() == "R94X" and self.class_object_2.get_model() == "R94X":
                 self.cable_end_1.set_operational(False)
                 self.cable_end_2.set_operational(False)
@@ -272,6 +260,7 @@ class EthernetCableCanvasObject:
 
             # Prompt save
             globalVars.prompt_save = True
+            hf.set_layers(self.canvas)
 
             # If persistent cable connect, create a new instance of this class
             if globalVars.persistent_cable_connect:
@@ -309,6 +298,9 @@ class EthernetCableCanvasObject:
 
     def get_class_object_2(self):
         return self.class_object_2
+
+    def get_canvas_line(self):
+        return self.canvas_line
 
     def self_delete_on_duplicate(self):
         # If eth icon or another button is clicked, this is called to remove duplicate cable
@@ -390,16 +382,6 @@ class EthernetCableCanvasObject:
                                       self.obj1_coords[0] + x_shift, self.obj1_coords[1] + y_shift, 4,
                                       self.canvas, self.obj2_canvas_tag + "_light_" + self.obj1_canvas_tag +
                                       "_" + str(self.existing_line_count))
-
-        # Lower line and lights one layer to underlap the hover menu and canvas object
-        for light in self.canvas.find_withtag('light'):
-            self.canvas.tag_lower(light)
-
-        for line in self.canvas.find_withtag('line'):
-            self.canvas.tag_lower(line)
-
-        for rectangle in self.canvas.find_withtag('Rectangle'):
-            self.canvas.tag_lower(rectangle)
 
         # Add each light to the cable class
         self.cable_end_1.set_canvas_object(self)

@@ -220,7 +220,6 @@ time_counter.start()
 arp_mac_aging = threading.Thread(target=bp.arp_mac_aging, args=(globalVars.internal_clock,), daemon=True)
 arp_mac_aging.start()
 
-
 # launch application
 tk.mainloop()
 

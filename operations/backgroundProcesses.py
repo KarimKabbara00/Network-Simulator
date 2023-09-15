@@ -52,5 +52,4 @@ def arp_mac_aging(internal_clock):
             except AttributeError:
                 pass
 
-
         time.sleep(5)

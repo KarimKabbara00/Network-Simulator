@@ -26,9 +26,8 @@ class LabelCanvasObject:
             # If it causes a mismatch, a reset will occur, showing all. ^
 
             self.label_bg = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, fill="gray94",
-                                                         tags=(self.block_name + "_bg", "Label"))
-            for menu in self.canvas.find_withtag('Hover_Menus'):
-                self.canvas.tag_lower(self.label, menu)
+                                                         tags=(self.block_name + "_bg", "Label_BG"))
+            #
             self.canvas.tag_lower(self.label_bg, self.label)
 
             self.hidden_label = False
@@ -105,10 +104,9 @@ class LabelCanvasObject:
 
         self.label_bg = self.canvas.create_rectangle(self.x, self.y, self.a, self.b, fill="gray94",
                                                      tags=(self.block_name + "_bg", "Label"))
-        for menu in self.canvas.find_withtag('Hover_Menus'):
-            self.canvas.tag_lower(self.label, menu)
-            self.canvas.tag_lower(self.label_bg, menu)
+
         self.canvas.tag_lower(self.label_bg, self.label)
+        [self.canvas.tag_raise(menu, self.label) for menu in self.canvas.find_withtag('Hover_Menu')]
 
         self.hidden_label = globalVars.label_state
         if self.hidden_label:

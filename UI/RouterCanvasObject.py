@@ -15,8 +15,8 @@ class RouterCanvasObject:
         self.block_name = block_name
         self.class_object = class_object
         self.class_object.set_canvas_object(self)
-        self.icons = icons
         self.master = master
+        self.icons = icons
 
         self.internal_clock = time_class
         self.internal_clock.add_router(self)
@@ -33,7 +33,7 @@ class RouterCanvasObject:
         self.ethernet_del_icon = self.icons[2]
         self.x_node_icon = self.icons[3]
         # Assigned to canvas_object to allow delete
-        self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "Router"))
+        self.canvas_object = self.canvas.create_image(x, y, image=self.icon, tags=(self.block_name, "Router", "Node"))
         self.canvas.photo = self.icon
         # Icon Stuff
 
@@ -41,9 +41,6 @@ class RouterCanvasObject:
         self.hover_area = self.canvas.create_polygon(x - 50, y - 35, x + 45, y - 35, x + 45, y - 55, x + 97, y - 55,
                                                      x + 97, y + 65,
                                                      x + 45, y + 65, x + 45, y + 45, x - 50, y + 45, fill="")
-        self.canvas.lower(self.hover_area)
-        for rect in self.canvas.find_withtag('Rectangle'):
-            self.canvas.tag_raise(self.hover_area, rect)
 
         self.menu_buttons = self.canvas.create_polygon(x + 40, y - 5, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50,
@@ -84,12 +81,12 @@ class RouterCanvasObject:
         self.created_terminal = False
         # CLI Stuff
 
-        # Light Stuff
+        # Light & Line Stuff
         self.line_connections = {}
         self.x_flag = None
         self.y_flag = None
         self.line_interface_relations = {}
-        # Light Stuff
+        # Light & Line Stuff
 
     def motion(self, event=None):
 
@@ -125,9 +122,6 @@ class RouterCanvasObject:
         # Move the object
         self.canvas.coords(self.block_name, event_x, event_y)
 
-        # Move the Label
-        self.canvas.coords(self.block_name + "_tag", event_x, event_y + 60)
-
         try:
             for i in self.line_connections:
 
@@ -154,7 +148,7 @@ class RouterCanvasObject:
 
                     c = self.canvas.coords(line)
 
-                    # /// Line Shits and Corrections
+                    # /// Line Shifts and Corrections
                     if c[0] < c[2]:
                         x_flag = True
                     else:
@@ -183,7 +177,7 @@ class RouterCanvasObject:
                     elif not self.x_flag and self.y_flag:  # Right and Above
                         x_shift = -6 * j
                         y_shift = -6 * j
-                    # /// Line Shits and Corrections
+                    # /// Line Shifts and Corrections
 
                     if line:
 
@@ -203,14 +197,14 @@ class RouterCanvasObject:
                                                 self.line_connections[i][1] + "_light_" + self.line_connections[i][
                                                     0] + "_" + str(j))
 
-                            # Set appropriate layers
-                            for lt in self.canvas.find_withtag('light'):
-                                self.canvas.tag_lower(lt)
-                            # Nested loop :(
-                            for ln in self.canvas.find_withtag('line'):
-                                self.canvas.tag_lower(ln)
-                                for rectangle in self.canvas.find_withtag('Rectangle'):
-                                    self.canvas.tag_lower(rectangle, ln)
+                            self.canvas.tag_lower(l1, i.get_obj_1().get_canvas_object())
+                            self.canvas.tag_lower(l2, i.get_obj_2().get_canvas_object())
+                            [self.canvas.tag_raise(self.menu_buttons, light) for light in
+                             self.canvas.find_withtag('light')]
+                            [self.canvas.tag_raise(label, l1) for label in self.canvas.find_withtag('Label_BG')]
+                            [self.canvas.tag_raise(label, l2) for label in self.canvas.find_withtag('Label_BG')]
+                            for lbl in self.canvas.find_withtag('Label'):
+                                [self.canvas.tag_raise(lbl, label) for label in self.canvas.find_withtag('Label_BG')]
 
                             i.set_lights(l1, l2)
 
@@ -427,7 +421,7 @@ class RouterCanvasObject:
             self.canvas.delete(self.canvas_object)
             self.canvas.delete(self.hover_area)
             self.canvas.delete(self.menu_buttons)
-            self.canvas.delete()
+
             self.class_object = None
 
             # Destroy windows when deleting node
@@ -475,6 +469,9 @@ class RouterCanvasObject:
 
     def get_class_object(self):
         return self.class_object
+
+    def get_canvas_object(self):
+        return self.canvas_object
 
     def add_line_connection(self, tag1, tag2, light1, light2, canvas_cable_object):
         self.line_connections[canvas_cable_object] = [tag1, tag2, light1, light2]

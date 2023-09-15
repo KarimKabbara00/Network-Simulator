@@ -1,10 +1,10 @@
 import tkinter
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk, messagebox
 import UI.helper_functions as hf
-from UI import PCCanvasObject
 from UI.SwitchCLI import SwitchCli
 from operations import globalVars
+from UI import PCCanvasObject
 
 
 class SwitchCanvasObject:
@@ -42,9 +42,6 @@ class SwitchCanvasObject:
         self.hover_area = self.canvas.create_polygon(x - 50, y - 35, x + 45, y - 35, x + 45, y - 55, x + 97, y - 55,
                                                      x + 97, y + 65,
                                                      x + 45, y + 65, x + 45, y + 45, x - 50, y + 45, fill="")
-        self.canvas.lower(self.hover_area)
-        for rect in self.canvas.find_withtag('Rectangle'):
-            self.canvas.tag_raise(self.hover_area, rect)
 
         self.menu_buttons = self.canvas.create_polygon(x + 40, y - 5, x + 50, y - 5, x + 50, y - 72, x + 92, y - 72,
                                                        x + 92, y + 72, x + 50,
@@ -78,10 +75,10 @@ class SwitchCanvasObject:
 
         # CLI Stuff
         self.cli_object = None
-        self.cli_window = None
         self.cli_command_files = ['commands/sw_general_command_list', 'commands/sw_interface_command_list',
                                   'commands/sw_vlan_command_list']
         self.cli_text = "Switch> "
+        self.cli_window = None
         self.created_terminal = False
         # CLI Stuff
 
@@ -152,7 +149,7 @@ class SwitchCanvasObject:
 
                     c = self.canvas.coords(line)
 
-                    # /// Line Shits and Corrections
+                    # /// Line Shifts and Corrections
                     if c[0] < c[2]:
                         x_flag = True
                     else:
@@ -181,7 +178,7 @@ class SwitchCanvasObject:
                     elif not self.x_flag and self.y_flag:  # Right and Above
                         x_shift = -6 * j
                         y_shift = -6 * j
-                    # /// Line Shits and Corrections
+                    # /// Line Shifts and Corrections
 
                     if line:
 
@@ -201,14 +198,14 @@ class SwitchCanvasObject:
                                                 self.line_connections[i][1] + "_light_" + self.line_connections[i][
                                                     0] + "_" + str(j))
 
-                            # Set appropriate layers
-                            for lt in self.canvas.find_withtag('light'):
-                                self.canvas.tag_lower(lt)
-                            # Nested loop :(
-                            for ln in self.canvas.find_withtag('line'):
-                                self.canvas.tag_lower(ln)
-                                for rectangle in self.canvas.find_withtag('Rectangle'):
-                                    self.canvas.tag_lower(rectangle, ln)
+                            self.canvas.tag_lower(l1, i.get_obj_1().get_canvas_object())
+                            self.canvas.tag_lower(l2, i.get_obj_2().get_canvas_object())
+                            [self.canvas.tag_raise(self.menu_buttons, light) for light in
+                             self.canvas.find_withtag('light')]
+                            [self.canvas.tag_raise(label, l1) for label in self.canvas.find_withtag('Label_BG')]
+                            [self.canvas.tag_raise(label, l2) for label in self.canvas.find_withtag('Label_BG')]
+                            for lbl in self.canvas.find_withtag('Label'):
+                                [self.canvas.tag_raise(lbl, label) for label in self.canvas.find_withtag('Label_BG')]
 
                             i.set_lights(l1, l2)
 
@@ -251,9 +248,9 @@ class SwitchCanvasObject:
         except StopIteration:
             pass
 
-        globalVars.prompt_save = True
         self._x = event_x
         self._y = event_y
+        globalVars.prompt_save = True
         return
 
     def button_release(self, event):
@@ -460,7 +457,6 @@ class SwitchCanvasObject:
             self.cli_window.wm_iconphoto(False, self.icons[1])
             self.cli_window.wm_title("Terminal")
             self.cli_window.protocol('WM_DELETE_WINDOW', hide_window)
-
             self.cli_window.focus_set()
             self.cli_object = SwitchCli(self, self.class_object, self.cli_window, self.cli_text,
                                         "Switch> ", 'orange', 'orange', self.cli_command_files)
@@ -475,6 +471,9 @@ class SwitchCanvasObject:
 
     def get_class_object(self):
         return self.class_object
+
+    def get_canvas_object(self):
+        return self.canvas_object
 
     def add_line_connection(self, tag1, tag2, light1, light2, canvas_cable_object):
         self.line_connections[canvas_cable_object] = [tag1, tag2, light1, light2]

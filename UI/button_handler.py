@@ -18,10 +18,11 @@ from UI import loadIcons
 
 def create_pc(popup, canvas, generation, master, icons, time_class):
     pc = PCCanvasObject(canvas, hf.get_next_pc(generation), icons, network.PC.PC(generation), master, time_class)
-    globalVars.objects.append(pc)
-    globalVars.pc_objects.append(pc)
-    popup.destroy()
-    globalVars.open_TL_pc = False
+    globalVars.objects.append(pc)       # Add to all objects
+    globalVars.pc_objects.append(pc)    # Add to pc_objects
+    popup.destroy()                     # Destroy TL window
+    globalVars.open_TL_pc = False       # TL window is not open
+    hf.set_layers(canvas)               # Set the appropriate layers
 
 
 def create_switch(popup, canvas, icons, switch_type, master, time_class):
@@ -34,6 +35,7 @@ def create_switch(popup, canvas, icons, switch_type, master, time_class):
 
     popup.destroy()
     globalVars.open_TL_sw = False
+    hf.set_layers(canvas)               # Set the appropriate layers
 
 
 def create_router(popup, canvas, icons, master, time_class):
@@ -42,6 +44,7 @@ def create_router(popup, canvas, icons, master, time_class):
     globalVars.ro_objects.append(router)
     popup.destroy()
     globalVars.open_TL_ro = False
+    hf.set_layers(canvas)               # Set the appropriate layers
 
 
 def create_rectangle(canvas):
@@ -52,6 +55,7 @@ def create_rectangle(canvas):
     if color_code[0]:
         rectangle = RectangleCanvasObject(canvas, color_code, hf.get_next_rectangle(canvas))
         globalVars.canvas_rectangles.append(rectangle)
+    hf.set_layers(canvas)               # Set the appropriate layers
 
 
 def create_label(popup, canvas, text):
@@ -62,6 +66,8 @@ def create_label(popup, canvas, text):
     else:
         messagebox.showerror('Invalid Parameter', 'Please Enter Some Text', parent=popup)
     globalVars.open_TL_lb = False
+
+    hf.set_layers(canvas)               # Set the appropriate layers
 
 
 def handle_button_click(master, canvas, device_type, time_class):
