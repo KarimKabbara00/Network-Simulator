@@ -62,10 +62,10 @@ class PCCanvasObject(object):
         self.disconnect_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
         self.delete_button.config(background='gray75', foreground="white", relief=tk.GROOVE)
 
-        self.config_button_window = self.canvas.create_window(x + 57, y - 65, window=self.config_button, state='hidden')
-        self.terminal_button_window = self.canvas.create_window(x + 57, y - 31, window=self.terminal_button, state='hidden')
-        self.disconnect_button_window = self.canvas.create_window(x + 57, y + 3, window=self.disconnect_button, state='hidden')
-        self.delete_button_window = self.canvas.create_window(x + 57, y + 37, window=self.delete_button, state='hidden')
+        self.config_button_window = self.canvas.create_window(x + 57, y - 65, window=self.config_button, state='hidden', tag="Menu_Button")
+        self.terminal_button_window = self.canvas.create_window(x + 57, y - 31, window=self.terminal_button, state='hidden', tag="Menu_Button")
+        self.disconnect_button_window = self.canvas.create_window(x + 57, y + 3, window=self.disconnect_button, state='hidden', tag="Menu_Button")
+        self.delete_button_window = self.canvas.create_window(x + 57, y + 37, window=self.delete_button, state='hidden', tag="Menu_Button")
         # Hover menu Stuff
 
         # Button Bindings
@@ -156,10 +156,6 @@ class PCCanvasObject(object):
                 self.canvas.tag_lower(self.l1, list(self.line_connections.keys())[0].get_obj_1().get_canvas_object())
                 self.canvas.tag_lower(self.l2, list(self.line_connections.keys())[0].get_obj_2().get_canvas_object())
                 [self.canvas.tag_raise(self.menu_buttons, light) for light in self.canvas.find_withtag('light')]
-                [self.canvas.tag_raise(label, self.l1) for label in self.canvas.find_withtag('Label_BG')]
-                [self.canvas.tag_raise(label, self.l2) for label in self.canvas.find_withtag('Label_BG')]
-                for i in self.canvas.find_withtag('Label'):
-                    [self.canvas.tag_raise(i, label) for label in self.canvas.find_withtag('Label_BG')]
 
                 if ((globalVars.show_link_lights and globalVars.light_state) or
                         (not globalVars.show_link_lights and globalVars.light_state)):

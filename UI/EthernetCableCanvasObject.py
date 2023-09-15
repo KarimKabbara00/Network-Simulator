@@ -72,22 +72,30 @@ class EthernetCableCanvasObject:
         # Continuously check object hovering over and assign it to var
         overlap = self.canvas.find_overlapping(self.canvas.canvasx(event.x), self.canvas.canvasy(event.y),
                                                self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        rectangle_click = False
+        node_click = False
         canvas_object_tag = ""
         for i in overlap:
             if i in self.canvas.find_withtag("PC"):
                 canvas_object_tag = self.canvas.itemcget(i, "tags").split(" ")[0]
+                node_click = True
 
             elif i in self.canvas.find_withtag("Switch"):
                 canvas_object_tag = self.canvas.itemcget(i, "tags").split(" ")[0]
+                node_click = True
 
             elif i in self.canvas.find_withtag("Router"):
                 canvas_object_tag = self.canvas.itemcget(i, "tags").split(" ")[0]
+                node_click = True
+
+            elif i in self.canvas.find_withtag("Rectangle"):
+                rectangle_click = True
 
         # On click, check what was clicked, and delete cable
         if str(event.type) == "4":
 
             # if cable clicked on nothing
-            if len(overlap) < 2:
+            if len(overlap) < 2 or rectangle_click and not node_click:
                 globalVars.cable_objects.remove(self)
                 self.canvas.delete(self.canvas_object)
                 self.cable_end_1 = None

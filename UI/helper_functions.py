@@ -671,10 +671,11 @@ def set_layers(canvas):
         [canvas.tag_lower(i, node) for node in canvas.find_withtag('Node')]
         [canvas.tag_raise(i, line) for line in canvas.find_withtag('Ethernet')]
 
-    for i in canvas.find_withtag('Hover_Menus'):
-        [canvas.tag_raise(i, node) for node in canvas.find_withtag('Node')]
-        [canvas.tag_raise(i, light) for light in canvas.find_withtag('light')]
-        [canvas.tag_raise(i, line) for line in canvas.find_withtag('Ethernet')]
-
     for i in canvas.find_withtag('Node'):
+        canvas.tag_raise(i, 'all')
+
+    for i in canvas.find_withtag('Hover_Menus'):
+        canvas.tag_raise(i, 'all')
+
+    for i in canvas.find_withtag('Menu_Button'):
         canvas.tag_raise(i, 'all')

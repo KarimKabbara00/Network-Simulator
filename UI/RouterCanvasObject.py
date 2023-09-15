@@ -201,10 +201,6 @@ class RouterCanvasObject:
                             self.canvas.tag_lower(l2, i.get_obj_2().get_canvas_object())
                             [self.canvas.tag_raise(self.menu_buttons, light) for light in
                              self.canvas.find_withtag('light')]
-                            [self.canvas.tag_raise(label, l1) for label in self.canvas.find_withtag('Label_BG')]
-                            [self.canvas.tag_raise(label, l2) for label in self.canvas.find_withtag('Label_BG')]
-                            for lbl in self.canvas.find_withtag('Label'):
-                                [self.canvas.tag_raise(lbl, label) for label in self.canvas.find_withtag('Label_BG')]
 
                             i.set_lights(l1, l2)
 
