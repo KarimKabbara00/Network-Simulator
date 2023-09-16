@@ -124,6 +124,8 @@ class RouterCli(DeviceCli):
                     # self.class_object.
 
 
+
+
             elif command == "clear":
                 self.cli.delete("1.0", tk.END)
                 self.cli.insert(tk.END, "Welcome\n")
@@ -279,15 +281,26 @@ class RouterCli(DeviceCli):
 
                 try:
                     ip = command.split('network ')[1].split(' ')[0]
-                    subnet = command.split('network ')[1].split(' ')[1]
-                    self.working_dhcp_pool.set_pool(ip, subnet, is_prefix=False)
+                    subnet_or_prefix = command.split('network ')[1].split(' ')[1]
+
+                    if '/' in subnet_or_prefix:
+                        prefix = subnet_or_prefix
+                        if not hf.check_ipv4(ip):
+                            self.cli.insert(tk.END, "\nInvalid Network Address\n" + "\n" + self.cli_text)
+                        elif not hf.check_subnet_mask(hf.get_subnet_from_prefix_length(prefix)):
+                            self.cli.insert(tk.END, "\nInvalid Prefix Length\n" + "\n" + self.cli_text)
+                        else:
+                            self.working_dhcp_pool.set_pool(ip, prefix, is_prefix=True)
+                    else:
+                        subnet = subnet_or_prefix
+                        if not hf.check_ipv4(ip):
+                            self.cli.insert(tk.END, "\nInvalid Network Address\n" + "\n" + self.cli_text)
+                        elif not hf.check_subnet_mask(subnet):
+                            self.cli.insert(tk.END, "\nInvalid Subnet Mask\n" + "\n" + self.cli_text)
+                        else:
+                            self.working_dhcp_pool.set_pool(ip, subnet, is_prefix=False)
                 except IndexError:
-                    try:
-                        ip = command.split('network ')[1].split(' ')[0].split('/')[0]
-                        prefix = command.split('network ')[1].split(' ')[0].split('/')[1]
-                        self.working_dhcp_pool.set_pool(ip, prefix, is_prefix=True)
-                    except IndexError:
-                        self.cli.insert(tk.END, "\nIncomplete Command\n")
+                    self.cli.insert(tk.END, "\nIncomplete Command\n")
 
         if valid_command:
             if self.command_history:
