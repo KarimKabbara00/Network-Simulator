@@ -2,3 +2,5 @@ network
 dns-server
 domain-name
 lease
+lease infinite
+default-router

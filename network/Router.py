@@ -21,6 +21,7 @@ class Router:
         self.ARP_table = {}
 
         self.dhcp_pools = []
+        self.dhcp_excluded_ip_ranges = []
 
         self.canvas_object = None
         self.internal_clock = None
@@ -272,6 +273,19 @@ class Router:
 
     def get_arp_table(self):
         return self.ARP_table
+
+
+    def exclude_ip_range_from_dhcp_pools(self, start_ip, end_ip, is_range):
+
+        if is_range:
+            for ip in hf.get_ip_range_from_to(start_ip, end_ip):
+                if ip not in self.dhcp_excluded_ip_ranges:
+                    self.dhcp_excluded_ip_ranges.append(ip)
+        else:
+            if start_ip not in self.dhcp_excluded_ip_ranges:
+                self.dhcp_excluded_ip_ranges.append(start_ip)
+
+        print(self.dhcp_excluded_ip_ranges)
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

@@ -741,3 +741,97 @@ def get_ip_range(network_address, subnet_or_prefix, is_prefix):
             break
 
     return ip_pool
+
+
+def get_ip_range_from_to(start_ip, end_ip):
+
+    network_portion = ''
+
+    intermediate_ip_pool = []  # IPs that are being built are stored here
+    ip_pool = []  # IPs that are complete are stored here
+
+    for a, b in zip(start_ip.split('.'), end_ip.split('.')):
+        if a == b:
+            network_portion += a + '.'
+
+
+    subnet = '255.' * network_portion.count('.')
+    network_portion = network_portion[:-1]
+    ip_address = network_portion
+
+    for i in range(4 - subnet.count('.')):
+        subnet += '0.'
+        ip_address += '0.'
+
+    subnet = subnet[:-1]
+    ip_address = ip_address[:-1]
+
+    zero_count = subnet.count('0')
+    count = -1
+    stop = False
+    for s in subnet.split('.'):
+
+        count += 1
+
+        if s == '255':
+            continue
+
+        if s != '0' and not stop:
+            if int(ip_address.split('.')[count]) < int(subnet.split('.')[count]):
+                for j in range(255 - int(s)):
+                    if not stop:
+                        if zero_count == 0:
+                            ip_pool.append(network_portion + '.' + str(j))
+                            if network_portion + '.' + str(j) == end_ip:
+                                stop = True
+                        else:
+                            intermediate_ip_pool.append(network_portion + '.' + str(j))
+                    else:
+                        break
+
+            else:
+                network_portion = '.'.join(network_portion.split('.')[:count])
+                for j in range(int(s) + 1, 255):
+                    if not stop:
+                        if zero_count == 0:
+                            ip_pool.append(network_portion + '.' + str(j))
+                            if network_portion + '.' + str(j) == end_ip:
+                                stop = True
+                        else:
+                            intermediate_ip_pool.append(network_portion + '.' + str(j))
+                    else:
+                        break
+
+        if s == '0':
+            if not intermediate_ip_pool:
+                intermediate_ip_pool = [network_portion]
+
+            for ip in range(len(intermediate_ip_pool)):
+                if zero_count == 1:
+                    for i in range(1, 255):
+
+                        if not stop:
+                            new_ip = intermediate_ip_pool[ip] + '.' + str(i)
+                            ip_pool.append(new_ip)
+                            if new_ip == end_ip:
+                                stop = True
+                        else:
+                            break
+
+                elif zero_count == 2:
+                    for i in range(256):
+                        for j in range (1, 255):
+                            if not stop:
+                                new_ip = intermediate_ip_pool[ip] + '.' + str(i) + '.' + str(j)
+                                ip_pool.append(new_ip)
+                                if new_ip == end_ip:
+                                    stop = True
+                            else:
+                                break
+
+                elif zero_count == 3 or zero_count == 4:
+                    raise Exception('Pool too large!')
+
+            break
+
+    return ip_pool

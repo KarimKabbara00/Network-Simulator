@@ -7,3 +7,6 @@ interface G
 interface 10G
 ip
 ip route
+ip dhcp
+ip dhcp pool
+ip dhcp excluded-address
