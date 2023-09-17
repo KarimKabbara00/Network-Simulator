@@ -1,3 +1,5 @@
+import sys
+
 def set_port(port):
     if 0 <= port <= 65535:
         return bin(port)[2:].zfill(16)
@@ -21,11 +23,10 @@ class UDP:
         self.segment_identifier = "UDP"
 
     def __calculate_length(self):
-        size = 8 + len(self.data.encode('utf-8'))
-        return bin(size)[2:].zfill(16)
+        return bin(self.get_size())[2:].zfill(16)
 
     def get_size(self):
-        return 8 + len(self.data.encode('utf-8'))
+        return 8 + sys.getsizeof(self.data)
 
     def get_data(self):
         return self.data

@@ -8,13 +8,13 @@ from UI.RectangleCanvasObject import RectangleCanvasObject
 from UI.RouterCanvasObject import RouterCanvasObject
 from UI.SwitchCanvasObject import SwitchCanvasObject
 from UI import loadIcons, button_handler
-from network.Physical_Interface import PhysicalInterface
-from network.Switch import Switch
-from network.Ethernet_Cable import EthernetCable
-from network.PC import PC
-from network.Router import Router
-from network.SubInterface import SubInterface
-from network.VLAN import VLAN
+from network.Interface_Operations.Physical_Interface import PhysicalInterface
+from network.Switch.Switch import Switch
+from network.Interface_Operations.Ethernet_Cable import EthernetCable
+from network.PC.PC import PC
+from network.Router.Router import Router
+from network.Interface_Operations.SubInterface import SubInterface
+from network.Switch.VLAN import VLAN
 from tkinter import messagebox
 import UI.helper_functions as hf
 

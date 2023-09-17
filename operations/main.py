@@ -8,8 +8,8 @@ import operations.backgroundProcesses as bp
 from UI import loadIcons
 
 
-def on_mousewheel(event, canvas):
-    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+def on_mousewheel(event, c):
+    c.yview_scroll(int(-1*(event.delta/120)), "units")
 
 
 def create_menu(canvas_obj, master):

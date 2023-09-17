@@ -1,7 +1,7 @@
 import tkinter as tk
 from UI.DeviceCLI import DeviceCli
 import network.show_commands.SwitchShowCommands as Show
-from network.VLAN import VLAN
+from network.Switch.VLAN import VLAN
 from operations import globalVars
 
 

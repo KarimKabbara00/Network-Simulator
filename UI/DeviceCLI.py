@@ -1,7 +1,9 @@
 import tkinter as tk
 import UI.helper_functions as hf
 from abc import ABC, abstractmethod
-from network import Switch, Router, PC
+from network.PC import PC
+from network.Switch import Switch
+from network.Router import Router
 
 
 class DeviceCli(ABC):

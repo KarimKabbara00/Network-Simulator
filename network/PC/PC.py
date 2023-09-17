@@ -2,7 +2,7 @@ import random as random
 import time as time
 import UI.helper_functions as hf
 import network.network_functions as nf
-from network.Physical_Interface import PhysicalInterface
+from network.Interface_Operations.Physical_Interface import PhysicalInterface
 from operations import globalVars
 
 
@@ -37,7 +37,10 @@ class PC:
         self.ping_rtt_times = []
         # ICMP Control
 
+        # DHCP
         self.dhcp_server = None
+        self.preferred_ipv4_address = None
+        # DHCP
 
         self.internal_clock = None
 
@@ -69,9 +72,11 @@ class PC:
         globalVars.prompt_save = True
 
     def send_dhcp_discover(self):
-        frame = nf.create_dhcp_discover()
+        frame = nf.create_dhcp_discover(self.MAC_Address, self.preferred_ipv4_address)
+        self.interface[0].send(frame)
+        globalVars.prompt_save = True
 
-    def renew_ip_address(self):
+    def renew_nic_configuration(self):
         if not self.dhcp_server:
             self.send_dhcp_discover()
         else:
@@ -181,8 +186,10 @@ class PC:
     def get_received_ping_count(self):
         return self.received_ping_count
 
-    def set_ipv4_address(self, ip):
+    def set_ipv4_address(self, ip, is_preferred=True):
         self.ipv4_address = ip
+        if is_preferred:
+            self.preferred_ipv4_address = self.ipv4_address
 
     def set_ipv6_address(self, ip):
         self.ipv6_address = ip

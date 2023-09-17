@@ -32,8 +32,10 @@ class PCCli(DeviceCli):
             self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
 
         elif command == "ipconfig /renew":
-            self.class_object.renew_ip_address()
+            self.class_object.renew_nic_configuration()
             self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
+
+            self.process_command("ipconfig")
 
         elif command.startswith("ping"):
             args = command.split("ping ")[1]

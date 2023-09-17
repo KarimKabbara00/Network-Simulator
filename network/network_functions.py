@@ -1,13 +1,13 @@
 import UI.helper_functions as hf
 from network.ICMP import ICMP
-from network.ipv4_packet import ipv4_packet
-from network.Ethernet_Frame import EthernetFrame
+from network.PDUs.ipv4_packet import ipv4_packet
+from network.PDUs.Ethernet_Frame import EthernetFrame
 from network.Arp import Arp
-from network.Dot1q import Dot1q
+from network.Switch.Dot1q import Dot1q
 import time
-from network.UDP import UDP
-
-from operations import globalVars
+from network.PDUs.UDP import UDP
+from network.Application_Protocols.DHCP import (DhcpDiscover, DhcpOffer, DhcpRequest, DhcpAcknowledge, DhcpRelease,
+                                                DhcpRenew)
 
 
 def create_icmp_echo_segment():
@@ -153,9 +153,20 @@ def create_arp_reply(source_mac, source_ip, dest_mac, dest_ip, dot1q=None):
     return frame
 
 
-def create_dhcp_discover(source_mac):
-    udp_segment = UDP(source_port=68, dest_port=67, data='')
+def create_dhcp_discover(source_mac, preferred_ip, dot1q=None):
+    application_data = DhcpDiscover(True, preferred_ip=preferred_ip)
+    udp_segment = UDP(source_port=68, dest_port=67, data=application_data)
+    packet = create_ipv4_packet(udp_segment, '0.0.0.0', '255.255.255.255')
+    frame = create_ethernet_frame('FF:FF:FF:FF:FF:FF', source_mac, dot1q, packet, None)
 
+    return frame
+
+
+def create_dhcp_offer():
+
+    application_data = DhcpOffer()
+
+    return None
 
 
 def interface_or_sub_interface(receiving_interface, forwarding_interface, original_sender_ipv4, packet_identifier, frame):

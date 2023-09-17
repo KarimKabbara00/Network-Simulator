@@ -1,8 +1,8 @@
 import UI.helper_functions as hf
 import network.network_functions as nf
-from network.Physical_Interface import PhysicalInterface
+from network.Interface_Operations.Physical_Interface import PhysicalInterface
 from operations import globalVars
-
+from network.Router.DHCP_Server import DHCP_Server
 
 class Router:
     def __init__(self, host_name="Router", load=False):
@@ -20,8 +20,7 @@ class Router:
         self.rt_count = 0
         self.ARP_table = {}
 
-        self.dhcp_pools = []
-        self.dhcp_excluded_ip_ranges = []
+        self.dhcp_server = None
 
         self.canvas_object = None
         self.internal_clock = None
@@ -140,6 +139,18 @@ class Router:
                                                              self.MAC_Address, dot1q_header, packet, None)
                             forwarding_interface.send(frame)
 
+                elif segment_identifier == "UDP":
+                    application_identifier = segment.get_application_identifier()
+                    data = segment.get_data()
+                    match application_identifier:
+
+                        case "DHCP":
+                            if segment.get_dhcp_identifier() == 'DHCP_DISCOVER':
+                                self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
+
+                        case _:
+                            pass
+
         globalVars.prompt_save = True
 
     def icmp_echo_reply(self, original_sender_ipv4, interface, dot1q=None):
@@ -216,13 +227,6 @@ class Router:
     def add_arp_entry(self, ipv4, mac_address, address_type):
         self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.get_time()]
 
-    def add_dhcp_pool(self, pool):
-        for i in self.dhcp_pools:
-            if pool.get_name() == i.get_name():
-                return
-
-        self.dhcp_pools.append(pool)
-
     def get_interfaces(self):
         return self.interfaces
 
@@ -274,18 +278,11 @@ class Router:
     def get_arp_table(self):
         return self.ARP_table
 
+    def get_dhcp_server(self):
+        if not self.dhcp_server:
+            self.dhcp_server = DHCP_Server(self)
 
-    def exclude_ip_range_from_dhcp_pools(self, start_ip, end_ip, is_range):
-
-        if is_range:
-            for ip in hf.get_ip_range_from_to(start_ip, end_ip):
-                if ip not in self.dhcp_excluded_ip_ranges:
-                    self.dhcp_excluded_ip_ranges.append(ip)
-        else:
-            if start_ip not in self.dhcp_excluded_ip_ranges:
-                self.dhcp_excluded_ip_ranges.append(start_ip)
-
-        print(self.dhcp_excluded_ip_ranges)
+        return self.dhcp_server
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

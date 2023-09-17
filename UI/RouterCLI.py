@@ -1,8 +1,8 @@
 import tkinter as tk
 import UI.helper_functions as hf
 from UI.DeviceCLI import DeviceCli
-from network.SubInterface import SubInterface
-from network.Protocols.DHCP import DHCP
+from network.Interface_Operations.SubInterface import SubInterface
+from network.Router.DHCP_Pool import DHCPpool
 from operations import globalVars
 import network.show_commands.RouterShowCommands as Show
 
@@ -112,10 +112,10 @@ class RouterCli(DeviceCli):
                             if all(i == ' ' for i in pool_name):
                                 raise IndexError
                             pool_name = pool_name.strip()  # Remove trailing and leading spaces
-                            dhcp_pool = DHCP(self.class_object, pool_name)
-                            self.class_object.add_dhcp_pool(dhcp_pool)
+
+                            self.working_dhcp_pool = DHCPpool(self.class_object, pool_name)
+                            self.class_object.get_dhcp_server().add_dhcp_pool(self.working_dhcp_pool)
                             self.dhcp_configuration = True
-                            self.working_dhcp_pool = dhcp_pool
 
                             self.cli_text = self.class_object.get_host_name() + "(dhcp-config)> "
                             self.cli.insert(tk.END, "\n" + self.cli_text)

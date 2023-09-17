@@ -3,10 +3,10 @@ import tkinter as tk
 from tkinter import colorchooser, messagebox, ttk
 from operations import globalVars as globalVars
 import UI.helper_functions as hf
-import network.Ethernet_Cable
-import network.PC
-import network.Router
-import network.Switch
+import network.Interface_Operations.Ethernet_Cable
+import network.PC.PC
+import network.Router.Router
+import network.Switch.Switch
 from UI.EthernetCableCanvasObject import EthernetCableCanvasObject
 from UI.LabelCanvasObject import LabelCanvasObject
 from UI.PCCanvasObject import PCCanvasObject
@@ -17,7 +17,7 @@ from UI import loadIcons
 
 
 def create_pc(popup, canvas, generation, master, icons, time_class):
-    pc = PCCanvasObject(canvas, hf.get_next_pc(generation), icons, network.PC.PC(generation), master, time_class)
+    pc = PCCanvasObject(canvas, hf.get_next_pc(generation), icons, network.PC.PC.PC(generation), master, time_class)
     globalVars.objects.append(pc)       # Add to all objects
     globalVars.pc_objects.append(pc)    # Add to pc_objects
     popup.destroy()                     # Destroy TL window
@@ -27,7 +27,7 @@ def create_pc(popup, canvas, generation, master, icons, time_class):
 
 def create_switch(popup, canvas, icons, switch_type, master, time_class):
     if switch_type == "TSA1000X":
-        switch = SwitchCanvasObject(canvas, hf.get_next_switch(), icons, network.Switch.Switch(), master, time_class)
+        switch = SwitchCanvasObject(canvas, hf.get_next_switch(), icons, network.Switch.Switch.Switch(), master, time_class)
         globalVars.objects.append(switch)
         globalVars.sw_objects.append(switch)
     elif switch_type == "RTSA1000X":
@@ -39,7 +39,7 @@ def create_switch(popup, canvas, icons, switch_type, master, time_class):
 
 
 def create_router(popup, canvas, icons, master, time_class):
-    router = RouterCanvasObject(canvas, hf.get_next_router(), icons, network.Router.Router(), master, time_class)
+    router = RouterCanvasObject(canvas, hf.get_next_router(), icons, network.Router.Router.Router(), master, time_class)
     globalVars.objects.append(router)
     globalVars.ro_objects.append(router)
     popup.destroy()
@@ -197,7 +197,7 @@ def handle_button_click(master, canvas, device_type, time_class):
 
         eth_icon = loadIcons.get_ethernet_icon()[0]
         cable = EthernetCableCanvasObject(canvas, hf.get_next_cable(canvas), eth_icon,
-                                          network.Ethernet_Cable.EthernetCable(), master)
+                                          network.Interface_Operations.Ethernet_Cable.EthernetCable(), master)
         globalVars.cable_objects.append(cable)
 
     elif device_type == "Label":

@@ -1,9 +1,9 @@
 import UI.helper_functions as hf
 import network.network_functions as nf
-from network.Physical_Interface import PhysicalInterface
-from network.Dot1q import Dot1q
+from network.Interface_Operations.Physical_Interface import PhysicalInterface
+from network.Switch.Dot1q import Dot1q
 from operations import globalVars
-from network.VLAN import VLAN
+from network.Switch.VLAN import VLAN
 
 
 class Switch:
