@@ -15,11 +15,11 @@ class PCCli(DeviceCli):
         valid_command = True
         globalVars.prompt_save = True
 
-        if command.startswith("add arp "):
-            args = command.split('add arp ')[1]
-            ip = args.split(' ')[0]
-            mac = args.split(' ')[1]
-            self.class_object.add_arp_entry(ip, mac, "STATIC")
+        # if command.startswith("add arp "):
+        #     args = command.split('add arp ')[1]
+        #     ip = args.split(' ')[0]
+        #     mac = args.split(' ')[1]
+        #     self.class_object.add_arp_entry(ip, mac, "STATIC")
 
         if not command:
             self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "> ")
@@ -29,6 +29,10 @@ class PCCli(DeviceCli):
             configurations = Show.configuration(self.class_object)
             self.cli.insert(tk.END, "\n")
             self.cli.insert(tk.END, configurations)
+            self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
+
+        elif command == "ipconfig /renew":
+            self.class_object.renew_ip_address()
             self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
 
         elif command.startswith("ping"):

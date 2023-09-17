@@ -5,6 +5,7 @@ from network.Ethernet_Frame import EthernetFrame
 from network.Arp import Arp
 from network.Dot1q import Dot1q
 import time
+from network.UDP import UDP
 
 from operations import globalVars
 
@@ -150,6 +151,11 @@ def create_arp_reply(source_mac, source_ip, dest_mac, dest_ip, dot1q=None):
     frame = EthernetFrame(dest_mac, source_mac, dot1q, arp_packet, None)
 
     return frame
+
+
+def create_dhcp_discover(source_mac):
+    udp_segment = UDP(source_port=68, dest_port=67, data='')
+
 
 
 def interface_or_sub_interface(receiving_interface, forwarding_interface, original_sender_ipv4, packet_identifier, frame):

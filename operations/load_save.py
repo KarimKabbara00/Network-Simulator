@@ -107,7 +107,7 @@ def quit_program(canvas, master):
         master.quit()
 
 
-def save(master, canvas, file_name, clear):
+def save(master, canvas, file_name, clear):  # TODO: save and load router-dhcp, dhcp class, pc-dhcp
     save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
                  'OTHER': {}}
 

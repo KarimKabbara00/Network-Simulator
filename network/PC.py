@@ -37,6 +37,8 @@ class PC:
         self.ping_rtt_times = []
         # ICMP Control
 
+        self.dhcp_server = None
+
         self.internal_clock = None
 
     def set_interface(self):
@@ -65,6 +67,16 @@ class PC:
         frame = nf.create_arp_reply(self.MAC_Address, self.ipv4_address, dest_mac, dest_ip)
         self.interface[0].send(frame)
         globalVars.prompt_save = True
+
+    def send_dhcp_discover(self):
+        frame = nf.create_dhcp_discover()
+
+    def renew_ip_address(self):
+        if not self.dhcp_server:
+            self.send_dhcp_discover()
+        else:
+            # TODO: dhcp renew packet
+            pass
 
     def de_encapsulate(self, frame, receiving_interface):
         packet = frame.get_packet()
