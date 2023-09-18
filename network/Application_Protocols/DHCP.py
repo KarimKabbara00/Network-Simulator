@@ -88,10 +88,8 @@ class DhcpDiscover(Dhcp):
 
         self.options = DHCP_options
         self.options['DHCP_DISCOVER'] = True
-
         if preferred_ip:
             self.options['PREFERRED_IP'] = preferred_ip
-
         self.options['REQUEST_SUBNET_MASK'] = True
         self.options['REQUEST_ROUTER'] = True
         self.options['REQUEST_DNS_SERVER'] = True
@@ -109,7 +107,7 @@ class DhcpDiscover(Dhcp):
 
 class DhcpOffer(Dhcp):
     def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id,
-                 options):
+                 subnet_mask, default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name):
         super().__init__()
 
         self.flags = flags
@@ -119,12 +117,18 @@ class DhcpOffer(Dhcp):
         self.gi_address = gi_address
         self.ch_address = ch_address
         self.transaction_id = transaction_id
-        self.options = options
+
+        self.options = DHCP_options
+        self.options['DHCP_OFFER'] = True
+        self.options['REQUEST_SUBNET_MASK'] = subnet_mask
+        self.options['REQUEST_ROUTER'] = default_gateway
+        self.options['LEASE_TIME'] = lease_time
+        self.options['DHCP_IP_ADDRESS'] = dhcp_server_ip
+        self.options['REQUEST_DNS_SERVER'] = dns_servers
+        self.options['REQUEST_DOMAIN_NAME'] = domain_name
+        self.options = {i: j for i, j in self.options.items() if j != ''}
 
         self.dhcp_identifier = "DHCP_OFFER"
-
-    def get_application_identifier(self):
-        return self.application_identifier
 
     def get_dhcp_identifier(self):
         return self.dhcp_identifier
@@ -133,8 +137,29 @@ class DhcpOffer(Dhcp):
         print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address, self.transaction_id, self.options)
 
 
-class DhcpRequest:
-    pass
+class DhcpRequest(Dhcp):
+
+    def __init__(self, si_address, ch_address, provided_ip, transaction_id, flags):
+        super().__init__()
+
+        self.ch_address = ch_address
+        self.transaction_id = transaction_id
+        self.flags = flags
+
+        self.options = DHCP_options
+        self.options['DHCP_REQUEST'] = True
+        self.options['PREFERRED_IP'] = provided_ip
+        self.options['DHCP_IP_ADDRESS'] = si_address
+        self.options = {i: j for i, j in self.options.items() if j != ""}
+
+        self.dhcp_identifier = "DHCP_REQUEST"
+
+    def get_dhcp_identifier(self):
+        return self.dhcp_identifier
+
+    def show(self):
+        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address,
+              self.transaction_id, self.options)
 
 
 class DhcpAcknowledge:

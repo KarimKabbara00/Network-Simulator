@@ -3,6 +3,7 @@ import time as time
 import UI.helper_functions as hf
 import network.network_functions as nf
 from network.Interface_Operations.Physical_Interface import PhysicalInterface
+from network.Application_Protocols.DHCP import Dhcp
 from operations import globalVars
 
 
@@ -40,6 +41,7 @@ class PC:
         # DHCP
         self.dhcp_server = None
         self.preferred_ipv4_address = None
+        self.received_dhcp_offer = False
         # DHCP
 
         self.internal_clock = None
@@ -76,12 +78,20 @@ class PC:
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
+    def send_dhcp_request(self, dhcp_server_ip_address, provided_ip, transaction_id, flags):
+        frame = nf.create_dhcp_request(self.MAC_Address, dhcp_server_ip_address, provided_ip, transaction_id, flags)
+        self.interface[0].send(frame)
+        globalVars.prompt_save = True
+
     def renew_nic_configuration(self):
         if not self.dhcp_server:
             self.send_dhcp_discover()
         else:
             # TODO: dhcp renew packet
+            # TODO: self.send_dhcp_renew()
             pass
+
+        self.received_dhcp_offer = False
 
     def de_encapsulate(self, frame, receiving_interface):
         packet = frame.get_packet()
@@ -127,13 +137,18 @@ class PC:
                     linebreak=True, last=False)
 
             elif segment_identifier == "UDP":
-                application_identifier = segment.get_application_identifier()
                 data = segment.get_data()
+                application_identifier = data.get_application_identifier()
                 match application_identifier:
 
                     case "DHCP":
-                        if segment.get_dhcp_identifier() == 'DHCP_OFFER':
-                            data.show()
+                        if data.get_dhcp_identifier() == 'DHCP_OFFER' and not self.received_dhcp_offer:
+                            self.received_dhcp_offer = True
+                            dhcp_server_ip_address = data.get_si_address()
+                            provided_ip = data.get_yi_address()
+                            transaction_id = data.get_transaction_id()
+                            flags = data.get_flags()
+                            self.send_dhcp_request(dhcp_server_ip_address, provided_ip, transaction_id, flags)
 
                     case _:
                         pass

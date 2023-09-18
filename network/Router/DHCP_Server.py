@@ -2,7 +2,6 @@ import UI.helper_functions as hf
 import network.Router.DHCP_Pool
 import network.network_functions as nf
 from network.Application_Protocols import DHCP
-from network.Application_Protocols.DHCP import DhcpOffer
 
 
 class DHCP_Server:
@@ -49,7 +48,7 @@ class DHCP_Server:
         options = data.get_options()
 
         ci_address = None
-        yi_address, preferred = None, False
+        yi_address = None
         si_address = receiving_interface.get_ipv4_address()
         gi_address = None
         ch_address = source_mac
@@ -67,7 +66,6 @@ class DHCP_Server:
             if option == "PREFERRED_IP":
                 if option["PREFERRED_IP"]:
                     yi_address = working_dhcp_pool.get_ip_from_pool(option["PREFERRED_IP"])
-                    preferred = True
                 else:
                     yi_address = working_dhcp_pool.get_ip_from_pool(None)
 
@@ -82,19 +80,8 @@ class DHCP_Server:
 
             elif option == "REQUEST_DOMAIN_NAME":
                 domain_name = working_dhcp_pool.get_domain_name()
-
-        dhcp_options = DHCP.DHCP_options
-        if preferred:
-            dhcp_options['PREFERRED_IP'] = yi_address
-
-        dhcp_options['DHCP_OFFER'] = True
-        dhcp_options['REQUEST_SUBNET_MASK'] = subnet_mask
-        dhcp_options['REQUEST_ROUTER'] = default_gateway
-        dhcp_options['LEASE_TIME'] = lease_time
-        dhcp_options['DHCP_IP_ADDRESS'] = dhcp_server_ip
-        dhcp_options['REQUEST_DNS_SERVER'] = dns_servers
-        dhcp_options['REQUEST_DOMAIN_NAME'] = domain_name
         # ---------------------------- DHCP OPTIONS ---------------------------- #
 
-        nf.create_dhcp_offer(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
-                             si_address, gi_address, ch_address, transaction_id, dhcp_options)
+        return nf.create_dhcp_offer(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
+                                    si_address, gi_address, ch_address, transaction_id,
+                                    subnet_mask, default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name)

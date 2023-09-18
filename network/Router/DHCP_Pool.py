@@ -4,8 +4,11 @@ class DHCPpool:
     def __init__(self, class_object, name):
         self.class_object = class_object
         self.pool_name = name
-        self.ip_pool = []
-        self.leased_ip_pool = []
+
+        self.ip_pool = []           # Available IPs
+        self.leased_ip_pool = []    # Leased IPs
+        self.offered_ips = []       # IPs waiting for DORA -> Request
+
         self.pool_subnet = None
         self.dns_servers = []
         self.domain_name = None
@@ -39,11 +42,16 @@ class DHCPpool:
         return self.ip_pool
 
     def get_ip_from_pool(self, ip):
+
         if ip and ip in self.ip_pool:
-            return ip
+            ip_address = ip
 
         else:
-            return next(iter(self.ip_pool))
+            ip_address = next(iter(self.ip_pool))
+
+        self.ip_pool.remove(ip_address)         # Remove from pool
+        self.offered_ips.append(ip_address)     # Place it in limbo until Request is received.
+        return ip_address
 
     def get_subnet(self):
         return self.pool_subnet
@@ -62,6 +70,7 @@ class DHCPpool:
             return None
         else:
             return hf.get_lease_time(self.lease_time)
+
 
 
 

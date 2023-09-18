@@ -163,12 +163,22 @@ def create_dhcp_discover(source_mac, preferred_ip, dot1q=None):
 
 
 def create_dhcp_offer(source_ip, source_mac, flags, ci_address, yi_address, si_address, gi_address, ch_address,
-                      transaction_id, dhcp_options, dot1q=None):
+                      transaction_id, subnet_mask, default_gateway, lease_time, dhcp_server_ip, dns_servers,
+                      domain_name, dot1q=None):
+
     application_data = DhcpOffer(flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id,
-                                 dhcp_options)
+                                 subnet_mask, default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name)
     udp_segment = UDP(source_port=67, dest_port=68, data=application_data)
     packet = create_ipv4_packet(udp_segment, source_ip, '255.255.255.255')
     frame = create_ethernet_frame(ch_address, source_mac, dot1q, packet, None)
+    return frame
+
+
+def create_dhcp_request(source_mac, si_address, provided_ip, transaction_id, flags, dot1q=None):
+    application_data = DhcpRequest(si_address, source_mac, provided_ip, transaction_id, flags)
+    udp_segment = UDP(source_port=68, dest_port=67, data=application_data)
+    packet = create_ipv4_packet(udp_segment, "0.0.0.0", '255.255.255.255')
+    frame = create_ethernet_frame("FF:FF:FF:FF:FF:FF", source_mac, dot1q, packet, None)
     return frame
 
 

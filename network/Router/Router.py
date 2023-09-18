@@ -141,12 +141,17 @@ class Router:
                     data = segment.get_data()
                     application_identifier = data.get_application_identifier()
                     data.show()
-                    match application_identifier:
 
+                    match application_identifier:
                         case "DHCP":
                             if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
-                                print('here 2')
                                 frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
+                                receiving_interface.send(frame)
+
+                            elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
+                                # TODO: need to look in options to remove ip from limbo, and send correct option data.
+                                #   Read the details about arp after client claims an IP
+                                frame = self.dhcp_server.create_request()
                                 receiving_interface.send(frame)
                         case _:
                             pass
