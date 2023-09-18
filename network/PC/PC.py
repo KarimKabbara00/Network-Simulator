@@ -126,6 +126,18 @@ class PC:
                         segment.get_size()) + " time=" + time_taken + " TTL=" + str(int(packet.get_ttl(), 2)),
                     linebreak=True, last=False)
 
+            elif segment_identifier == "UDP":
+                application_identifier = segment.get_application_identifier()
+                data = segment.get_data()
+                match application_identifier:
+
+                    case "DHCP":
+                        if segment.get_dhcp_identifier() == 'DHCP_OFFER':
+                            data.show()
+
+                    case _:
+                        pass
+
         globalVars.prompt_save = True
 
     def add_arp_entry(self, ipv4, mac_address, address_type):

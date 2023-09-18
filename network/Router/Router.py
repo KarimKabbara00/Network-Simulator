@@ -60,10 +60,9 @@ class Router:
 
         # Only deal with the packet if the receiving interface is operational
         if receiving_interface.get_is_operational():
-            # TODO could 'and forwarding_interface' this cause issues
 
             # # Check if the dest is in the router's ARP table, and the packet is not an ARP packet
-            if (original_dest_ipv4 not in self.ARP_table and packet_identifier != 'ARP' and
+            if (forwarding_interface and original_dest_ipv4 not in self.ARP_table and packet_identifier != 'ARP' and
                     original_dest_ipv4 != forwarding_interface.get_ipv4_address()):
                 self.arp_request(original_dest_ipv4, forwarding_interface, dot1q_header)
 
@@ -91,8 +90,6 @@ class Router:
                         # If in ARP table, send a reply to the original destination
                         if original_dest_ipv4 in self.ARP_table:
                             # Goes to original dest
-                            # self.arp_reply(forwarding_interface, original_dest_ipv4, original_sender_mac,
-                            #                original_sender_ipv4, dot1q_header)
                             self.arp_reply(receiving_interface, original_dest_ipv4, original_sender_mac,
                                            original_sender_ipv4, dot1q_header)
 
@@ -140,14 +137,17 @@ class Router:
                             forwarding_interface.send(frame)
 
                 elif segment_identifier == "UDP":
-                    application_identifier = segment.get_application_identifier()
+
                     data = segment.get_data()
+                    application_identifier = data.get_application_identifier()
+                    data.show()
                     match application_identifier:
 
                         case "DHCP":
-                            if segment.get_dhcp_identifier() == 'DHCP_DISCOVER':
-                                self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
-
+                            if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
+                                print('here 2')
+                                frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
+                                receiving_interface.send(frame)
                         case _:
                             pass
 

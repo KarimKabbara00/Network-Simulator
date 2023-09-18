@@ -57,6 +57,12 @@ class DHCPpool:
     def get_domain_name(self):
         return self.domain_name
 
+    def get_lease_time(self):
+        if all(i == 0 for i in self.lease_time):
+            return None
+        else:
+            return hf.get_lease_time(self.lease_time)
+
 
 
 

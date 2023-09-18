@@ -162,11 +162,14 @@ def create_dhcp_discover(source_mac, preferred_ip, dot1q=None):
     return frame
 
 
-def create_dhcp_offer():
-
-    application_data = DhcpOffer()
-
-    return None
+def create_dhcp_offer(source_ip, source_mac, flags, ci_address, yi_address, si_address, gi_address, ch_address,
+                      transaction_id, dhcp_options, dot1q=None):
+    application_data = DhcpOffer(flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id,
+                                 dhcp_options)
+    udp_segment = UDP(source_port=67, dest_port=68, data=application_data)
+    packet = create_ipv4_packet(udp_segment, source_ip, '255.255.255.255')
+    frame = create_ethernet_frame(ch_address, source_mac, dot1q, packet, None)
+    return frame
 
 
 def interface_or_sub_interface(receiving_interface, forwarding_interface, original_sender_ipv4, packet_identifier, frame):

@@ -835,3 +835,11 @@ def get_ip_range_from_to(start_ip, end_ip):
             break
 
     return ip_pool
+
+
+def get_lease_time(lease_time):
+    days_as_seconds = int(lease_time[0]) * 24 * 3600
+    hours_as_seconds = int(lease_time[1]) * 3600
+    minutes_as_seconds = int(lease_time[2]) * 60
+    return days_as_seconds + hours_as_seconds + minutes_as_seconds
+

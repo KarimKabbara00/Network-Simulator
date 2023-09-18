@@ -1,43 +1,44 @@
 import random
-from abc import ABC, abstractmethod
+from abc import ABC
 from operations import globalVars
 
-option_50 = ["PREFERRED_IP", ""]
-option_51 = "LEASE_TIME"
-option_54 = "DHCP_IP_ADDRESS"
-
-option_53_1 = "DHCP_DISCOVER"
-option_53_2 = "DHCP_OFFER"
-option_53_3 = "DHCP_REQUEST"
-option_53_4 = "DHCP_DECLINE"
-option_53_5 = "DHCP_ACK"
-option_53_6 = "DHCP_NAK"
-option_53_7 = "DHCP_RELEASE"
-option_53_9 = "DHCP_FORCE_RENEW"
-
-option_55_1 = "REQUEST_SUBNET_MASK"
-option_55_3 = "REQUEST_ROUTER"
-option_55_6 = "REQUEST_DNS_SERVER"
-option_55_15 = "REQUEST_DOMAIN_NAME"
+DHCP_options = {
+    "PREFERRED_IP": "",             # option_50
+    "LEASE_TIME": "",               # option_51
+    "DHCP_DISCOVER": "",            # option_53_1
+    "DHCP_OFFER": "",               # option_53_2
+    "DHCP_REQUEST": "",             # option_53_3
+    "DHCP_DECLINE": "",             # option_53_4
+    "DHCP_ACK": "",                 # option_53_5
+    "DHCP_NAK": "",                 # option_53_6
+    "DHCP_RELEASE": "",             # option_53_7
+    "DHCP_FORCE_RENEW": "",         # option_53_9
+    "DHCP_IP_ADDRESS": "",          # option_54
+    "REQUEST_SUBNET_MASK": "",      # option_55_1
+    "REQUEST_ROUTER": "",           # option_55_3
+    "REQUEST_DNS_SERVER": [],       # option_55_6
+    "REQUEST_DOMAIN_NAME": "",      # option_55_15
+    "RELAY_AGENT_INFORMATION": "",  # option_82
+}
 
 
 class Dhcp(ABC):
     def __init__(self):
-        self.op = 0x01                      # 0x01 is request
-        self.hardware_type = 0x01           # 0x01 is Ethernet
-        self.hardware_length = 0x06         # 6 bytes for mac address
-        self.hops = 0                       # number of hops taken
-        self.transaction_id = None          # Set to a random value by client
-        self.sec = None                     # time elapsed since send
+        self.op = 0x01                  # 0x01 is request
+        self.hardware_type = 0x01       # 0x01 is Ethernet
+        self.hardware_length = 0x06     # 6 bytes for mac address
+        self.hops = 0                   # number of hops taken
+        self.transaction_id = None      # Set to a random value by client
+        self.sec = None                 # time elapsed since send
         self.flags = []
-        self.ci_address = None              # Current client IP address (None when DORA -> Discover)
-        self.yi_address = None              # Offered client IP Address. Set by DHCP server when replying (DORA - Offer)
-        self.si_address = None              # DHCP Server address. Client replies to this (DORA -> Request)
-        self.gi_address = None              # Gateway IP address. Used by DHCP Relay Agents
-        self.ch_address = None              # Client MAC address. Used for ID and communication
-        self.s_name = None                  # DHCP Server name (Can be anything or FQDN, DORA -> Offer, Ack)
-        self.file_name = None               # Used by FTP?
-        self.options = []
+        self.ci_address = None          # Current client IP address (None when all of DORA)
+        self.yi_address = None          # Offered client IP Address. Set by DHCP server when replying (DORA -> Offer)
+        self.si_address = None          # DHCP Server address. Client replies to this (DORA -> Request)
+        self.gi_address = None          # Gateway IP address. Used by DHCP Relay Agents
+        self.ch_address = None          # Client MAC address. Used for ID and communication
+        self.s_name = None              # DHCP Server name (Can be anything or FQDN, DORA -> Offer, Ack)
+        self.file_name = None           # Used by FTP?
+        self.options = {}
 
         self.application_identifier = "DHCP"
 
@@ -76,29 +77,51 @@ class DhcpDiscover(Dhcp):
     def __init__(self, is_broadcast, preferred_ip):
         super().__init__()
 
-        self.transaction_id = random.getrandbits(16)    # Random 16-bit number (stored as int)
-        self.sec = globalVars.internal_clock.get_time() # Time sent
+        self.transaction_id = random.getrandbits(16)  # Random 16-bit number (stored as int)
+        self.sec = globalVars.internal_clock.get_time()  # Time sent
 
         if is_broadcast:
-            self.flags.append(0x01)                     # B set to 1 for broadcast reply
+            self.flags.append(0x01)  # B set to 1 for broadcast reply
         else:
-            self.flags.append(0x00)                     # B set to 0 for unicast reply
-        self.flags.append(0b0000000000000000)           # 15 0's. reserved and not used.
+            self.flags.append(0x00)  # B set to 0 for unicast reply
+        self.flags.append(0b0000000000000000)  # 15 0's. reserved and not used.
+
+        self.options = DHCP_options
+        self.options['DHCP_DISCOVER'] = True
 
         if preferred_ip:
-            option_50[1] = preferred_ip
+            self.options['PREFERRED_IP'] = preferred_ip
 
-        self.options = [option_53_1, option_50, option_55_1, option_55_3, option_55_6, option_55_15]
+        self.options['REQUEST_SUBNET_MASK'] = True
+        self.options['REQUEST_ROUTER'] = True
+        self.options['REQUEST_DNS_SERVER'] = True
+        self.options['REQUEST_DOMAIN_NAME'] = True
+        self.options = {i: j for i, j in self.options.items() if j != ""}
+
         self.dhcp_identifier = "DHCP_DISCOVER"
 
     def get_dhcp_identifier(self):
         return self.dhcp_identifier
 
+    def show(self):
+        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address, self.transaction_id, self.options)
+
 
 class DhcpOffer(Dhcp):
-    def __init__(self, is_broadcast):
+    def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id,
+                 options):
         super().__init__()
 
+        self.flags = flags
+        self.ci_address = ci_address
+        self.yi_address = yi_address
+        self.si_address = si_address
+        self.gi_address = gi_address
+        self.ch_address = ch_address
+        self.transaction_id = transaction_id
+        self.options = options
+
+        self.dhcp_identifier = "DHCP_OFFER"
 
     def get_application_identifier(self):
         return self.application_identifier
@@ -106,14 +129,21 @@ class DhcpOffer(Dhcp):
     def get_dhcp_identifier(self):
         return self.dhcp_identifier
 
+    def show(self):
+        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address, self.transaction_id, self.options)
+
+
 class DhcpRequest:
     pass
+
 
 class DhcpAcknowledge:
     pass
 
+
 class DhcpRenew:
     pass
+
 
 class DhcpRelease:
     pass

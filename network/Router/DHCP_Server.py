@@ -2,24 +2,7 @@ import UI.helper_functions as hf
 import network.Router.DHCP_Pool
 import network.network_functions as nf
 from network.Application_Protocols import DHCP
-
-option_50 = ["PREFERRED_IP", ""]
-option_51 = "LEASE_TIME"
-option_54 = "DHCP_IP_ADDRESS"
-
-option_53_1 = "DHCP_DISCOVER"
-option_53_2 = "DHCP_OFFER"
-option_53_3 = "DHCP_REQUEST"
-option_53_4 = "DHCP_DECLINE"
-option_53_5 = "DHCP_ACK"
-option_53_6 = "DHCP_NAK"
-option_53_7 = "DHCP_RELEASE"
-option_53_9 = "DHCP_FORCE_RENEW"
-
-option_55_1 = "REQUEST_SUBNET_MASK"
-option_55_3 = "REQUEST_ROUTER"
-option_55_6 = "REQUEST_DNS_SERVER"
-option_55_15 = "REQUEST_DOMAIN_NAME"
+from network.Application_Protocols.DHCP import DhcpOffer
 
 
 class DHCP_Server:
@@ -58,69 +41,60 @@ class DHCP_Server:
             return None
 
     def create_offer(self, receiving_interface, data: DHCP.Dhcp, source_mac):
-        working_dhcp_pool:network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
+
+        working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(
+            receiving_interface)
+
         flags = data.get_flags()
         options = data.get_options()
 
-        # global option_50, option_55_1
-
         ci_address = None
-        yi_address = None
+        yi_address, preferred = None, False
         si_address = receiving_interface.get_ipv4_address()
         gi_address = None
         ch_address = source_mac
         transaction_id = data.get_transaction_id()
 
+        # ---------------------------- DHCP OPTIONS ---------------------------- #
         subnet_mask = None
         default_gateway = None
-        lease_time = None
-        lease_time = working_dhcp_pool.get_lease_time()  # TODO: convert lease list to seconds
-        dhcp_server_ip = None
+        lease_time = working_dhcp_pool.get_lease_time()
+        dhcp_server_ip = receiving_interface.get_ipv4_address()
         dns_servers = []
         domain_name = None
 
-        for option in options:
-            if option ==  option_50:
-                if option_50[1]:
-                    yi_address = working_dhcp_pool.get_ip_from_pool(option_50[1])
+        for option in options.items():
+            if option == "PREFERRED_IP":
+                if option["PREFERRED_IP"]:
+                    yi_address = working_dhcp_pool.get_ip_from_pool(option["PREFERRED_IP"])
+                    preferred = True
                 else:
                     yi_address = working_dhcp_pool.get_ip_from_pool(None)
 
-            elif option == option_55_1:
+            elif option == "REQUEST_SUBNET_MASK":
                 subnet_mask = working_dhcp_pool.get_subnet()
 
-            elif option == option_55_3:
+            elif option == "REQUEST_ROUTER":
                 default_gateway = working_dhcp_pool.get_default_gateway()
 
-            elif option == option_55_6:
+            elif option == "REQUEST_DNS_SERVER":
                 dns_servers = working_dhcp_pool.get_dns_servers()
 
-            elif option == option_55_15:
+            elif option == "REQUEST_DOMAIN_NAME":
                 domain_name = working_dhcp_pool.get_domain_name()
 
-        # TODO: May have to convert options to dictionaries, so that they contain the value associated with the option
-        new_options = [option_53_2, subnet_mask, ]
+        dhcp_options = DHCP.DHCP_options
+        if preferred:
+            dhcp_options['PREFERRED_IP'] = yi_address
 
-        nf.create_dhcp_offer()
+        dhcp_options['DHCP_OFFER'] = True
+        dhcp_options['REQUEST_SUBNET_MASK'] = subnet_mask
+        dhcp_options['REQUEST_ROUTER'] = default_gateway
+        dhcp_options['LEASE_TIME'] = lease_time
+        dhcp_options['DHCP_IP_ADDRESS'] = dhcp_server_ip
+        dhcp_options['REQUEST_DNS_SERVER'] = dns_servers
+        dhcp_options['REQUEST_DOMAIN_NAME'] = domain_name
+        # ---------------------------- DHCP OPTIONS ---------------------------- #
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        nf.create_dhcp_offer(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
+                             si_address, gi_address, ch_address, transaction_id, dhcp_options)
