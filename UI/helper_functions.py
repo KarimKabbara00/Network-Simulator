@@ -843,3 +843,16 @@ def get_lease_time(lease_time):
     minutes_as_seconds = int(lease_time[2]) * 60
     return days_as_seconds + hours_as_seconds + minutes_as_seconds
 
+
+def build_tid_table():
+    return {"REQUEST_SUBNET_MASK": '', 'REQUEST_ROUTER': '', 'REQUEST_DNS_SERVER': '', 'REQUEST_DOMAIN_NAME': '',
+            'LEASE_TIME': '', 'DHCP_IP_ADDRESS': ''}
+
+
+def build_ip_config_line(description, value):
+    while len(description) < 34:
+        if len(description) % 2 == 0:
+            description += '. '
+        else:
+            description += ' '
+    return description + ': ' + value

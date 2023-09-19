@@ -3,7 +3,6 @@ import time as time
 import UI.helper_functions as hf
 import network.network_functions as nf
 from network.Interface_Operations.Physical_Interface import PhysicalInterface
-from network.Application_Protocols.DHCP import Dhcp
 from operations import globalVars
 
 
@@ -21,9 +20,10 @@ class PC:
         self.Model_Number = model
         self.interface = self.set_interface()
 
-        self.ipv4_address = generate_ip_address()  # TODO: REMOVE RANDOM IP
-        self.netmask = "255.255.255.0"  # TODO: REMOVE PRESET NETMASK
+        self.ipv4_address = None  # generate_ip_address()  # TODO: REMOVE RANDOM IP
+        self.netmask = None  # "255.255.255.0"  # TODO: REMOVE PRESET NETMASK
         self.ipv6_address = None
+        self.ipv6_link_local = None  # TODO: GENERATE LINK LOCAL
         self.prefix = None
         self.default_gateway = None
 
@@ -40,10 +40,13 @@ class PC:
 
         # DHCP
         self.dhcp_server = None
+        self.autoconfiguration_enabled = False
         self.preferred_ipv4_address = None
         self.received_dhcp_offer = False
         self.ip_lease_time = None
-        self.dns_servers = None             # assigned by dhcp, not dhcp related.
+        self.dns_servers = None  # assigned by dhcp, not dhcp related.
+        self.domain_name = None  # ^
+        self.dhcp_transaction_id = None
         # DHCP
 
         self.internal_clock = None
@@ -76,7 +79,8 @@ class PC:
         globalVars.prompt_save = True
 
     def send_dhcp_discover(self):
-        frame = nf.create_dhcp_discover(self.MAC_Address, self.preferred_ipv4_address)
+        self.dhcp_transaction_id = random.getrandbits(16)  # Random 16-bit number (stored as int)
+        frame = nf.create_dhcp_discover(self.MAC_Address, self.preferred_ipv4_address, self.dhcp_transaction_id)
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
@@ -93,6 +97,7 @@ class PC:
             # TODO: self.send_dhcp_renew()
             pass
 
+        self.autoconfiguration_enabled = True  # TODO: implement a way to have dhcp, but not allow autoconfig
         self.received_dhcp_offer = False
 
     def de_encapsulate(self, frame, receiving_interface):
@@ -149,17 +154,18 @@ class PC:
                             self.received_dhcp_offer = True
                             dhcp_server_ip_address = data.get_si_address()
                             provided_ip = data.get_yi_address()
-                            transaction_id = data.get_transaction_id()
                             flags = data.get_flags()
-                            self.send_dhcp_request(dhcp_server_ip_address, provided_ip, transaction_id, flags)
+                            self.send_dhcp_request(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
                             self.dhcp_server = data.get_si_address()
                             self.ipv4_address = self.preferred_ipv4_address = data.get_yi_address()
-                            self.netmask = data.get_netmask()
-                            self.default_gateway = data.get_default_gateway()
-                            self.ip_lease_time = data.get_lease_time()
-                            self.dns_servers = data.get_dns_servers()
+                            options = data.get_options()
+                            self.netmask = options['REQUEST_SUBNET_MASK']
+                            self.default_gateway = options['REQUEST_ROUTER']
+                            self.ip_lease_time = options['LEASE_TIME']
+                            self.dns_servers = options['REQUEST_DNS_SERVER']
+                            self.domain_name = options['REQUEST_DOMAIN_NAME']
                     case _:
                         pass
 
@@ -195,10 +201,45 @@ class PC:
             return ""
         return self.ipv6_address
 
+    def get_ipv6_link_local(self):
+        if not self.ipv6_link_local:
+            return ""
+        return self.ipv6_link_local
+
     def get_prefix(self):
         if not self.prefix:
             return ""
         return self.prefix
+
+    def get_domain_name(self):
+        if not self.domain_name:
+            return ''
+        return self.domain_name
+
+    def get_dns_servers(self, as_list=False):
+        if not self.dns_servers:
+            return ''
+        elif as_list:
+            dns_servers = self.dns_servers[0]
+            try:
+                for i in range(1, len(self.dns_servers)):
+                    dns_servers += '\n' + 39 * ' ' + self.dns_servers[i]
+            except IndexError:
+                pass
+            return dns_servers
+        else:
+            return self.dns_servers
+
+    def get_dhcp_server(self):
+        if not self.dhcp_server:
+            return ''
+        return self.dhcp_server
+
+    def get_auto_config(self, as_str=False):
+        if as_str:
+            return str(self.autoconfiguration_enabled)
+        else:
+            return self.autoconfiguration_enabled
 
     def get_arp_table(self):
         return self.ARP_table
@@ -227,6 +268,9 @@ class PC:
         self.ipv4_address = ip
         if is_preferred:
             self.preferred_ipv4_address = self.ipv4_address
+
+    def get_preferred_ip(self):
+        return self.preferred_ipv4_address
 
     def set_ipv6_address(self, ip):
         self.ipv6_address = ip

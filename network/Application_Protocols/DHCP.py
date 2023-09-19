@@ -1,5 +1,4 @@
-import random
-from abc import ABC
+from abc import ABC, abstractmethod
 from operations import globalVars
 
 DHCP_options = {
@@ -69,15 +68,16 @@ class Dhcp(ABC):
     def get_s_name(self):
         return self.s_name
 
+    @abstractmethod
     def get_options(self):
         return self.options
 
 
 class DhcpDiscover(Dhcp):
-    def __init__(self, is_broadcast, preferred_ip):
+    def __init__(self, is_broadcast, preferred_ip, transaction_id):
         super().__init__()
 
-        self.transaction_id = random.getrandbits(16)  # Random 16-bit number (stored as int)
+        self.transaction_id = transaction_id
         self.sec = globalVars.internal_clock.get_time()  # Time sent
 
         if is_broadcast:
@@ -101,13 +101,11 @@ class DhcpDiscover(Dhcp):
     def get_dhcp_identifier(self):
         return self.dhcp_identifier
 
-    def show(self):
-        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address, self.transaction_id, self.options)
-
+    def get_options(self):
+        return self.options
 
 class DhcpOffer(Dhcp):
-    def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id,
-                 subnet_mask, default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name):
+    def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id):
         super().__init__()
 
         self.flags = flags
@@ -120,12 +118,6 @@ class DhcpOffer(Dhcp):
 
         self.options = DHCP_options
         self.options['DHCP_OFFER'] = True
-        self.options['REQUEST_SUBNET_MASK'] = subnet_mask
-        self.options['REQUEST_ROUTER'] = default_gateway
-        self.options['LEASE_TIME'] = lease_time
-        self.options['DHCP_IP_ADDRESS'] = dhcp_server_ip
-        self.options['REQUEST_DNS_SERVER'] = dns_servers
-        self.options['REQUEST_DOMAIN_NAME'] = domain_name
         self.options = {i: j for i, j in self.options.items() if j != ''}
 
         self.dhcp_identifier = "DHCP_OFFER"
@@ -133,8 +125,8 @@ class DhcpOffer(Dhcp):
     def get_dhcp_identifier(self):
         return self.dhcp_identifier
 
-    def show(self):
-        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address, self.transaction_id, self.options)
+    def get_options(self):
+        return self.options
 
 
 class DhcpRequest(Dhcp):
@@ -157,14 +149,12 @@ class DhcpRequest(Dhcp):
     def get_dhcp_identifier(self):
         return self.dhcp_identifier
 
-    def show(self):
-        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address,
-              self.transaction_id, self.options)
+    def get_options(self):
+        return self.options
 
 
 class DhcpAcknowledge(Dhcp):
-    def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id, subnet_mask,
-                 default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name):
+    def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id, options):
         super().__init__()
 
         self.flags = flags
@@ -177,12 +167,12 @@ class DhcpAcknowledge(Dhcp):
 
         self.options = DHCP_options
         self.options['DHCP_ACK'] = True
-        self.options['REQUEST_SUBNET_MASK'] = subnet_mask
-        self.options['REQUEST_ROUTER'] = default_gateway
-        self.options['LEASE_TIME'] = lease_time
-        self.options['DHCP_IP_ADDRESS'] = dhcp_server_ip
-        self.options['REQUEST_DNS_SERVER'] = dns_servers
-        self.options['REQUEST_DOMAIN_NAME'] = domain_name
+        self.options['REQUEST_SUBNET_MASK'] = options['REQUEST_SUBNET_MASK']
+        self.options['REQUEST_ROUTER'] = options['REQUEST_ROUTER']
+        self.options['LEASE_TIME'] = options['LEASE_TIME']
+        self.options['DHCP_IP_ADDRESS'] = options['DHCP_IP_ADDRESS']
+        self.options['REQUEST_DNS_SERVER'] = options['REQUEST_DNS_SERVER']
+        self.options['REQUEST_DOMAIN_NAME'] = options['REQUEST_DOMAIN_NAME']
         self.options = {i: j for i, j in self.options.items() if j != ''}
 
         self.dhcp_identifier = "DHCP_ACK"
@@ -190,9 +180,8 @@ class DhcpAcknowledge(Dhcp):
     def get_dhcp_identifier(self):
         return self.dhcp_identifier
 
-    def show(self):
-        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address,
-              self.transaction_id, self.options)
+    def get_options(self):
+        return self.options
 
 
 class DhcpRenew:

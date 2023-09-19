@@ -356,7 +356,7 @@ class RouterCli(DeviceCli):
                     if not dns_server:
                         raise IndexError
                     if hf.check_ipv4(dns_server):
-                        self.working_dhcp_pool.set_dns_server(dns_server)
+                        self.working_dhcp_pool.add_dns_server(dns_server)
                         self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "(dhcp-config)> ")
                     else:
                         self.cli.insert(tk.END, "\nInvalid IP Address\n")

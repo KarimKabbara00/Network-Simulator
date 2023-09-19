@@ -26,7 +26,13 @@ class PCCli(DeviceCli):
             valid_command = False
 
         elif command == "ipconfig":
-            configurations = Show.configuration(self.class_object)
+            configurations = Show.ip_config(self.class_object)
+            self.cli.insert(tk.END, "\n")
+            self.cli.insert(tk.END, configurations)
+            self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
+
+        elif command == "ipconfig /all":
+            configurations = Show.ip_config_all(self.class_object)
             self.cli.insert(tk.END, "\n")
             self.cli.insert(tk.END, configurations)
             self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")

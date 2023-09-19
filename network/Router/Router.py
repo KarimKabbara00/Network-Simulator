@@ -140,7 +140,6 @@ class Router:
 
                     data = segment.get_data()
                     application_identifier = data.get_application_identifier()
-                    data.show()
 
                     match application_identifier:
                         case "DHCP":

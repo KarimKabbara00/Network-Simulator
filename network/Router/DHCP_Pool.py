@@ -1,13 +1,16 @@
+import random
 import UI.helper_functions as hf
+
+
 class DHCPpool:
 
     def __init__(self, class_object, name):
         self.class_object = class_object
         self.pool_name = name
 
-        self.ip_pool = []           # Available IPs
-        self.leased_ip_pool = []    # Leased IPs
-        self.offered_ips = []       # IPs waiting for DORA -> Request
+        self.ip_pool = []  # Available IPs
+        self.leased_ip_pool = []  # Leased IPs
+        self.offered_ips = []  # IPs waiting for DORA -> Request
 
         self.pool_subnet = None
         self.dns_servers = []
@@ -22,8 +25,9 @@ class DHCPpool:
             self.pool_subnet = subnet
 
         self.ip_pool = hf.get_ip_range(ip, subnet, is_prefix)
+        random.shuffle(self.ip_pool)
 
-    def set_dns_server(self, dns_server):
+    def add_dns_server(self, dns_server):
         self.dns_servers.append(dns_server)
 
     def set_domain_name(self, domain_name):
@@ -41,16 +45,21 @@ class DHCPpool:
     def get_pool(self):
         return self.ip_pool
 
-    def get_ip_from_pool(self, ip):
+    def get_ip_from_pool(self, ip, excluded_ips):
 
-        if ip and ip in self.ip_pool:
+        ip_address = None  # Remains None if ip pool is exhausted
+        if ip and ip in self.ip_pool and ip not in excluded_ips:
             ip_address = ip
 
         else:
-            ip_address = next(iter(self.ip_pool))
+            for ip in self.ip_pool:
+                if ip not in excluded_ips:
+                    ip_address = ip
 
-        self.ip_pool.remove(ip_address)         # Remove from pool
-        self.offered_ips.append(ip_address)     # Place it on hold until Request is received.
+        if ip_address:
+            self.ip_pool.remove(ip_address)  # Remove from pool
+            self.offered_ips.append(ip_address)  # Place it on hold until Request is received.
+
         return ip_address
 
     def remove_ip_from_hold(self, ip_address, assigned=True):
@@ -78,12 +87,3 @@ class DHCPpool:
             return None
         else:
             return hf.get_lease_time(self.lease_time)
-
-
-
-
-
-
-
-
-
