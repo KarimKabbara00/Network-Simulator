@@ -162,8 +162,37 @@ class DhcpRequest(Dhcp):
               self.transaction_id, self.options)
 
 
-class DhcpAcknowledge:
-    pass
+class DhcpAcknowledge(Dhcp):
+    def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id, subnet_mask,
+                 default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name):
+        super().__init__()
+
+        self.flags = flags
+        self.ci_address = ci_address
+        self.yi_address = yi_address
+        self.si_address = si_address
+        self.gi_address = gi_address
+        self.ch_address = ch_address
+        self.transaction_id = transaction_id
+
+        self.options = DHCP_options
+        self.options['DHCP_ACK'] = True
+        self.options['REQUEST_SUBNET_MASK'] = subnet_mask
+        self.options['REQUEST_ROUTER'] = default_gateway
+        self.options['LEASE_TIME'] = lease_time
+        self.options['DHCP_IP_ADDRESS'] = dhcp_server_ip
+        self.options['REQUEST_DNS_SERVER'] = dns_servers
+        self.options['REQUEST_DOMAIN_NAME'] = domain_name
+        self.options = {i: j for i, j in self.options.items() if j != ''}
+
+        self.dhcp_identifier = "DHCP_ACK"
+
+    def get_dhcp_identifier(self):
+        return self.dhcp_identifier
+
+    def show(self):
+        print(self.flags, self.ci_address, self.yi_address, self.si_address, self.gi_address, self.ch_address,
+              self.transaction_id, self.options)
 
 
 class DhcpRenew:

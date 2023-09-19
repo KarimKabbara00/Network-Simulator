@@ -137,10 +137,14 @@ class RouterCli(DeviceCli):
 
                             if hf.check_ipv4(ip_start):
                                 if not ip_end:
-                                    self.class_object.exclude_ip_range_from_dhcp_pools(ip_start, ip_end, is_range)
+                                    self.class_object.get_dhcp_server().exclude_ip_range_from_dhcp_pools(ip_start,
+                                                                                                         ip_end,
+                                                                                                         is_range)
                                     self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "> ")
                                 elif ip_end and hf.check_ipv4(ip_end):
-                                    self.class_object.exclude_ip_range_from_dhcp_pools(ip_start, ip_end, is_range)
+                                    self.class_object.get_dhcp_server().exclude_ip_range_from_dhcp_pools(ip_start,
+                                                                                                         ip_end,
+                                                                                                         is_range)
                                     self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "> ")
                                 else:
                                     self.cli.insert(tk.END, "\nInvalid IP Address(es)\n")

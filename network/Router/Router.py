@@ -149,10 +149,12 @@ class Router:
                                 receiving_interface.send(frame)
 
                             elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
-                                # TODO: need to look in options to remove ip from limbo, and send correct option data.
-                                #   Read the details about arp after client claims an IP
-                                frame = self.dhcp_server.create_request()
+                                frame = self.dhcp_server.create_ack(receiving_interface, data, original_sender_mac)
                                 receiving_interface.send(frame)
+
+                            elif data.get_dhcp_identifier() == "DHCP_ACK":
+                                # TODO: yes
+                                pass
                         case _:
                             pass
 

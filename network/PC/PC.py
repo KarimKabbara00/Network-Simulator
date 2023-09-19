@@ -42,6 +42,8 @@ class PC:
         self.dhcp_server = None
         self.preferred_ipv4_address = None
         self.received_dhcp_offer = False
+        self.ip_lease_time = None
+        self.dns_servers = None             # assigned by dhcp, not dhcp related.
         # DHCP
 
         self.internal_clock = None
@@ -143,6 +145,7 @@ class PC:
 
                     case "DHCP":
                         if data.get_dhcp_identifier() == 'DHCP_OFFER' and not self.received_dhcp_offer:
+                            # TODO: RFC requires ARP here to ensure address is not taken
                             self.received_dhcp_offer = True
                             dhcp_server_ip_address = data.get_si_address()
                             provided_ip = data.get_yi_address()
@@ -150,6 +153,13 @@ class PC:
                             flags = data.get_flags()
                             self.send_dhcp_request(dhcp_server_ip_address, provided_ip, transaction_id, flags)
 
+                        elif data.get_dhcp_identifier() == "DHCP_ACK":
+                            self.dhcp_server = data.get_si_address()
+                            self.ipv4_address = self.preferred_ipv4_address = data.get_yi_address()
+                            self.netmask = data.get_netmask()
+                            self.default_gateway = data.get_default_gateway()
+                            self.ip_lease_time = data.get_lease_time()
+                            self.dns_servers = data.get_dns_servers()
                     case _:
                         pass
 

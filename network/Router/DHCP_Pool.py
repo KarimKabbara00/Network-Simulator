@@ -50,8 +50,16 @@ class DHCPpool:
             ip_address = next(iter(self.ip_pool))
 
         self.ip_pool.remove(ip_address)         # Remove from pool
-        self.offered_ips.append(ip_address)     # Place it in limbo until Request is received.
+        self.offered_ips.append(ip_address)     # Place it on hold until Request is received.
         return ip_address
+
+    def remove_ip_from_hold(self, ip_address, assigned=True):
+        if assigned:
+            self.leased_ip_pool.append(ip_address)
+        else:
+            self.ip_pool.append(ip_address)
+
+        self.offered_ips.remove(ip_address)
 
     def get_subnet(self):
         return self.pool_subnet

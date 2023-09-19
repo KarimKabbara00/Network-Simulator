@@ -85,3 +85,49 @@ class DHCP_Server:
         return nf.create_dhcp_offer(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
                                     si_address, gi_address, ch_address, transaction_id,
                                     subnet_mask, default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name)
+
+    def create_ack(self, receiving_interface, data: DHCP.Dhcp, source_mac):
+        working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(
+            receiving_interface)
+
+        flags = data.get_flags()
+        options = data.get_options()
+
+        ci_address = None
+        yi_address = None
+        si_address = receiving_interface.get_ipv4_address()
+        gi_address = None
+        ch_address = source_mac
+        transaction_id = data.get_transaction_id()
+
+        subnet_mask = None
+        default_gateway = None
+        lease_time = working_dhcp_pool.get_lease_time()
+        dhcp_server_ip = receiving_interface.get_ipv4_address()
+        dns_servers = []
+        domain_name = None
+
+        for option in options.items():
+            if option == "PREFERRED_IP":
+                if option["PREFERRED_IP"]:
+                    yi_address = working_dhcp_pool.get_ip_from_pool(option["PREFERRED_IP"])
+                else:
+                    yi_address = working_dhcp_pool.get_ip_from_pool(None)
+
+            elif option == "REQUEST_SUBNET_MASK":
+                subnet_mask = working_dhcp_pool.get_subnet()
+
+            elif option == "REQUEST_ROUTER":
+                default_gateway = working_dhcp_pool.get_default_gateway()
+
+            elif option == "REQUEST_DNS_SERVER":
+                dns_servers = working_dhcp_pool.get_dns_servers()
+
+            elif option == "REQUEST_DOMAIN_NAME":
+                domain_name = working_dhcp_pool.get_domain_name()
+
+        working_dhcp_pool.remove_ip_from_hold(yi_address, assigned=True)  # False if NAK
+
+        return nf.create_dhcp_ack(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
+                                    si_address, gi_address, ch_address, transaction_id,
+                                    subnet_mask, default_gateway, lease_time, dhcp_server_ip, dns_servers, domain_name)
