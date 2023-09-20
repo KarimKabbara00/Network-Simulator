@@ -88,6 +88,7 @@ class DHCP_Server:
         ch_address = source_mac
         transaction_id = data.get_transaction_id()
         requested_options = self.transaction_ids[transaction_id]
+        self.transaction_ids.pop(transaction_id)
 
         working_dhcp_pool.remove_ip_from_hold(yi_address, assigned=True)  # False if NAK
 

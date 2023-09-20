@@ -44,6 +44,8 @@ class PC:
         self.preferred_ipv4_address = None
         self.received_dhcp_offer = False
         self.ip_lease_time = None
+        self.lease_start = None
+        self.lease_end = None
         self.dns_servers = None  # assigned by dhcp, not dhcp related.
         self.domain_name = None  # ^
         self.dhcp_transaction_id = None
@@ -90,15 +92,23 @@ class PC:
         globalVars.prompt_save = True
 
     def renew_nic_configuration(self):
-        if not self.dhcp_server:
+        if not self.dhcp_server and self.autoconfiguration_enabled:
             self.send_dhcp_discover()
-        else:
+        elif self.dhcp_server and self.autoconfiguration_enabled:
             # TODO: dhcp renew packet
             # TODO: self.send_dhcp_renew()
             pass
+        elif not self.autoconfiguration_enabled:
+            pass
 
-        self.autoconfiguration_enabled = True  # TODO: implement a way to have dhcp, but not allow autoconfig
+        self.autoconfiguration_enabled = True
         self.received_dhcp_offer = False
+
+    def set_auto_configure(self, is_auto_config):
+        self.autoconfiguration_enabled = is_auto_config
+        if self.autoconfiguration_enabled:
+            # TODO: if a dhcp server is already known, send a Request directly
+            self.send_dhcp_discover()
 
     def de_encapsulate(self, frame, receiving_interface):
         packet = frame.get_packet()
@@ -166,6 +176,9 @@ class PC:
                             self.ip_lease_time = options['LEASE_TIME']
                             self.dns_servers = options['REQUEST_DNS_SERVER']
                             self.domain_name = options['REQUEST_DOMAIN_NAME']
+                            self.lease_start = globalVars.internal_clock.get_current_date(format_date=True)
+                            self.lease_end = globalVars.internal_clock.add_seconds_to_date(self.ip_lease_time,
+                                                                                           format_date=True)
                     case _:
                         pass
 
@@ -235,9 +248,24 @@ class PC:
             return ''
         return self.dhcp_server
 
+    def get_lease_time(self):
+        if not self.ip_lease_time:
+            return ''
+        return self.ip_lease_time
+
+    def get_lease_start(self):
+        if not self.lease_start:
+            return ''
+        return self.lease_start
+
+    def get_lease_end(self):
+        if not self.lease_end:
+            return ''
+        return self.lease_end
+
     def get_auto_config(self, as_str=False):
         if as_str:
-            return str(self.autoconfiguration_enabled)
+            return "Yes" if self.autoconfiguration_enabled else "No"
         else:
             return self.autoconfiguration_enabled
 

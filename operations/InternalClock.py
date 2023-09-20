@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+
 class InternalTime:
 
     def __init__(self):
@@ -5,9 +8,26 @@ class InternalTime:
         self.pcs = []
         self.switches = []
         self.routers = []
+        self.start_date = datetime.today().strftime('%A, %B %d, %Y %I:%M:%S %p')
 
     def get_time(self):
         return self.time
+
+    def get_start_date(self):
+        return self.start_date
+
+    @staticmethod
+    def get_current_date(format_date=False):
+        if format_date:
+            return datetime.today().strftime('%A, %B %d, %Y %I:%M:%S %p')
+        return datetime.now()
+
+    @staticmethod
+    def add_seconds_to_date(seconds, format_date=False):
+        if format_date:
+            return (datetime.now() + timedelta(seconds=seconds)).strftime('%A, %B %d, %Y %I:%M:%S %p')
+        else:
+            return datetime.now() + timedelta(seconds=seconds)
 
     def set_time(self, t):
         self.time = t

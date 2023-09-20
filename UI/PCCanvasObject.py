@@ -10,6 +10,7 @@ from UI.PCCLI import PCCli
 class PCCanvasObject(object):
     def __init__(self, canvas, block_name, icons, class_object, master, time_class, load=False):
 
+
         self._x = None
         self._y = None
         self.canvas = canvas
@@ -77,7 +78,16 @@ class PCCanvasObject(object):
                              self.button_release)  # When moving the object after it is created
         # Button Bindings
 
+        # Config Window Stuff
         self.config_window = None
+        self.ipv4_field = None          # To set focus
+        self.hostname_field = None      # To set focus
+        self.gateway_field = None
+        self.prefix_field = None
+        self.ipv6_field = None
+        self.netmask_field = None
+        self.auto_config_nic = tk.BooleanVar()     # DHCP
+        # Config Window Stuff
 
         # CLI Stuff
         self.cli_window = None
@@ -270,6 +280,7 @@ class PCCanvasObject(object):
         configure_menu = ttk.Notebook(self.config_window)
         general_tab = ttk.Frame(configure_menu)
         interface_tab = ttk.Frame(configure_menu)
+        configure_menu.bind("<<NotebookTabChanged>>", lambda e=event: self.set_focus_on_tab_change(e))
 
         configure_menu.add(general_tab, text='General Configuration')
         configure_menu.add(interface_tab, text='Interface Configuration')
@@ -277,9 +288,9 @@ class PCCanvasObject(object):
 
         # General Tab
         tk.Label(general_tab, text="Hostname:").place(x=50, y=75)
-        hostname = tk.Entry(general_tab, width=20)
-        hostname.insert(0, self.class_object.get_host_name())
-        hostname.place(x=150, y=75)
+        self.hostname_field = tk.Entry(general_tab, width=20)
+        self.hostname_field.insert(0, self.class_object.get_host_name())
+        self.hostname_field.place(x=150, y=75)
 
         tk.Label(general_tab, text="MAC Address:").place(x=50, y=150)
         mac_address = tk.Entry(general_tab, width=20)
@@ -288,44 +299,77 @@ class PCCanvasObject(object):
         # General Tab
 
         # Interface Tab
+        ask_b4_quick_del_check = tk.Checkbutton(interface_tab, text='Auto-configure interface settings '
+                                                                    '(Requires a DHCP server)',
+                                                variable=self.auto_config_nic, onvalue=True, offvalue=False,
+                                                command=self.set_auto_configure)
+        ask_b4_quick_del_check.place(x=50, y=25)
+
         tk.Label(interface_tab, text="IPv4 Address:").place(x=50, y=75)
-        ipv4 = tk.Entry(interface_tab, width=20)
-        ipv4.insert(0, self.class_object.get_ipv4_address())
-        ipv4.place(x=150, y=75)
+        self.ipv4_field = tk.Entry(interface_tab, width=20)
+        self.ipv4_field.insert(0, self.class_object.get_ipv4_address())
+        self.ipv4_field.place(x=150, y=75)
 
         tk.Label(interface_tab, text="Subnet Mask:").place(x=325, y=75)
-        netmask = tk.Entry(interface_tab, width=20)
-        netmask.insert(0, self.class_object.get_netmask())
-        netmask.place(x=415, y=75)
+        self.netmask_field = tk.Entry(interface_tab, width=20)
+        self.netmask_field.insert(0, self.class_object.get_netmask())
+        self.netmask_field.place(x=415, y=75)
 
         tk.Label(interface_tab, text="IPv6 Address:").place(x=50, y=150)
-        ipv6 = tk.Entry(interface_tab, width=20)
-        ipv6.insert(0, self.class_object.get_ipv6_address())
-        ipv6.place(x=150, y=150)
+        self.ipv6_field = tk.Entry(interface_tab, width=20)
+        self.ipv6_field.insert(0, self.class_object.get_ipv6_address())
+        self.ipv6_field.place(x=150, y=150)
 
         tk.Label(interface_tab, text="/").place(x=275, y=150)
-        prefix = tk.Entry(interface_tab, width=3)
-        prefix.insert(0, self.class_object.get_prefix())
-        prefix.place(x=290, y=150)
+        self.prefix_field = tk.Entry(interface_tab, width=3)
+        self.prefix_field.insert(0, self.class_object.get_prefix())
+        self.prefix_field.place(x=290, y=150)
 
         tk.Label(interface_tab, text="Default Gateway:").place(x=50, y=225)
-        gateway = tk.Entry(interface_tab, width=20)
-        gateway.insert(0, self.class_object.get_default_gateway())
-        gateway.place(x=150, y=225)
+        self.gateway_field = tk.Entry(interface_tab, width=20)
+        self.gateway_field.insert(0, self.class_object.get_default_gateway())
+        self.gateway_field.place(x=150, y=225)
         # Interface Tab
 
         # Save Button
         save_btn = tk.Button(configure_menu, width=10, height=1, text="Save", relief=tk.GROOVE,
-                             command=lambda: self.save_general_parameters(hostname.get(), mac_address.get(), ipv4.get(),
-                                                                          netmask.get(), ipv6.get(), prefix.get(),
-                                                                          gateway.get(), self.config_window))
+                             command=lambda: self.save_general_parameters(self.hostname_field.get(), mac_address.get(),
+                                                                          self.ipv4_field.get(),
+                                                                          self.netmask_field.get(),
+                                                                          self.ipv6_field.get(),
+                                                                          self.prefix_field.get(),
+                                                                          self.gateway_field.get(), self.config_window))
         save_btn.place(x=590, y=300)
         save_btn.bind('<Enter>', lambda e, btn=save_btn: hf.button_enter(e, btn))
         save_btn.bind('<Leave>', lambda e, btn=save_btn: hf.button_leave(e, btn))
         # Save Button
 
-        self.config_window.focus_set()
+        self.toggle_config_fields()
         self.hide_menu()
+
+    def set_auto_configure(self):
+        self.class_object.set_auto_configure(self.auto_config_nic.get())
+        self.toggle_config_fields()
+
+    def toggle_config_fields(self):
+        if self.auto_config_nic.get():
+            self.ipv4_field.config(state= "disabled")
+            self.netmask_field.config(state= "disabled")
+            self.ipv6_field.config(state= "disabled")
+            self.prefix_field.config(state= "disabled")
+            self.gateway_field.config(state= "disabled")
+        else:
+            self.ipv4_field.config(state="normal")
+            self.netmask_field.config(state="normal")
+            self.ipv6_field.config(state="normal")
+            self.prefix_field.config(state="normal")
+            self.gateway_field.config(state="normal")
+
+    def set_focus_on_tab_change(self, event):
+        if event.widget.select() == '.!canvas.!toplevel.!notebook.!frame':
+            self.hostname_field.focus_set()
+        else:
+            self.ipv4_field.focus_set()
 
     def disconnect_cable(self, event):
         try:

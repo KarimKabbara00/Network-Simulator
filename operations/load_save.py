@@ -164,6 +164,8 @@ def save(master, canvas, file_name, clear):  # TODO: save and load router-dhcp, 
 
 def load(canvas, master, file):
 
+
+
     # Clear everything first
     new_file(canvas, master)
 

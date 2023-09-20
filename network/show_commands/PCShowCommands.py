@@ -58,8 +58,8 @@ def ip_config_all(host: PC):
     ipv4 = '   ' + hf.build_ip_config_line("IPv4 Address", host.get_ipv4_address() + is_preferred) + '\n'
 
     subnet = '   ' + hf.build_ip_config_line("Subnet Mask", host.get_netmask()) + '\n'
-    lease_start = '   ' + hf.build_ip_config_line("Lease Obtained", "") + '\n'
-    lease_end = '   ' + hf.build_ip_config_line("Lease Expires", "") + '\n'
+    lease_start = '   ' + hf.build_ip_config_line("Lease Obtained", host.get_lease_start()) + '\n'
+    lease_end = '   ' + hf.build_ip_config_line("Lease Expires", host.get_lease_end()) + '\n'
     def_gw = '   ' + hf.build_ip_config_line("Default Gateway", host.get_default_gateway()) + '\n'
     dhcp_server = '   ' + hf.build_ip_config_line("DHCP Server", host.get_dhcp_server()) + '\n'
     # dhcp_v6_iaid = '   ' + hf.build_ip_config_line("DHCP IAID", "") + '\n'

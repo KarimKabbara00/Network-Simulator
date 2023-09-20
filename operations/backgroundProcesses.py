@@ -11,6 +11,13 @@ def count_time(internal_clock):
         # print(internal_clock.get_time())
 
 
+def dhcp_ip_leases(internal_clock):
+
+    while True:
+        pcs = internal_clock.get_pcs()
+
+
+
 def arp_mac_aging(internal_clock):
     ARP_AGING_TIME = 120  # Dynamic ARP Entry Aging = 2 minutes
     MAC_AGING_TIME = 300  # Dynamic MAC Address Aging = 5 minutes
