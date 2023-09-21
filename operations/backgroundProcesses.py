@@ -1,26 +1,34 @@
 import time
 import copy
 from operations import globalVars
-
-
-def count_time(internal_clock):
-    while True:
-        time.sleep(1)
-        internal_clock.increment_time()
-
-        # print(internal_clock.get_time())
+from datetime import timedelta
 
 
 def dhcp_ip_leases(internal_clock):
 
     while True:
         pcs = internal_clock.get_pcs()
+        for pc in pcs:
+            node = pc.get_class_object()
+            if node.get_lease_start() and internal_clock.now() > node.get_lease_start() + timedelta(seconds=node.get_lease_time()):
+                node.expire_ip_lease()
 
+        ros = internal_clock.get_routers()
+        for ro in ros:
+            node = ro.get_class_object()
+            for dhcp_pool in node.get_dhcp_server().get_dhcp_pools():
+                ip_pool = dhcp_pool.get_leased_ip_pool()
+                for ip_lease in copy.copy(ip_pool):
+                    if internal_clock.now() > ip_pool[ip_lease] + timedelta(seconds=dhcp_pool.get_lease_time()):
+                        ip_pool.pop(ip_lease)
+                dhcp_pool.set_leased_ip_pool(ip_pool)
+                globalVars.prompt_save = True
 
+        time.sleep(3)
 
 def arp_mac_aging(internal_clock):
-    ARP_AGING_TIME = 120  # Dynamic ARP Entry Aging = 2 minutes
-    MAC_AGING_TIME = 300  # Dynamic MAC Address Aging = 5 minutes
+    ARP_AGING_TIME = timedelta(seconds=120)  # Dynamic ARP Entry Aging = 2 minutes
+    MAC_AGING_TIME = timedelta(seconds=300)  # Dynamic MAC Address Aging = 5 minutes
 
     while True:
 
@@ -35,10 +43,11 @@ def arp_mac_aging(internal_clock):
                 arp_table = node.get_arp_table()
 
                 for ip in copy.copy(arp_table):  # shallow copy
-                    if arp_table[ip][1] == 'DYNAMIC' and internal_clock.get_time() > arp_table[ip][2] + ARP_AGING_TIME:
+                    if arp_table[ip][1] == 'DYNAMIC' and internal_clock.now() > arp_table[ip][2] + ARP_AGING_TIME:
                         arp_table.pop(ip)
-                        node.set_arp_table(arp_table)
-                        globalVars.prompt_save = True
+
+                node.set_arp_table(arp_table)
+                globalVars.prompt_save = True
 
             except AttributeError:
                 pass
@@ -50,7 +59,7 @@ def arp_mac_aging(internal_clock):
                 mac_table = node.get_cam_table()
 
                 for entry in copy.copy(mac_table):
-                    if (mac_table[entry][2] == 'DYNAMIC' and internal_clock.get_time() > mac_table[entry][4] +
+                    if (mac_table[entry][2] == 'DYNAMIC' and internal_clock.now() > mac_table[entry][4] +
                             MAC_AGING_TIME):
                         mac_table.pop(entry)
                         node.set_cam_table(mac_table)

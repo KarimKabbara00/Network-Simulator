@@ -351,6 +351,11 @@ class PCCanvasObject(object):
         self.class_object.set_auto_configure(self.auto_config_nic.get())
         self.toggle_config_fields()
 
+    def set_fields_from_dhcp(self, ipv4_address, netmask, default_gateway):
+        self.ipv4_field.insert(ipv4_address)
+        self.netmask_field.insert(netmask)
+        self.gateway_field.insert(default_gateway)
+
     def toggle_config_fields(self):
         if self.auto_config_nic.get():
             self.ipv4_field.config(state= "disabled")

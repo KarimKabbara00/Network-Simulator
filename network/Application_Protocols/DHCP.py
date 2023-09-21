@@ -78,7 +78,7 @@ class DhcpDiscover(Dhcp):
         super().__init__()
 
         self.transaction_id = transaction_id
-        self.sec = globalVars.internal_clock.get_time()  # Time sent
+        self.sec = globalVars.internal_clock.now()  # Time sent
 
         if is_broadcast:
             self.flags.append(0x01)  # B set to 1 for broadcast reply

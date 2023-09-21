@@ -214,15 +214,14 @@ except FileNotFoundError:
         F.write('["/", true, true, true, true]')
 
 # Threads
-time_counter = threading.Thread(target=bp.count_time, daemon=True, args=(globalVars.internal_clock,))
-time_counter.start()
-
 arp_mac_aging = threading.Thread(target=bp.arp_mac_aging, args=(globalVars.internal_clock,), daemon=True)
 arp_mac_aging.start()
+
+ip_lease_expiry = threading.Thread(target=bp.dhcp_ip_leases, args=(globalVars.internal_clock,), daemon=True)
+ip_lease_expiry.start()
 
 # launch application
 tk.mainloop()
 
 # TODO:
-#   - https://stackoverflow.com/questions/33051944/how-obfuscate-python-bytecode-with-pyinstaller-3-0
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!

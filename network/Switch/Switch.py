@@ -101,7 +101,7 @@ class Switch:
 
         # if it doesn't, add it
         if not exists:
-            self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface, self.internal_clock.get_time()]
+            self.CAM_table[count] = [src_mac, src_dot1q, 'DYNAMIC', receiving_interface, self.internal_clock.now()]
 
         # Get the forwarding interface
         for i in self.CAM_table:

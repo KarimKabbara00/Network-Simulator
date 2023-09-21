@@ -41,6 +41,9 @@ class DHCP_Server:
                 pass
             return None
 
+    def get_dhcp_pools(self):
+        return self.dhcp_pools
+
     def create_offer(self, receiving_interface, data: DHCP.Dhcp, source_mac):
 
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(

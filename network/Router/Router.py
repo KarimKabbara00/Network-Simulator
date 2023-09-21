@@ -231,7 +231,7 @@ class Router:
         return forwarding_interface, destination_directly_attached, next_hop_ip
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
-        self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.get_time()]
+        self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.now()]
 
     def get_interfaces(self):
         return self.interfaces

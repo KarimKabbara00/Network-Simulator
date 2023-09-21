@@ -168,24 +168,17 @@ class PC:
                             self.send_dhcp_request(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
-                            self.dhcp_server = data.get_si_address()
-                            self.ipv4_address = self.preferred_ipv4_address = data.get_yi_address()
-                            options = data.get_options()
-                            self.netmask = options['REQUEST_SUBNET_MASK']
-                            self.default_gateway = options['REQUEST_ROUTER']
-                            self.ip_lease_time = options['LEASE_TIME']
-                            self.dns_servers = options['REQUEST_DNS_SERVER']
-                            self.domain_name = options['REQUEST_DOMAIN_NAME']
-                            self.lease_start = globalVars.internal_clock.get_current_date(format_date=True)
-                            self.lease_end = globalVars.internal_clock.add_seconds_to_date(self.ip_lease_time,
-                                                                                           format_date=True)
+                            self.configure_nic_from_dhcp(data)
+                            self.canvas_object.set_fields_from_dhcp(self.ipv4_address, self.netmask,
+                                                                    self.default_gateway)
+
                     case _:
                         pass
 
         globalVars.prompt_save = True
 
     def add_arp_entry(self, ipv4, mac_address, address_type):
-        self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.get_time()]
+        self.ARP_table[ipv4] = [mac_address, address_type, self.internal_clock.now()]
 
     def get_interfaces(self):
         return self.interface
@@ -253,15 +246,43 @@ class PC:
             return ''
         return self.ip_lease_time
 
-    def get_lease_start(self):
+    def get_lease_start(self, format_date=False):
         if not self.lease_start:
             return ''
-        return self.lease_start
+        elif not format_date:
+            return self.lease_start
+        else:
+            return self.lease_start.strftime('%A, %B %d, %Y %I:%M:%S %p')
 
     def get_lease_end(self):
         if not self.lease_end:
             return ''
         return self.lease_end
+
+    def expire_ip_lease(self):
+        self.dhcp_server = None
+        self.autoconfiguration_enabled = False
+        self.ipv4_address = None
+        self.netmask = None
+        self.received_dhcp_offer = False
+        self.ip_lease_time = None
+        self.lease_start = None
+        self.lease_end = None
+        self.dns_servers = None
+        self.domain_name = None
+        self.dhcp_transaction_id = None
+
+    def configure_nic_from_dhcp(self, data):
+        self.dhcp_server = data.get_si_address()
+        self.ipv4_address = self.preferred_ipv4_address = data.get_yi_address()
+        options = data.get_options()
+        self.netmask = options['REQUEST_SUBNET_MASK']
+        self.default_gateway = options['REQUEST_ROUTER']
+        self.ip_lease_time = options['LEASE_TIME']
+        self.dns_servers = options['REQUEST_DNS_SERVER']
+        self.domain_name = options['REQUEST_DOMAIN_NAME']
+        self.lease_start = globalVars.internal_clock.now()
+        self.lease_end = globalVars.internal_clock.add_seconds_to_date(self.ip_lease_time, format_date=True)
 
     def get_auto_config(self, as_str=False):
         if as_str:

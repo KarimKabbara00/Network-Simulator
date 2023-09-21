@@ -4,20 +4,13 @@ from datetime import datetime, timedelta
 class InternalTime:
 
     def __init__(self):
-        self.time = 0
         self.pcs = []
         self.switches = []
         self.routers = []
-        self.start_date = datetime.today().strftime('%A, %B %d, %Y %I:%M:%S %p')
-
-    def get_time(self):
-        return self.time
-
-    def get_start_date(self):
-        return self.start_date
+        self.start_date = datetime.today()
 
     @staticmethod
-    def get_current_date(format_date=False):
+    def now(format_date=False):
         if format_date:
             return datetime.today().strftime('%A, %B %d, %Y %I:%M:%S %p')
         return datetime.now()
@@ -29,11 +22,11 @@ class InternalTime:
         else:
             return datetime.now() + timedelta(seconds=seconds)
 
-    def set_time(self, t):
-        self.time = t
+    def get_start_date(self):
+        return self.start_date
 
-    def increment_time(self):
-        self.time += 1
+    def set_start_date(self, t):
+        self.start_date = t
 
     def add_pc(self, pc):
         self.pcs.append(pc)

@@ -146,7 +146,7 @@ def save(master, canvas, file_name, clear):  # TODO: save and load router-dhcp, 
 
     save_info['OTHER']['Light_State'] = globalVars.light_state
     save_info['OTHER']['Label_State'] = globalVars.label_state
-    save_info['OTHER']['Time'] = globalVars.internal_clock.get_time()
+    save_info['OTHER']['Time'] = globalVars.internal_clock.now()
 
     # Write json to file
     with open(file_name, 'w') as F:
@@ -176,7 +176,7 @@ def load(canvas, master, file):
         configuration = json.load(F)
 
     # Set the internal clock
-    globalVars.internal_clock.set_time(configuration['OTHER']['Time'])
+    globalVars.internal_clock.set_start_date(configuration['OTHER']['Time'])
 
     globalVars.node_number = configuration['node_number']
 

@@ -1,5 +1,6 @@
 import random
 import UI.helper_functions as hf
+from operations import globalVars
 
 
 class DHCPpool:
@@ -9,7 +10,7 @@ class DHCPpool:
         self.pool_name = name
 
         self.ip_pool = []  # Available IPs
-        self.leased_ip_pool = []  # Leased IPs
+        self.leased_ip_pool = {}  # Leased IPs
         self.offered_ips = []  # IPs waiting for DORA -> Request
 
         self.pool_subnet = None
@@ -64,7 +65,7 @@ class DHCPpool:
 
     def remove_ip_from_hold(self, ip_address, assigned=True):
         if assigned:
-            self.leased_ip_pool.append(ip_address)
+            self.leased_ip_pool[ip_address] = globalVars.internal_clock.now()
         else:
             self.ip_pool.append(ip_address)
 
@@ -87,3 +88,9 @@ class DHCPpool:
             return None
         else:
             return hf.get_lease_time(self.lease_time)
+
+    def get_leased_ip_pool(self):
+        return self.leased_ip_pool
+
+    def set_leased_ip_pool(self, pool):
+        self.leased_ip_pool = pool
