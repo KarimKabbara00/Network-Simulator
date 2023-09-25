@@ -3,16 +3,29 @@ import copy
 from operations import globalVars
 from datetime import timedelta
 
-
 def dhcp_ip_leases(internal_clock):
+
 
     while True:
         pcs = internal_clock.get_pcs()
         for pc in pcs:
-            node = pc.get_class_object()
-            if node.get_lease_start() and internal_clock.now() > node.get_lease_start() + timedelta(seconds=node.get_lease_time()):
-                node.expire_ip_lease()
 
+            node = pc.get_class_object()                    # class object
+            lease_start = node.get_lease_start()            # ip lease start
+            T1 = node.get_lease_time() // 2                 # 50% of lease time
+            T2 = node.get_lease_time() * 0.875              # 87.5% of lease time
+
+            # Attempt to expire lease
+            if lease_start and internal_clock.now() > lease_start + timedelta(seconds=node.get_lease_time()):
+                node.expire_ip_lease()
+            # Attempt to renew at 85% of the lease
+            elif lease_start and internal_clock.now() > lease_start + timedelta(seconds=T2):
+                pass
+            # Attempt to renew at 50% of the lease
+            elif lease_start and internal_clock.now() > lease_start + timedelta(seconds=T1):
+                pass
+
+        # Keep track of expired leases at DHCP server
         ros = internal_clock.get_routers()
         for ro in ros:
             node = ro.get_class_object()

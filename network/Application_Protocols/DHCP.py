@@ -17,6 +17,8 @@ DHCP_options = {
     "REQUEST_ROUTER": "",           # option_55_3
     "REQUEST_DNS_SERVER": [],       # option_55_6
     "REQUEST_DOMAIN_NAME": "",      # option_55_15
+    "T1_RENEWAL": "",               # option 58
+    "T2_RENEWAL": "",               # option 59
     "RELAY_AGENT_INFORMATION": "",  # option_82
 }
 
@@ -184,8 +186,35 @@ class DhcpAcknowledge(Dhcp):
         return self.options
 
 
-class DhcpRenew:
-    pass
+class DhcpRenew(Dhcp):
+    def __init__(self, ci_address, yi_address, si_address, ch_address, flags, is_t1):
+        super().__init__()
+
+        self.ch_address = ch_address
+        self.transaction_id = transaction_id
+        self.flags = flags
+
+        #TODO: WORKING ON DHCP RENEW WHEN LEASE IS HALF WAY or %87.5
+
+        self.options = DHCP_options
+        self.options['DHCP_RENEW'] = True
+        self.options['PREFERRED_IP'] = ci_address
+        self.options['DHCP_IP_ADDRESS'] = si_address
+        self.options['DHCP_IP_ADDRESS'] = si_address
+        if is_t1:
+            self.options['T1_RENEW'] = True
+        else:
+            self.options['T2_RENEW'] = True
+
+        self.options = {i: j for i, j in self.options.items() if j != ""}
+
+        self.dhcp_identifier = "DHCP_RENEW"
+
+    def get_dhcp_identifier(self):
+        return self.dhcp_identifier
+
+    def get_options(self):
+        return self.options
 
 
 class DhcpRelease:

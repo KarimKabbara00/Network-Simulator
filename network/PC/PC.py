@@ -91,6 +91,10 @@ class PC:
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
+    def send_dhcp_renew(self):
+        flags = [0x00, 0b0000000000000000]  # Unicast DHCP Request
+        self.send_dhcp_request(self.dhcp_server, self.preferred_ipv4_address, '', flags)
+
     def renew_nic_configuration(self):
         if not self.dhcp_server and self.autoconfiguration_enabled:
             self.send_dhcp_discover()
@@ -283,6 +287,7 @@ class PC:
         self.domain_name = options['REQUEST_DOMAIN_NAME']
         self.lease_start = globalVars.internal_clock.now()
         self.lease_end = globalVars.internal_clock.add_seconds_to_date(self.ip_lease_time, format_date=True)
+
 
     def get_auto_config(self, as_str=False):
         if as_str:
