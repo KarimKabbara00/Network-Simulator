@@ -79,21 +79,33 @@ class DHCP_Server:
         return nf.create_dhcp_offer(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
                                     si_address, gi_address, ch_address, transaction_id)
 
-    def create_ack(self, receiving_interface, data, source_mac):
+    def create_ack(self, receiving_interface, source_mac, data, original_sender_mac, dhcp_renew):
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(
             receiving_interface)
 
         flags = data.get_flags()
-        ci_address = None
+        ci_address = data.get_ci_address()
         yi_address = data.get_options()['PREFERRED_IP']
         si_address = receiving_interface.get_ipv4_address()
         gi_address = None
-        ch_address = source_mac
+        ch_address = original_sender_mac
         transaction_id = data.get_transaction_id()
         requested_options = self.transaction_ids[transaction_id]
-        self.transaction_ids.pop(transaction_id)
+        # self.transaction_ids.pop(transaction_id)
 
-        working_dhcp_pool.remove_ip_from_hold(yi_address, assigned=True)  # False if NAK
+        if not dhcp_renew:  # The IP is not on hold when a dhcp renew is received
+            working_dhcp_pool.remove_ip_from_hold(yi_address, assigned=True)  # False if NAK
+            dest_ip = '255.255.255.255'
+        else:
+            dest_ip = ci_address
 
         return nf.create_dhcp_ack(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
-                                  si_address, gi_address, ch_address, transaction_id, requested_options)
+                                  si_address, gi_address, ch_address, dest_ip, transaction_id, requested_options)
+
+
+    def clear_expired_transaction_ids(self, transaction_ids): # Called only when lease expires
+        for t_id in transaction_ids:
+            try:
+                self.transaction_ids.pop(t_id)
+            except KeyError:
+                pass

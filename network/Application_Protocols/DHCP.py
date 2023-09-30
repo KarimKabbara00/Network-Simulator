@@ -187,20 +187,20 @@ class DhcpAcknowledge(Dhcp):
 
 
 class DhcpRenew(Dhcp):
-    def __init__(self, ci_address, yi_address, si_address, ch_address, flags, is_t1):
+    def __init__(self, ci_address, si_address, ch_address, flags, is_t1, transaction_id):
         super().__init__()
 
+        self.ci_address = ci_address
         self.ch_address = ch_address
+        self.si_address = si_address
         self.transaction_id = transaction_id
-        self.flags = flags
-
-        #TODO: WORKING ON DHCP RENEW WHEN LEASE IS HALF WAY or %87.5
 
         self.options = DHCP_options
         self.options['DHCP_RENEW'] = True
         self.options['PREFERRED_IP'] = ci_address
         self.options['DHCP_IP_ADDRESS'] = si_address
-        self.options['DHCP_IP_ADDRESS'] = si_address
+        self.flags = flags  # either unicast or broadcast
+
         if is_t1:
             self.options['T1_RENEW'] = True
         else:

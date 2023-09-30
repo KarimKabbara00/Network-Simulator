@@ -146,11 +146,15 @@ class Router:
                             if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
                                 frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
                                 receiving_interface.send(frame)
-
                             elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
-                                frame = self.dhcp_server.create_ack(receiving_interface, data, original_sender_mac)
+                                frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
+                                                                    data, original_sender_mac, dhcp_renew=False)
                                 receiving_interface.send(frame)
-
+                            elif data.get_dhcp_identifier() == 'DHCP_RENEW':
+                                frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
+                                                                    data, original_sender_mac, dhcp_renew=True)
+                                receiving_interface.send(frame)
+                                print('receving renews')
                             elif data.get_dhcp_identifier() == "DHCP_ACK":
                                 # TODO: yes
                                 pass

@@ -11,6 +11,8 @@ import numpy as np
 from UI import loadIcons
 from operations import globalVars
 import tkinterweb
+from datetime import datetime
+
 
 def button_enter(event, btn):
     btn.config(background='gray89', relief=tk.SUNKEN)
@@ -856,3 +858,39 @@ def build_ip_config_line(description, value):
         else:
             description += ' '
     return description + ': ' + value
+
+def month_name_to_number(name):
+    match name:
+        case 'January': return 1
+        case 'February': return 2
+        case 'March': return 3
+        case 'April': return 4
+        case 'May': return 5
+        case 'June': return 6
+        case 'July': return 7
+        case 'August': return 8
+        case 'September': return 9
+        case 'October': return 10
+        case 'November': return 11
+        case 'December': return 12
+
+
+def str_time_to_datetime(t):
+
+    time = t.replace(',', '').split(' ')
+    year = int(time[3])
+    month = month_name_to_number(time[1])
+    day = int(time[2])
+
+    hms = time[4].split(':')
+    am_pm = time[5]
+
+    if am_pm == 'PM':
+        hour = int(hms[0]) + 12
+    else:
+        hour = int(hms[0])
+
+    minute = int(hms[1])
+    second = int(hms[2])
+
+    return datetime(year, month, day, hour, minute, second)

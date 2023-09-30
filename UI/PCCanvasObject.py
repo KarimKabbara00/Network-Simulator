@@ -277,7 +277,7 @@ class PCCanvasObject(object):
         self.config_window.wm_title("Configure PC")
         self.config_window.resizable(False, False)
 
-        configure_menu = ttk.Notebook(self.config_window)
+        configure_menu = ttk.Notebook(self.config_window) # TODO: on closing, hide!!!!!!!!!
         general_tab = ttk.Frame(configure_menu)
         interface_tab = ttk.Frame(configure_menu)
         configure_menu.bind("<<NotebookTabChanged>>", lambda e=event: self.set_focus_on_tab_change(e))
@@ -352,9 +352,17 @@ class PCCanvasObject(object):
         self.toggle_config_fields()
 
     def set_fields_from_dhcp(self, ipv4_address, netmask, default_gateway):
-        self.ipv4_field.insert(ipv4_address)
-        self.netmask_field.insert(netmask)
-        self.gateway_field.insert(default_gateway)
+
+        if not ipv4_address:
+            ipv4_address = ''
+        if not netmask:
+            netmask = ''
+        if not default_gateway:
+            default_gateway = ''
+
+        self.ipv4_field.insert(tk.END, ipv4_address)
+        self.netmask_field.insert(tk.END, netmask)
+        self.gateway_field.insert(tk.END, default_gateway)
 
     def toggle_config_fields(self):
         if self.auto_config_nic.get():

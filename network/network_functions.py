@@ -180,13 +180,21 @@ def create_dhcp_request(source_mac, si_address, provided_ip, transaction_id, fla
     return frame
 
 
-def create_dhcp_ack(source_ip, source_mac, flags, ci_address, yi_address, si_address, gi_address, ch_address,
+def create_dhcp_ack(source_ip, source_mac, flags, ci_address, yi_address, si_address, gi_address, ch_address, dest_ip,
                     transaction_id, options, dot1q=None):
     application_data = DhcpAcknowledge(flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id
                                        , options)
     udp_segment = UDP(source_port=67, dest_port=68, data=application_data)
-    packet = create_ipv4_packet(udp_segment, source_ip, '255.255.255.255')
+    packet = create_ipv4_packet(udp_segment, source_ip, dest_ip)
     frame = create_ethernet_frame(ch_address, source_mac, dot1q, packet, None)
+    return frame
+
+
+def create_dhcp_renew(ci_address, si_address, ch_address, dhcp_mac_address, flags, is_t1, transaction_id, dot1q=None):
+    application_data = DhcpRenew(ci_address, si_address, ch_address, flags, is_t1, transaction_id)
+    udp_segment = UDP(source_port=68, dest_port=67, data=application_data)
+    packet = create_ipv4_packet(udp_segment, ci_address, si_address)
+    frame = create_ethernet_frame(dhcp_mac_address, ch_address, dot1q, packet, None)
     return frame
 
 

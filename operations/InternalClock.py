@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+import UI.helper_functions as hf
 
 class InternalTime:
 
@@ -26,7 +26,7 @@ class InternalTime:
         return self.start_date
 
     def set_start_date(self, t):
-        self.start_date = t
+        self.start_date = hf.str_time_to_datetime(t)
 
     def add_pc(self, pc):
         self.pcs.append(pc)

@@ -39,7 +39,8 @@ class PC:
         # ICMP Control
 
         # DHCP
-        self.dhcp_server = None
+        self.dhcp_server_ip = None
+        self.dhcp_server_mac = None
         self.autoconfiguration_enabled = False
         self.preferred_ipv4_address = None
         self.received_dhcp_offer = False
@@ -91,17 +92,31 @@ class PC:
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
-    def send_dhcp_renew(self):
-        flags = [0x00, 0b0000000000000000]  # Unicast DHCP Request
-        self.send_dhcp_request(self.dhcp_server, self.preferred_ipv4_address, '', flags)
+    def send_dhcp_renew(self, is_t1):
+        if is_t1:   # 50%
+            flags = [0x00, 0b0000000000000000]  # Unicast DHCP Request
+            dhcp_server = self.dhcp_server_ip   # Unicast destination
+            dhcp_mac_address = self.dhcp_server_mac
+
+            print('sent to', dhcp_server, dhcp_mac_address)
+
+        else:       # 87.5%
+            flags = [0x01, 0b0000000000000000]  # Broadcast DHCP Request
+            dhcp_server = '255.255.255.255'     # No DHCP server specified
+            dhcp_mac_address = 'FF:FF:FF:FF:FF:FF'
+
+
+
+        frame = nf.create_dhcp_renew(self.preferred_ipv4_address, dhcp_server, self.MAC_Address, dhcp_mac_address,
+                                     flags, is_t1, self.dhcp_transaction_id)
+        self.interface[0].send(frame)
+        globalVars.prompt_save = True
 
     def renew_nic_configuration(self):
-        if not self.dhcp_server and self.autoconfiguration_enabled:
+        if not self.dhcp_server_ip and self.autoconfiguration_enabled:
             self.send_dhcp_discover()
-        elif self.dhcp_server and self.autoconfiguration_enabled:
-            # TODO: dhcp renew packet
-            # TODO: self.send_dhcp_renew()
-            pass
+        elif self.dhcp_server_ip and self.autoconfiguration_enabled:
+            self.send_dhcp_renew(is_t1=True)
         elif not self.autoconfiguration_enabled:
             pass
 
@@ -121,7 +136,7 @@ class PC:
         if packet_identifier == "ARP":
             if packet.get_dest_ip() == self.ipv4_address:  # if ARP request is destined to this host
                 if packet.get_operation_id() == 0x001:
-                    dest_mac = packet.get_sender_mac()
+                    dest_mac = packet.get_sender_mac()     # ARP Packet, not ipv4 packet
                     dest_ipv4 = packet.get_src_ip()
                     self.arp_reply(dest_mac, dest_ipv4)
                     self.add_arp_entry(dest_ipv4, dest_mac, "DYNAMIC")
@@ -172,7 +187,7 @@ class PC:
                             self.send_dhcp_request(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
-                            self.configure_nic_from_dhcp(data)
+                            self.configure_nic_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
                             self.canvas_object.set_fields_from_dhcp(self.ipv4_address, self.netmask,
                                                                     self.default_gateway)
 
@@ -241,9 +256,9 @@ class PC:
             return self.dns_servers
 
     def get_dhcp_server(self):
-        if not self.dhcp_server:
+        if not self.dhcp_server_ip:
             return ''
-        return self.dhcp_server
+        return self.dhcp_server_ip
 
     def get_lease_time(self):
         if not self.ip_lease_time:
@@ -264,7 +279,7 @@ class PC:
         return self.lease_end
 
     def expire_ip_lease(self):
-        self.dhcp_server = None
+        self.dhcp_server_ip = None
         self.autoconfiguration_enabled = False
         self.ipv4_address = None
         self.netmask = None
@@ -274,10 +289,12 @@ class PC:
         self.lease_end = None
         self.dns_servers = None
         self.domain_name = None
-        self.dhcp_transaction_id = None
+        # self.dhcp_transaction_id = None
+        return self.dhcp_transaction_id
 
-    def configure_nic_from_dhcp(self, data):
-        self.dhcp_server = data.get_si_address()
+    def configure_nic_from_dhcp(self, data, dhcp_server_mac):
+        self.dhcp_server_ip = data.get_si_address()
+        self.dhcp_server_mac = dhcp_server_mac
         self.ipv4_address = self.preferred_ipv4_address = data.get_yi_address()
         options = data.get_options()
         self.netmask = options['REQUEST_SUBNET_MASK']
@@ -287,7 +304,6 @@ class PC:
         self.domain_name = options['REQUEST_DOMAIN_NAME']
         self.lease_start = globalVars.internal_clock.now()
         self.lease_end = globalVars.internal_clock.add_seconds_to_date(self.ip_lease_time, format_date=True)
-
 
     def get_auto_config(self, as_str=False):
         if as_str:

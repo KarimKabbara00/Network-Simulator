@@ -5,25 +5,27 @@ from datetime import timedelta
 
 def dhcp_ip_leases(internal_clock):
 
-
     while True:
+
+        expired_t_ids = []  # Expired transaction ids stored here
+
         pcs = internal_clock.get_pcs()
         for pc in pcs:
+            node = pc.get_class_object()                        # class object
+            if node.get_dhcp_server():                          # if the pc has a dhcp server
+                lease_start = node.get_lease_start()            # ip lease start
+                T1 = node.get_lease_time() // 2                 # 50% of lease time
+                T2 = node.get_lease_time() * 0.875              # 87.5% of lease time
 
-            node = pc.get_class_object()                    # class object
-            lease_start = node.get_lease_start()            # ip lease start
-            T1 = node.get_lease_time() // 2                 # 50% of lease time
-            T2 = node.get_lease_time() * 0.875              # 87.5% of lease time
-
-            # Attempt to expire lease
-            if lease_start and internal_clock.now() > lease_start + timedelta(seconds=node.get_lease_time()):
-                node.expire_ip_lease()
-            # Attempt to renew at 85% of the lease
-            elif lease_start and internal_clock.now() > lease_start + timedelta(seconds=T2):
-                pass
-            # Attempt to renew at 50% of the lease
-            elif lease_start and internal_clock.now() > lease_start + timedelta(seconds=T1):
-                pass
+                # Attempt to expire lease
+                if lease_start and internal_clock.now() > lease_start + timedelta(seconds=node.get_lease_time()):
+                    expired_t_ids.append(node.expire_ip_lease())
+                # Attempt to renew at 85% of the lease
+                elif lease_start and internal_clock.now() > lease_start + timedelta(seconds=T2):
+                    node.send_dhcp_renew(is_t1=False)
+                # Attempt to renew at 50% of the lease
+                elif lease_start and internal_clock.now() > lease_start + timedelta(seconds=T1):
+                    node.send_dhcp_renew(is_t1=True)
 
         # Keep track of expired leases at DHCP server
         ros = internal_clock.get_routers()
@@ -37,7 +39,9 @@ def dhcp_ip_leases(internal_clock):
                 dhcp_pool.set_leased_ip_pool(ip_pool)
                 globalVars.prompt_save = True
 
-        time.sleep(3)
+            node.get_dhcp_server().clear_expired_transaction_ids(expired_t_ids)
+
+        time.sleep(2)
 
 def arp_mac_aging(internal_clock):
     ARP_AGING_TIME = timedelta(seconds=120)  # Dynamic ARP Entry Aging = 2 minutes

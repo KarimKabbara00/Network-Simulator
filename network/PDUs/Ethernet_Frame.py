@@ -3,7 +3,6 @@ def set_mac(mac):
     big_mac = ''
     for m in mac_address:
         if any(c not in '0123456789ABCDEFabcdef' for c in m) or len(m) != 2:
-            print(mac)
             raise Exception("Invalid MAC Address")
         big_mac += bin(int(m, 16))[2:].zfill(8)
     return big_mac
