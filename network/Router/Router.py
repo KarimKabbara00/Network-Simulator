@@ -143,7 +143,8 @@ class Router:
 
                     match application_identifier:
                         case "DHCP":
-                            if self.dhcp_server:
+                            if self.dhcp_server: # TODO must check if si_addr == receiving interface IP
+                                                    # AND it must not send a OFFER if no pool matches receiving intf ip
                                 if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
                                     frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
                                     receiving_interface.send(frame)
@@ -160,6 +161,9 @@ class Router:
                                 elif data.get_dhcp_identifier() == "DHCP_ACK":
                                     # TODO: yes
                                     pass
+                                elif data.get_dhcp_identifier() == "DHCP_DECLINE":
+                                    self.dhcp_server.process_dhcp_decline(receiving_interface, data)
+
                         case _:
                             pass
 

@@ -12,6 +12,7 @@ class DHCPpool:
         self.ip_pool = []  # Available IPs
         self.leased_ip_pool = {}  # Leased IPs
         self.offered_ips = []  # IPs waiting for DORA -> Request
+        self.unknown_ip_assignments = []  # If server receives a DECLINE due to ARP Request check
 
         self.pool_subnet = None
         self.dns_servers = []
@@ -74,6 +75,10 @@ class DHCPpool:
     def release_ip_assignment(self, ip):
         self.leased_ip_pool.pop(ip)
         self.ip_pool.append(ip)
+
+    def unknown_ip_assignment(self, ip_address):
+        self.unknown_ip_assignments.append(ip_address)
+        self.offered_ips.remove(ip_address)
 
     def get_subnet(self):
         return self.pool_subnet

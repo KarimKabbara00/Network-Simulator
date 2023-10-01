@@ -7,7 +7,7 @@ from network.Switch.Dot1q import Dot1q
 import time
 from network.PDUs.UDP import UDP
 from network.Application_Protocols.DHCP import (DhcpDiscover, DhcpOffer, DhcpRequest, DhcpAcknowledge, DhcpRelease,
-                                                DhcpRenew)
+                                                DhcpRenew, DhcpDecline)
 
 
 def create_icmp_echo_segment():
@@ -207,6 +207,14 @@ def create_dhcp_release(source_mac, preferred_ipv4_address, dhcp_server_mac, dhc
     return frame
 
 
+def create_dhcp_decline(source_mac, dhcp_server_ip_address, provided_ip, dhcp_transaction_id, flags, dot1q=None):
+    application_data = DhcpDecline(source_mac, provided_ip, dhcp_server_ip_address, dhcp_transaction_id)
+    udp_segment = UDP(source_port=68, dest_port=67, data=application_data)
+    packet = create_ipv4_packet(udp_segment, '0.0.0.0', '255.255.255.255')
+    frame = create_ethernet_frame('FF:FF:FF:FF:FF:FF', source_mac, dot1q, packet, None)
+    return frame
+
+
 def interface_or_sub_interface(receiving_interface, forwarding_interface, original_sender_ipv4, packet_identifier, frame):
     dot1q_header = None
     if not receiving_interface.get_netmask():
@@ -222,5 +230,3 @@ def interface_or_sub_interface(receiving_interface, forwarding_interface, origin
         dot1q_header = frame.get_dot1q()
 
     return receiving_interface, dot1q_header
-
-

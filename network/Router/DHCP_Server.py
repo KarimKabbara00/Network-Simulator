@@ -110,6 +110,16 @@ class DHCP_Server:
         working_dhcp_pool.release_ip_assignment(ci_address)
         self.transaction_ids.pop(transaction_id)
 
+    def process_dhcp_decline(self, receiving_interface, data):
+        working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(
+            receiving_interface)
+
+        yi_address = data.get_yi_address()
+        transaction_id = data.get_transaction_id()
+        working_dhcp_pool.unknown_ip_assignment(yi_address)  # False if NAK
+
+        self.transaction_ids.pop(transaction_id)
+
     def clear_expired_transaction_ids(self, transaction_ids): # Called only when lease expires
         for t_id in transaction_ids:
             try:

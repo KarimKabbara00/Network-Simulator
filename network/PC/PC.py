@@ -46,6 +46,7 @@ class PC:
         self.dns_servers = None  # assigned by dhcp, not dhcp related.
         self.domain_name = None  # ^
         self.dhcp_transaction_id = None
+        self.received_dhcp_arp_check = None
         # DHCP
 
         self.internal_clock = None
@@ -109,6 +110,11 @@ class PC:
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
+    def send_dhcp_decline(self, dhcp_server_ip_address, provided_ip, dhcp_transaction_id, flags):
+        frame = nf.create_dhcp_decline(self.MAC_Address, dhcp_server_ip_address, provided_ip, dhcp_transaction_id, flags)
+        self.interface[0].send(frame)
+        globalVars.prompt_save = True
+
     def renew_nic_configuration(self):
         if not self.dhcp_server_ip or not self.ipv4_address:
             self.send_dhcp_discover()
@@ -139,11 +145,14 @@ class PC:
                     dest_mac = packet.get_sender_mac()     # ARP Packet, not ipv4 packet
                     dest_ipv4 = packet.get_src_ip()
                     self.arp_reply(dest_mac, dest_ipv4)
-                    self.add_arp_entry(dest_ipv4, dest_mac, "DYNAMIC")
+                    # self.add_arp_entry(dest_ipv4, dest_mac, "DYNAMIC") TODO: with this, dhcp arp check will map false ips to macs
                 elif packet.get_operation_id() == 0x002:
                     ipv4 = packet.get_src_ip()
                     mac_address = packet.get_sender_mac()
                     self.add_arp_entry(ipv4, mac_address, "DYNAMIC")
+
+                    if self.received_dhcp_offer:
+                        self.received_dhcp_arp_check = True
 
         elif packet_identifier == "ipv4":
             segment = packet.get_segment()
@@ -179,12 +188,21 @@ class PC:
 
                     case "DHCP":
                         if data.get_dhcp_identifier() == 'DHCP_OFFER' and not self.received_dhcp_offer:
-                            # TODO: RFC requires ARP here to ensure address is not taken
+
+                            # Extract data
                             self.received_dhcp_offer = True
                             dhcp_server_ip_address = data.get_si_address()
                             provided_ip = data.get_yi_address()
                             flags = data.get_flags()
-                            self.send_dhcp_request(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
+
+                            # First check if IP is used by another host by sending an ARP request
+                            self.arp_request(data.get_yi_address())
+
+                            if not self.received_dhcp_arp_check:    # If no reply is received from the ARP Request
+                                self.send_dhcp_request(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
+                            else:
+                                self.send_dhcp_decline(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
+                                self.send_dhcp_discover()  # Reapply for IP
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
                             self.configure_nic_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
