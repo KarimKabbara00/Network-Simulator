@@ -85,6 +85,8 @@ class PCCanvasObject(object):
         self.gateway_field = None
         self.prefix_field = None
         self.ipv6_field = None
+        self.ipv6_link_local_field = None
+        self.ipv6_link_local_prefix_field = None
         self.netmask_field = None
         self.auto_config_nic = tk.BooleanVar()     # DHCP
         # Config Window Stuff
@@ -267,17 +269,22 @@ class PCCanvasObject(object):
 
     def open_config_menu(self, event):
 
+        def hide_window():
+            self.config_window.withdraw()
+
         self.config_window = tk.Toplevel(self.canvas)
+        self.config_window.protocol('WM_DELETE_WINDOW', hide_window)
 
         x = (globalVars.screen_width / 2) - (700 / 2)
-        y = (globalVars.screen_height / 2) - (350 / 2) - 100
-        self.config_window.geometry('%dx%d+%d+%d' % (700, 350, x, y))
+        y = (globalVars.screen_height / 2) - (375 / 2) - 100
+        self.config_window.geometry('%dx%d+%d+%d' % (700, 375, x, y))
 
         self.config_window.wm_iconphoto(False, self.icons[1])
         self.config_window.wm_title("Configure PC")
         self.config_window.resizable(False, False)
 
-        configure_menu = ttk.Notebook(self.config_window) # TODO: on closing, hide!!!!!!!!!
+        configure_menu = ttk.Notebook(self.config_window)
+
         general_tab = ttk.Frame(configure_menu)
         interface_tab = ttk.Frame(configure_menu)
         configure_menu.bind("<<NotebookTabChanged>>", lambda e=event: self.set_focus_on_tab_change(e))
@@ -310,25 +317,35 @@ class PCCanvasObject(object):
         self.ipv4_field.insert(0, self.class_object.get_ipv4_address())
         self.ipv4_field.place(x=150, y=75)
 
-        tk.Label(interface_tab, text="Subnet Mask:").place(x=325, y=75)
+        tk.Label(interface_tab, text="Subnet Mask:").place(x=335, y=75)
         self.netmask_field = tk.Entry(interface_tab, width=20)
         self.netmask_field.insert(0, self.class_object.get_netmask())
-        self.netmask_field.place(x=415, y=75)
+        self.netmask_field.place(x=435, y=75)
 
-        tk.Label(interface_tab, text="IPv6 Address:").place(x=50, y=150)
-        self.ipv6_field = tk.Entry(interface_tab, width=20)
-        self.ipv6_field.insert(0, self.class_object.get_ipv6_address())
-        self.ipv6_field.place(x=150, y=150)
-
-        tk.Label(interface_tab, text="/").place(x=275, y=150)
-        self.prefix_field = tk.Entry(interface_tab, width=3)
-        self.prefix_field.insert(0, self.class_object.get_prefix())
-        self.prefix_field.place(x=290, y=150)
-
-        tk.Label(interface_tab, text="Default Gateway:").place(x=50, y=225)
+        tk.Label(interface_tab, text="Default Gateway:").place(x=50, y=125)
         self.gateway_field = tk.Entry(interface_tab, width=20)
         self.gateway_field.insert(0, self.class_object.get_default_gateway())
-        self.gateway_field.place(x=150, y=225)
+        self.gateway_field.place(x=150, y=125)
+
+        tk.Label(interface_tab, text="IPv6 Address:").place(x=50, y=175)
+        self.ipv6_field = tk.Entry(interface_tab, width=54)
+        self.ipv6_field.insert(0, self.class_object.get_ipv6_address())
+        self.ipv6_field.place(x=53, y=195)
+
+        tk.Label(interface_tab, text="/").place(x=380, y=195)
+        self.prefix_field = tk.Entry(interface_tab, width=3)
+        self.prefix_field.insert(0, self.class_object.get_prefix())
+        self.prefix_field.place(x=390, y=195)
+
+        tk.Label(interface_tab, text="IPv6 Link Local Address:").place(x=50, y=245)
+        self.ipv6_link_local_field = tk.Entry(interface_tab, width=54)
+        self.ipv6_link_local_field.insert(0, self.class_object.get_ipv6_link_local_address())
+        self.ipv6_link_local_field.place(x=53, y=265)
+
+        tk.Label(interface_tab, text="/").place(x=380, y=265)
+        self.ipv6_link_local_prefix_field = tk.Entry(interface_tab, width=3)
+        self.ipv6_link_local_prefix_field.insert(0, self.class_object.get_link_local_prefix())
+        self.ipv6_link_local_prefix_field.place(x=390, y=265)
         # Interface Tab
 
         # Save Button
@@ -336,10 +353,13 @@ class PCCanvasObject(object):
                              command=lambda: self.save_general_parameters(self.hostname_field.get(), mac_address.get(),
                                                                           self.ipv4_field.get(),
                                                                           self.netmask_field.get(),
+                                                                          self.gateway_field.get(),
                                                                           self.ipv6_field.get(),
                                                                           self.prefix_field.get(),
-                                                                          self.gateway_field.get(), self.config_window))
-        save_btn.place(x=590, y=300)
+                                                                          self.ipv6_link_local_field.get(),
+                                                                          self.ipv6_link_local_prefix_field.get(),
+                                                                          self.config_window))
+        save_btn.place(x=590, y=325)
         save_btn.bind('<Enter>', lambda e, btn=save_btn: hf.button_enter(e, btn))
         save_btn.bind('<Leave>', lambda e, btn=save_btn: hf.button_leave(e, btn))
         # Save Button
@@ -360,23 +380,31 @@ class PCCanvasObject(object):
         if not default_gateway:
             default_gateway = ''
 
-        self.ipv4_field.insert(tk.END, ipv4_address)
-        self.netmask_field.insert(tk.END, netmask)
-        self.gateway_field.insert(tk.END, default_gateway)
+        try:
+            # Empty fields
+            self.ipv4_field.delete('0', tk.END)
+            self.netmask_field.delete('0', tk.END)
+            self.gateway_field.delete('0', tk.END)
+
+            self.ipv4_field.insert(tk.END, ipv4_address)
+            self.netmask_field.insert(tk.END, netmask)
+            self.gateway_field.insert(tk.END, default_gateway)
+        except (AttributeError, tk.TclError):
+            pass
 
     def toggle_config_fields(self):
         if self.auto_config_nic.get():
             self.ipv4_field.config(state= "disabled")
             self.netmask_field.config(state= "disabled")
-            self.ipv6_field.config(state= "disabled")
-            self.prefix_field.config(state= "disabled")
             self.gateway_field.config(state= "disabled")
+            # self.ipv6_field.config(state= "disabled")
+            # self.prefix_field.config(state= "disabled")
         else:
             self.ipv4_field.config(state="normal")
             self.netmask_field.config(state="normal")
-            self.ipv6_field.config(state="normal")
-            self.prefix_field.config(state="normal")
             self.gateway_field.config(state="normal")
+            # self.ipv6_field.config(state="normal")
+            # self.prefix_field.config(state="normal")
 
     def set_focus_on_tab_change(self, event):
         if event.widget.select() == '.!canvas.!toplevel.!notebook.!frame':
@@ -440,39 +468,53 @@ class PCCanvasObject(object):
 
         globalVars.prompt_save = True
 
-    def save_general_parameters(self, hostname, mac_address, ipv4, netmask, ipv6, prefix, default_route, parent):
+    def save_general_parameters(self, hostname, mac_address, ipv4, netmask, default_route, ipv6, ipv6_prefix,
+                                ipv6_ll, ipv6_ll_prefix, parent):
 
         hostname_flag = True
         ipv4_flag = True
-        ipv6_flag = True
         netmask_flag = True
         default_route_flag = True
+        ipv6_flag = True
+        ipv6_prefix_flag = True
+        ipv6_ll_flag = True
+        ipv6_ll_prefix_flag = True
 
+        # must have a hostname
         if not hostname:
             hostname_flag = False
 
         # check mac address
         mac_address_flag = hf.check_mac_address(mac_address)
 
-        # check ipv4 address
-        if ipv4:  # Check if ipv4 address is provided, since it is optional
+        # following fields are optional
+        if ipv4:
             ipv4_flag = hf.check_ipv4(ipv4)
-            netmask_flag = hf.check_subnet_mask(netmask)  # Changed here if valid subnet
+            netmask_flag = hf.check_subnet_mask(netmask)
 
         if default_route:
             default_route_flag = hf.check_ipv4(default_route)
 
-        # TODO Implement IPv6 Checking
+        if ipv6:
+            ipv6_flag = hf.check_ipv6(ipv6)
+            ipv6_prefix_flag = hf.check_ipv6_prefix(ipv6_prefix)
 
-        if hostname_flag and mac_address_flag and ipv4_flag and ipv6_flag and netmask_flag and default_route_flag:
+        if ipv6_ll:
+            ipv6_ll_flag = hf.check_ipv6(ipv6_ll)
+            ipv6_ll_prefix_flag = hf.check_ipv6_prefix(ipv6_ll_prefix)
+
+        if (hostname_flag and mac_address_flag and ipv4_flag and ipv6_flag and netmask_flag and default_route_flag and
+                ipv6_flag and ipv6_prefix_flag and ipv6_ll_flag and ipv6_ll_prefix_flag):
             self.class_object.set_host_name(hostname)
             self.class_object.set_mac_address(mac_address)
             self.class_object.set_ipv4_address(ipv4)
             self.class_object.set_netmask(netmask)
             self.class_object.set_ipv6_address(ipv6)
-            self.class_object.set_prefix(prefix)
+            self.class_object.set_prefix(ipv6_prefix)
             self.class_object.set_default_gateway(default_route)
-            parent.destroy()
+            self.class_object.set_ipv6_link_local_address(ipv6_ll)
+            self.class_object.set_ipv6_link_local_prefix(ipv6_ll_prefix)
+            parent.withdraw()
             globalVars.prompt_save = True
         else:
             if not hostname_flag:
@@ -481,12 +523,18 @@ class PCCanvasObject(object):
                 messagebox.showerror('Invalid Parameter', 'Please Enter a valid MAC Address', parent=parent)
             elif not ipv4_flag:
                 messagebox.showerror('Invalid Parameter', 'Please Enter a valid IPv4 Address', parent=parent)
-            elif not ipv6_flag:
-                messagebox.showerror('Invalid Parameter', 'Please Enter a valid IPv6 Address', parent=parent)
             elif not netmask_flag:
                 messagebox.showerror('Invalid Parameter', 'Please Enter a valid Subnet Mask', parent=parent)
             elif not default_route_flag:
                 messagebox.showerror('Invalid Parameter', 'Please Enter a valid Default Gateway', parent=parent)
+            elif not ipv6_flag:
+                messagebox.showerror('Invalid Parameter', 'Please Enter a valid IPv6 Address', parent=parent)
+            elif not ipv6_prefix_flag:
+                messagebox.showerror('Invalid Parameter', 'Please Enter a valid IPv6 Prefix', parent=parent)
+            elif not ipv6_ll_flag:
+                messagebox.showerror('Invalid Parameter', 'Please Enter a valid IPv6 Link Local Address', parent=parent)
+            elif not ipv6_ll_prefix_flag:
+                messagebox.showerror('Invalid Parameter', 'Please Enter a valid IPv6 Link Local Prefix', parent=parent)
 
     def menu_pc_cli(self, main_event):
 

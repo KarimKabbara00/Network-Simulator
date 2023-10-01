@@ -6,7 +6,7 @@ def set_ip(ip):
     ip_address = ''
 
     if len(x) != 4:
-        raise Exception("Invalid IP Address")
+        raise Exception("Invalid IP Address", ip)
 
     for i in x:
         if 0 <= int(i) <= 255:

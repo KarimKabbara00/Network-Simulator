@@ -31,15 +31,18 @@ def dhcp_ip_leases(internal_clock):
         ros = internal_clock.get_routers()
         for ro in ros:
             node = ro.get_class_object()
-            for dhcp_pool in node.get_dhcp_server().get_dhcp_pools():
-                ip_pool = dhcp_pool.get_leased_ip_pool()
-                for ip_lease in copy.copy(ip_pool):
-                    if internal_clock.now() > ip_pool[ip_lease] + timedelta(seconds=dhcp_pool.get_lease_time()):
-                        ip_pool.pop(ip_lease)
-                dhcp_pool.set_leased_ip_pool(ip_pool)
-                globalVars.prompt_save = True
+            dhcp_server = node.get_dhcp_server(bg_process=True)
+            if dhcp_server:
+                for dhcp_pool in dhcp_server.get_dhcp_pools():
+                    ip_pool = dhcp_pool.get_leased_ip_pool()
+                    for ip_lease in copy.copy(ip_pool):
+                        if internal_clock.now() > ip_pool[ip_lease] + timedelta(seconds=dhcp_pool.get_lease_time()):
+                            ip_pool.release_ip_assignment(ip_lease)
+                    #         ip_pool.pop(ip_lease)
+                    # dhcp_pool.set_leased_ip_pool(ip_pool)
+                    globalVars.prompt_save = True
 
-            node.get_dhcp_server().clear_expired_transaction_ids(expired_t_ids)
+                node.get_dhcp_server(bg_process=True).clear_expired_transaction_ids(expired_t_ids)
 
         time.sleep(2)
 

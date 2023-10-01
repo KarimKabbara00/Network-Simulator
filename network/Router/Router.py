@@ -143,21 +143,23 @@ class Router:
 
                     match application_identifier:
                         case "DHCP":
-                            if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
-                                frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
-                                receiving_interface.send(frame)
-                            elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
-                                frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
-                                                                    data, original_sender_mac, dhcp_renew=False)
-                                receiving_interface.send(frame)
-                            elif data.get_dhcp_identifier() == 'DHCP_RENEW':
-                                frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
-                                                                    data, original_sender_mac, dhcp_renew=True)
-                                receiving_interface.send(frame)
-                                print('receving renews')
-                            elif data.get_dhcp_identifier() == "DHCP_ACK":
-                                # TODO: yes
-                                pass
+                            if self.dhcp_server:
+                                if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
+                                    frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
+                                    receiving_interface.send(frame)
+                                elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
+                                    frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
+                                                                        data, original_sender_mac, dhcp_renew=False)
+                                    receiving_interface.send(frame)
+                                elif data.get_dhcp_identifier() == 'DHCP_RENEW':
+                                    frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
+                                                                        data, original_sender_mac, dhcp_renew=True)
+                                    receiving_interface.send(frame)
+                                elif data.get_dhcp_identifier() == 'DHCP_RELEASE':
+                                    self.dhcp_server.release_ip_assignment(receiving_interface, data)
+                                elif data.get_dhcp_identifier() == "DHCP_ACK":
+                                    # TODO: yes
+                                    pass
                         case _:
                             pass
 
@@ -288,8 +290,8 @@ class Router:
     def get_arp_table(self):
         return self.ARP_table
 
-    def get_dhcp_server(self):
-        if not self.dhcp_server:
+    def get_dhcp_server(self, bg_process=False):
+        if not self.dhcp_server and not bg_process:
             self.dhcp_server = DHCP_Server(self)
 
         return self.dhcp_server

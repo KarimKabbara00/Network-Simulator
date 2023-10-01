@@ -383,7 +383,6 @@ class RouterCli(DeviceCli):
             elif command.startswith('default-router'):
                 try:
                     default_router = command.split('default-router ')[1]
-                    print('asd', default_router)
                     if not default_router:
                         raise IndexError
                     if hf.check_ipv4(default_router):

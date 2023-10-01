@@ -198,6 +198,15 @@ def create_dhcp_renew(ci_address, si_address, ch_address, dhcp_mac_address, flag
     return frame
 
 
+def create_dhcp_release(source_mac, preferred_ipv4_address, dhcp_server_mac, dhcp_server_ip, dhcp_transaction_id,
+                        dot1q=None):
+    application_data = DhcpRelease(source_mac, preferred_ipv4_address, dhcp_server_ip, dhcp_transaction_id)
+    udp_segment = UDP(source_port=68, dest_port=67, data=application_data)
+    packet = create_ipv4_packet(udp_segment, preferred_ipv4_address, dhcp_server_ip)
+    frame = create_ethernet_frame(dhcp_server_mac, source_mac, dot1q, packet, None)
+    return frame
+
+
 def interface_or_sub_interface(receiving_interface, forwarding_interface, original_sender_ipv4, packet_identifier, frame):
     dot1q_header = None
     if not receiving_interface.get_netmask():
@@ -213,3 +222,5 @@ def interface_or_sub_interface(receiving_interface, forwarding_interface, origin
         dot1q_header = frame.get_dot1q()
 
     return receiving_interface, dot1q_header
+
+

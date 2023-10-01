@@ -71,6 +71,10 @@ class DHCPpool:
 
         self.offered_ips.remove(ip_address)
 
+    def release_ip_assignment(self, ip):
+        self.leased_ip_pool.pop(ip)
+        self.ip_pool.append(ip)
+
     def get_subnet(self):
         return self.pool_subnet
 

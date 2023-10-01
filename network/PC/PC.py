@@ -6,11 +6,6 @@ from network.Interface_Operations.Physical_Interface import PhysicalInterface
 from operations import globalVars
 
 
-def generate_ip_address():
-    random.seed(random.randint(0, 99999999))
-    return "192.168.1." + str(random.randint(1, 254))
-
-
 class PC:
 
     def __init__(self, model="SecondGen", host_name="PC"):
@@ -20,11 +15,12 @@ class PC:
         self.Model_Number = model
         self.interface = self.set_interface()
 
-        self.ipv4_address = None  # generate_ip_address()  # TODO: REMOVE RANDOM IP
-        self.netmask = None  # "255.255.255.0"  # TODO: REMOVE PRESET NETMASK
+        self.ipv4_address = None
+        self.netmask = None
         self.ipv6_address = None
-        self.ipv6_link_local = None  # TODO: GENERATE LINK LOCAL
         self.prefix = None
+        self.ipv6_link_local_address = hf.generate_link_local_ipv6()
+        self.ipv6_link_local_prefix = 10
         self.default_gateway = None
 
         self.ARP_table = {}
@@ -97,37 +93,41 @@ class PC:
             flags = [0x00, 0b0000000000000000]  # Unicast DHCP Request
             dhcp_server = self.dhcp_server_ip   # Unicast destination
             dhcp_mac_address = self.dhcp_server_mac
-
-            print('sent to', dhcp_server, dhcp_mac_address)
-
         else:       # 87.5%
             flags = [0x01, 0b0000000000000000]  # Broadcast DHCP Request
             dhcp_server = '255.255.255.255'     # No DHCP server specified
             dhcp_mac_address = 'FF:FF:FF:FF:FF:FF'
-
-
 
         frame = nf.create_dhcp_renew(self.preferred_ipv4_address, dhcp_server, self.MAC_Address, dhcp_mac_address,
                                      flags, is_t1, self.dhcp_transaction_id)
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
-    def renew_nic_configuration(self):
-        if not self.dhcp_server_ip and self.autoconfiguration_enabled:
-            self.send_dhcp_discover()
-        elif self.dhcp_server_ip and self.autoconfiguration_enabled:
-            self.send_dhcp_renew(is_t1=True)
-        elif not self.autoconfiguration_enabled:
-            pass
+    def send_dhcp_release(self):
+        frame = nf.create_dhcp_release(self.MAC_Address, self.preferred_ipv4_address, self.dhcp_server_mac,
+                                       self.dhcp_server_ip, self.dhcp_transaction_id)
+        self.interface[0].send(frame)
+        globalVars.prompt_save = True
 
-        self.autoconfiguration_enabled = True
+    def renew_nic_configuration(self):
+        if not self.dhcp_server_ip or not self.ipv4_address:
+            self.send_dhcp_discover()
+        elif self.dhcp_server_ip and self.preferred_ipv4_address:
+            self.send_dhcp_renew(is_t1=True)
+
         self.received_dhcp_offer = False
 
     def set_auto_configure(self, is_auto_config):
         self.autoconfiguration_enabled = is_auto_config
-        if self.autoconfiguration_enabled:
-            # TODO: if a dhcp server is already known, send a Request directly
+        if self.autoconfiguration_enabled and not self.dhcp_server_ip:
             self.send_dhcp_discover()
+        elif self.autoconfiguration_enabled and self.dhcp_server_ip:
+            self.send_dhcp_renew(is_t1=True)
+
+    def reset_nic_configuration(self):
+        self.send_dhcp_release()
+        self.expire_ip_lease()
+        self.dhcp_transaction_id = None
 
     def de_encapsulate(self, frame, receiving_interface):
         packet = frame.get_packet()
@@ -226,10 +226,13 @@ class PC:
             return ""
         return self.ipv6_address
 
-    def get_ipv6_link_local(self):
-        if not self.ipv6_link_local:
+    def get_ipv6_link_local_address(self):
+        if not self.ipv6_link_local_address:
             return ""
-        return self.ipv6_link_local
+        return self.ipv6_link_local_address
+
+    def get_link_local_prefix(self):
+        return self.ipv6_link_local_prefix
 
     def get_prefix(self):
         if not self.prefix:
@@ -289,7 +292,6 @@ class PC:
         self.lease_end = None
         self.dns_servers = None
         self.domain_name = None
-        # self.dhcp_transaction_id = None
         return self.dhcp_transaction_id
 
     def configure_nic_from_dhcp(self, data, dhcp_server_mac):
@@ -345,11 +347,19 @@ class PC:
     def set_ipv6_address(self, ip):
         self.ipv6_address = ip
 
+    def set_prefix(self, prefix):
+        self.prefix = prefix
+
+    def set_ipv6_link_local_address(self, ipv6_ll):
+        self.ipv6_link_local_address = ipv6_ll
+
+    def set_ipv6_link_local_prefix(self, ipv6_ll_prefix):
+        self.ipv6_link_local_prefix = ipv6_ll_prefix
+
     def set_netmask(self, netmask):
         self.netmask = netmask
 
-    def set_prefix(self, prefix):
-        self.prefix = prefix
+
 
     def set_host_name(self, hostname):
         self.Host_Name = hostname

@@ -40,7 +40,12 @@ class PCCli(DeviceCli):
         elif command == "ipconfig /renew":
             self.class_object.renew_nic_configuration()
             self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
+            self.process_command("ipconfig")
 
+        elif command == "ipconfig /release":
+            self.class_object.reset_nic_configuration()
+            self.canvas_object.auto_config_nic.set(False)
+            self.cli.insert(tk.END, "\n\n" + self.class_object.get_host_name() + "> ")
             self.process_command("ipconfig")
 
         elif command.startswith("ping"):

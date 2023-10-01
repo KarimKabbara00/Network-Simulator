@@ -15,7 +15,7 @@ def ip_config(host):
 
     header = "\nPC IP Configuration\n\n\nEthernet adapter Ethernet 1:"
     dns = '   ' + hf.build_ip_config_line("Connection-specific DNS Suffix", host.get_domain_name())
-    ll_ipv6 = '   ' + hf.build_ip_config_line("Link-local IPv6 Address", host.get_ipv6_link_local())
+    ll_ipv6 = '   ' + hf.build_ip_config_line("Link-local IPv6 Address", host.get_ipv6_link_local_address())
     ipv4 = '   ' + hf.build_ip_config_line("IPv4 Address", host.get_ipv4_address())
     subnet = '   ' + hf.build_ip_config_line("Subnet Mask", host.get_netmask())
     def_gw = '   ' + hf.build_ip_config_line("Default Gateway", host.get_default_gateway())
@@ -50,7 +50,7 @@ def ip_config_all(host: PC):
 
     auto_config = '   ' + hf.build_ip_config_line("Autoconfiguration Enabled",
                                                   host.get_auto_config(as_str=True)) + '\n'
-    ll_ipv6 = '   ' + hf.build_ip_config_line("Link-local IPv6 Address", host.get_ipv6_link_local()) + '\n'
+    ll_ipv6 = '   ' + hf.build_ip_config_line("Link-local IPv6 Address", host.get_ipv6_link_local_address()) + '\n'
 
     is_preferred = ''
     if host.get_preferred_ip() and host.get_ipv4_address():

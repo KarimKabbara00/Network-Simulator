@@ -12,7 +12,8 @@ from UI import loadIcons
 from operations import globalVars
 import tkinterweb
 from datetime import datetime
-
+import string
+import random
 
 def button_enter(event, btn):
     btn.config(background='gray89', relief=tk.SUNKEN)
@@ -367,7 +368,7 @@ def get_longest_consecutive_numbers(numbers):
     return idx[0], idx[-1] + 1
 
 
-def is_valid_ipv6(ipv6):
+def check_ipv6(ipv6):
     x = ipv6.lower().split(":")
 
     if len(x) > 8 or len(x) < 0:
@@ -435,7 +436,7 @@ def lengthen_ipv6(ipv6):
     return lengthened[:-1].lower()
 
 
-def is_valid_ipv6_prefix(ipv6_prefix):
+def check_ipv6_prefix(ipv6_prefix):
     return 0 < int(ipv6_prefix) <= 128
 
 
@@ -461,6 +462,15 @@ def get_network_portion_ipv6(ipv6, prefix):
         network_address += ':'
 
     return network_address.lower()
+
+
+def generate_link_local_ipv6():
+    choices = list(map(str, string.ascii_lowercase))[:6] + list(map(str, [0, 1, 2, 4, 5, 6, 7, 8, 9]))
+    link_local_ipv6 = 'fe80'
+    for i in range(7):
+        link_local_ipv6 += (':' + random.choice(choices) + random.choice(choices) +
+                            random.choice(choices) + random.choice(choices))
+    return link_local_ipv6
 
 
 def compute_ping_stats(ping_rtt_times, dest_ipv4_address, count, received_ping_count, canvas, host):
@@ -859,6 +869,7 @@ def build_ip_config_line(description, value):
             description += ' '
     return description + ': ' + value
 
+
 def month_name_to_number(name):
     match name:
         case 'January': return 1
@@ -876,7 +887,6 @@ def month_name_to_number(name):
 
 
 def str_time_to_datetime(t):
-
     time = t.replace(',', '').split(' ')
     year = int(time[3])
     month = month_name_to_number(time[1])

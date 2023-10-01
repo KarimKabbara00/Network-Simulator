@@ -217,5 +217,18 @@ class DhcpRenew(Dhcp):
         return self.options
 
 
-class DhcpRelease:
-    pass
+class DhcpRelease(Dhcp):
+    def __init__(self, ch_address, ci_address, si_address, transaction_id):
+        super().__init__()
+
+        self.ch_address = ch_address
+        self.ci_address = ci_address
+        self.si_address = si_address
+        self.transaction_id = transaction_id
+        self.dhcp_identifier = "DHCP_RELEASE"
+
+    def get_dhcp_identifier(self):
+        return self.dhcp_identifier
+
+    def get_options(self):
+        return self.options

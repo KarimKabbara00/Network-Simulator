@@ -45,7 +45,6 @@ class DHCP_Server:
         return self.dhcp_pools
 
     def create_offer(self, receiving_interface, data: DHCP.Dhcp, source_mac):
-
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(
             receiving_interface)
 
@@ -102,6 +101,14 @@ class DHCP_Server:
         return nf.create_dhcp_ack(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
                                   si_address, gi_address, ch_address, dest_ip, transaction_id, requested_options)
 
+    def release_ip_assignment(self, receiving_interface, data):
+        working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(
+            receiving_interface)
+
+        transaction_id = data.get_transaction_id()
+        ci_address = data.get_ci_address()
+        working_dhcp_pool.release_ip_assignment(ci_address)
+        self.transaction_ids.pop(transaction_id)
 
     def clear_expired_transaction_ids(self, transaction_ids): # Called only when lease expires
         for t_id in transaction_ids:
