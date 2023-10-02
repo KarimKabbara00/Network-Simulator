@@ -27,6 +27,16 @@ class DHCPpool:
             self.pool_subnet = subnet
 
         self.ip_pool = hf.get_ip_range(ip, subnet, is_prefix)
+        self.ip_pool.pop(0)
+
+        # Remove interface ip from pool
+        for interface in self.class_object.get_interfaces():
+            try:
+                if interface.get_ipv4_address() and hf.is_same_subnet(interface.get_ipv4_address(), self.pool_subnet, self.ip_pool[0]):
+                    self.ip_pool.remove(interface.get_ipv4_address())
+            except ValueError:
+                pass
+
         random.shuffle(self.ip_pool)
 
     def add_dns_server(self, dns_server):
@@ -62,6 +72,7 @@ class DHCPpool:
             self.ip_pool.remove(ip_address)  # Remove from pool
             self.offered_ips.append(ip_address)  # Place it on hold until Request is received.
 
+        print(ip_address)
         return ip_address
 
     def remove_ip_from_hold(self, ip_address, assigned=True):
@@ -71,6 +82,7 @@ class DHCPpool:
             self.ip_pool.append(ip_address)
 
         self.offered_ips.remove(ip_address)
+        print(ip_address)
 
     def release_ip_assignment(self, ip):
         self.leased_ip_pool.pop(ip)
@@ -79,6 +91,7 @@ class DHCPpool:
     def unknown_ip_assignment(self, ip_address):
         self.unknown_ip_assignments.append(ip_address)
         self.offered_ips.remove(ip_address)
+        # TODO: Syslog entry
 
     def get_subnet(self):
         return self.pool_subnet

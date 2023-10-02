@@ -139,6 +139,7 @@ class DhcpRequest(Dhcp):
         self.ch_address = ch_address
         self.transaction_id = transaction_id
         self.flags = flags
+        self.si_address = si_address
 
         self.options = DHCP_options
         self.options['DHCP_REQUEST'] = True

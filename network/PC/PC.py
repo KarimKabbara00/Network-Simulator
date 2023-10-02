@@ -133,6 +133,7 @@ class PC:
     def reset_nic_configuration(self):
         self.send_dhcp_release()
         self.expire_ip_lease()
+        self.preferred_ipv4_address = None
         self.dhcp_transaction_id = None
 
     def de_encapsulate(self, frame, receiving_interface):
@@ -187,8 +188,7 @@ class PC:
                 match application_identifier:
 
                     case "DHCP":
-                        if data.get_dhcp_identifier() == 'DHCP_OFFER' and not self.received_dhcp_offer:
-
+                        if data.get_dhcp_identifier() == 'DHCP_OFFER' and not self.received_dhcp_offer:  # Responds to first offer
                             # Extract data
                             self.received_dhcp_offer = True
                             dhcp_server_ip_address = data.get_si_address()
@@ -198,13 +198,15 @@ class PC:
                             # First check if IP is used by another host by sending an ARP request
                             self.arp_request(data.get_yi_address())
 
-                            if not self.received_dhcp_arp_check:    # If no reply is received from the ARP Request
+                            if not self.received_dhcp_arp_check:    # If no reply is received from the ARP Request, send a request
                                 self.send_dhcp_request(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
                             else:
                                 self.send_dhcp_decline(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
                                 self.send_dhcp_discover()  # Reapply for IP
+                                self.received_dhcp_arp_check = False
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
+                            print('acked')
                             self.configure_nic_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
                             self.canvas_object.set_fields_from_dhcp(self.ipv4_address, self.netmask,
                                                                     self.default_gateway)

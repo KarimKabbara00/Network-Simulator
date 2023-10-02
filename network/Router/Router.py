@@ -1,4 +1,5 @@
 import UI.helper_functions as hf
+import network.Router.DHCP_Server
 import network.network_functions as nf
 from network.Interface_Operations.Physical_Interface import PhysicalInterface
 from operations import globalVars
@@ -143,24 +144,35 @@ class Router:
 
                     match application_identifier:
                         case "DHCP":
-                            if self.dhcp_server: # TODO must check if si_addr == receiving interface IP
-                                                    # AND it must not send a OFFER if no pool matches receiving intf ip
+                            if self.dhcp_server:
                                 if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
                                     frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
-                                    receiving_interface.send(frame)
+                                    if frame:
+                                        receiving_interface.send(frame)
+
                                 elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
-                                    frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
-                                                                        data, original_sender_mac, dhcp_renew=False)
-                                    receiving_interface.send(frame)
+                                    if data.get_si_address() == receiving_interface.get_ipv4_address():  # Request destined to this DHCP server
+                                        frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address, data,
+                                                                            original_sender_mac, dhcp_renew=False)
+                                        if frame:
+                                            receiving_interface.send(frame)
+                                    else:  # Request destined to another DHCP server -> revoke offer
+                                        print('was destined to', data.get_si_address(), 'aka', receiving_interface.get_ipv4_address())
+                                        self.dhcp_server.revoke_offer(receiving_interface, data)
+
                                 elif data.get_dhcp_identifier() == 'DHCP_RENEW':
-                                    frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address,
-                                                                        data, original_sender_mac, dhcp_renew=True)
-                                    receiving_interface.send(frame)
+                                    frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address, data,
+                                                                        original_sender_mac, dhcp_renew=True)
+                                    if frame:
+                                        receiving_interface.send(frame)
+
                                 elif data.get_dhcp_identifier() == 'DHCP_RELEASE':
                                     self.dhcp_server.release_ip_assignment(receiving_interface, data)
+
                                 elif data.get_dhcp_identifier() == "DHCP_ACK":
                                     # TODO: yes
                                     pass
+
                                 elif data.get_dhcp_identifier() == "DHCP_DECLINE":
                                     self.dhcp_server.process_dhcp_decline(receiving_interface, data)
 
@@ -296,7 +308,7 @@ class Router:
 
     def get_dhcp_server(self, bg_process=False):
         if not self.dhcp_server and not bg_process:
-            self.dhcp_server = DHCP_Server(self)
+            self.dhcp_server: network.Router.DHCP_Server.DHCP_Server = DHCP_Server(self)
 
         return self.dhcp_server
 
