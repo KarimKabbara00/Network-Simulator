@@ -151,13 +151,14 @@ class Router:
                                         receiving_interface.send(frame)
 
                                 elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
-                                    if data.get_si_address() == receiving_interface.get_ipv4_address():  # Request destined to this DHCP server
+                                    # Request destined to this DHCP server
+                                    if data.get_si_address() == receiving_interface.get_ipv4_address():
                                         frame = self.dhcp_server.create_ack(receiving_interface, self.MAC_Address, data,
                                                                             original_sender_mac, dhcp_renew=False)
                                         if frame:
                                             receiving_interface.send(frame)
-                                    else:  # Request destined to another DHCP server -> revoke offer
-                                        print('was destined to', data.get_si_address(), 'aka', receiving_interface.get_ipv4_address())
+                                    # Request destined to another DHCP server -> revoke offer
+                                    else:
                                         self.dhcp_server.revoke_offer(receiving_interface, data)
 
                                 elif data.get_dhcp_identifier() == 'DHCP_RENEW':
@@ -168,10 +169,6 @@ class Router:
 
                                 elif data.get_dhcp_identifier() == 'DHCP_RELEASE':
                                     self.dhcp_server.release_ip_assignment(receiving_interface, data)
-
-                                elif data.get_dhcp_identifier() == "DHCP_ACK":
-                                    # TODO: yes
-                                    pass
 
                                 elif data.get_dhcp_identifier() == "DHCP_DECLINE":
                                     self.dhcp_server.process_dhcp_decline(receiving_interface, data)

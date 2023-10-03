@@ -152,6 +152,7 @@ class PC:
                     mac_address = packet.get_sender_mac()
                     self.add_arp_entry(ipv4, mac_address, "DYNAMIC")
 
+                    # For DHCP ARP check
                     if self.received_dhcp_offer:
                         self.received_dhcp_arp_check = True
 
@@ -206,10 +207,15 @@ class PC:
                                 self.received_dhcp_arp_check = False
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
-                            print('acked')
                             self.configure_nic_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
                             self.canvas_object.set_fields_from_dhcp(self.ipv4_address, self.netmask,
                                                                     self.default_gateway)
+
+                        elif data.get_dhcp_identifier() == "DHCP_NAK":
+                            # receives a NAK when pc requests DHCP configurations that do not match the current configurations
+                            # EX: preferred IP: 192.168.1.5 /24, current config ip pool: 192.168.5.128 /25
+                            # TODO: PC syslog ("event viewer")
+                            pass
 
                     case _:
                         pass

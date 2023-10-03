@@ -46,8 +46,8 @@ class DHCP_Server:
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
 
         flags = data.get_flags()
-        options = data.get_options()
-        ci_address = None
+        options = data.get_options() # TODO: check preferred IP in here, maybe add preferred subnet_mask. Then see if they match working_dhcp_pool's configs
+        ci_address = None              # ^ if not, send NAK, otherwise proceed
         si_address = receiving_interface.get_ipv4_address()
         gi_address = None
         ch_address = source_mac
@@ -71,7 +71,7 @@ class DHCP_Server:
             # ---------------------------- DHCP OPTIONS ---------------------------- #
 
             # Exhausted IP Pool
-            if not yi_address: # TODO:
+            if not yi_address: # TODO: NAK HERE
                 print('exhausted!')
                 # return nf.create_dhcp_nak()
 
@@ -105,6 +105,16 @@ class DHCP_Server:
         else:
             return None
 
+
+    def create_nak(self, receiving_interface, source_mac, data, original_sender_mac):
+        working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
+        transaction_id = data.get_transaction_id()
+        # source_mac is router
+        # original_sender_mac is PC
+
+        #TODO: check the requested configurations
+        # call this in create_offer if checks fail
+
     def release_ip_assignment(self, receiving_interface, data):
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
 
@@ -126,12 +136,26 @@ class DHCP_Server:
         if working_dhcp_pool:
             transaction_id = data.get_transaction_id()
 
-            # TODO: START HERE!!! This causes a key error.
-            #   Load tset_2 -> configure dhcp: r1 with network 192.168.1.0 /25 and r2 with network 192.168.1.128 /25
-            offered_ip_to_be_revoked = self.transaction_ids[transaction_id]['OFFERED_IP_ADDRESS']
-
-            working_dhcp_pool.remove_ip_from_hold(offered_ip_to_be_revoked, assigned=False)  # False if offer revoked
-            self.transaction_ids.pop(transaction_id)
+            # TODO: TSET_2: R1 DHCP: network 192.168.1.0 /25 ----- R2 DHCP: network 192.168.1.128 /25
+            '''
+                Switches may need to use threads to broadcast frames. Broadcast frames will arrive to destinations one at
+                a time as opposed to all at 'once'. 
+                
+                The Problem: The entire DORA process completes with the first DHCP server. 
+                    - One level into the stack trace:
+                        * The second DHCP server receives a REQUEST not destined to it (destined to the first server), then tries to revoke 
+                            the offer it made.
+                        * However, it never had the chance to make an offer, because going back up the stacktrace, the very first 
+                            broadcast DISCOVER hasn't yet made it to the second server to create an entry in the transaction ID dictionary.
+                    - Again, this happens because each broadcast frame is sent sequentially, as opposed to at the same time.
+            '''
+            try:
+                offered_ip_to_be_revoked = self.transaction_ids[transaction_id]['OFFERED_IP_ADDRESS']
+                working_dhcp_pool.remove_ip_from_hold(offered_ip_to_be_revoked, assigned=False)  # False if offer revoked
+                self.transaction_ids.pop(transaction_id)
+                print('offer revoked')
+            except KeyError:
+                pass
 
     def clear_expired_transaction_ids(self, transaction_ids): # Called only when lease expires
         for t_id in transaction_ids:

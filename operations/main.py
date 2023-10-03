@@ -224,5 +224,5 @@ ip_lease_expiry.start()
 tk.mainloop()
 
 # TODO:
-#   - DHCP NAK, When client broadcasts REQUEST -> other DHCP servers revoke offered IP address to that ch_address/t_id
+#   - DHCP NAK (exhausted pool || wrong configs)
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!
