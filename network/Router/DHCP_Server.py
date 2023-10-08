@@ -97,13 +97,11 @@ class DHCP_Server:
         try:
             requested_options = self.transaction_ids[transaction_id]
         except KeyError:
-            print("NAK 3")
             return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
 
         # Check if requested configurations match the pool's configurations
         try:
             if not hf.is_same_subnet(requested_options['PREFERRED_IP'], working_dhcp_pool.get_subnet(), working_dhcp_pool.get_example_ip()):
-                print("NAK 4")
                 return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
         except KeyError:
             pass    # No preferred IP
@@ -115,7 +113,6 @@ class DHCP_Server:
             else:
                 dest_ip = ci_address
 
-            print('created ack')
             return nf.create_dhcp_ack(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
                                       si_address, gi_address, ch_address, dest_ip, transaction_id, requested_options)
         else:

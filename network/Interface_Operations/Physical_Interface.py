@@ -20,6 +20,8 @@ class PhysicalInterface:
             self.sub_interfaces = []
             self.preferred_ipv4_address = None
             self.dhcp_transaction_id = None
+            self.dhcp_server_ip = None
+            self.dhcp_server_mac = None
 
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
             self.switchport_type = 'Access'  # If none, then all vlan traffic is allowed
@@ -226,6 +228,21 @@ class PhysicalInterface:
         for i in self.sub_interfaces:
             if i.get_shortened_name() == name:
                 return name
+
+    def configure_interface_from_dhcp(self, data, dhcp_server_mac):
+        self.dhcp_server_ip = data.get_si_address()
+        self.dhcp_server_mac = dhcp_server_mac
+        self.ipv4_address = self.preferred_ipv4_address = data.get_yi_address()
+        options = data.get_options()
+        self.netmask = options['REQUEST_SUBNET_MASK']
+
+    def get_ip_assignment_method(self):
+        if not self.dhcp_server_ip and self.ipv4_address:
+            return "NVRAM"
+        elif self.dhcp_server_ip and self.ipv4_address:
+            return "DHCP"
+        else:
+            return "Unset"
     # ------ Router only ------ #
 
     # -------------------------- Save & Load Methods -------------------------- #

@@ -193,21 +193,26 @@ class RouterCli(DeviceCli):
                 self.cli.insert(tk.END, self.cli_text)
 
             elif command.startswith("ip address "):
-                ip = command.split(" ")[-2]
-                netmask = command.split(" ")[-1]
-
-                if not hf.check_ipv4(ip):
-                    self.cli.insert(tk.END, "\nInvalid IP Address\n" + "\n" + self.cli_text)
-                    valid_command = False
-                elif not hf.check_subnet_mask(netmask):
-                    self.cli.insert(tk.END, "\nInvalid Subnet Mask\n" + "\n" + self.cli_text)
-                    valid_command = False
+                if 'dhcp' in command:
+                    self.class_object.send_dhcp_discover(self.working_interface)
+                    self.cli_text = self.class_object.get_host_name() + "(int-config)> "
+                    self.cli.insert(tk.END, "\n" + self.cli_text)
                 else:
-                    self.working_interface.set_ipv4_address(ip)
-                    self.working_interface.set_netmask(netmask)
-                    self.cli.insert(tk.END, "\nIP Address configured for " + self.working_interface.get_shortened_name()
-                                    + "\n" + self.cli_text)
-                    self.class_object.update_routing_table(self.working_interface, ip, netmask)
+                    ip = command.split(" ")[-2]
+                    netmask = command.split(" ")[-1]
+
+                    if not hf.check_ipv4(ip):
+                        self.cli.insert(tk.END, "\nInvalid IP Address\n" + "\n" + self.cli_text)
+                        valid_command = False
+                    elif not hf.check_subnet_mask(netmask):
+                        self.cli.insert(tk.END, "\nInvalid Subnet Mask\n" + "\n" + self.cli_text)
+                        valid_command = False
+                    else:
+                        self.working_interface.set_ipv4_address(ip)
+                        self.working_interface.set_netmask(netmask)
+                        self.cli.insert(tk.END, "\nIP Address configured for " + self.working_interface.get_shortened_name()
+                                        + "\n" + self.cli_text)
+                        self.class_object.update_routing_table(self.working_interface, ip, netmask)
 
             elif command.startswith("no "):
                 next_command = command.split("no ")[1]
@@ -234,9 +239,6 @@ class RouterCli(DeviceCli):
                     self.cli.insert(tk.END, "\nInterface Not Found")
                     self.cli.insert(tk.END, "\n" + self.cli_text)
                     valid_command = False
-
-            elif command == "ip address dhcp":
-                self.class_object.send_dhcp_discover(self.working_interface)
 
             else:
                 self.cli.insert(tk.END, "\nUnknown Command\n" + "\n" + self.cli_text)

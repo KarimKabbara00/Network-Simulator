@@ -131,7 +131,6 @@ class Router:
                     else:
                         # If routing an ICMP reply, ICMP already reached its dest, therefore ARP entry exists already
                         if destination_directly_attached:
-                            # self.arp_request(original_dest_ipv4, forwarding_interface)
                             frame = nf.create_ethernet_frame(self.ARP_table[original_dest_ipv4][0], self.MAC_Address,
                                                              dot1q_header, packet, None)
                             forwarding_interface.send(frame)
@@ -147,7 +146,17 @@ class Router:
 
                     match application_identifier:
                         case "DHCP":
+                            # ---- DHCP Client ---- #
+                            if data.get_dhcp_identifier() == 'DHCP_OFFER' and self.sent_dhcp_discover:
+                                self.send_dhcp_request(receiving_interface, data)
+
+                            elif data.get_dhcp_identifier() == 'DHCP_ACK' and self.sent_dhcp_discover:
+                                receiving_interface.configure_interface_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
+                            # ---- DHCP Client ---- #
+
+                            # ---- DHCP Server ---- #
                             if self.dhcp_server:
+
                                 if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
                                     frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac, self.MAC_Address)
                                     if frame:
@@ -175,10 +184,7 @@ class Router:
 
                                 elif data.get_dhcp_identifier() == 'DHCP_DECLINE':
                                     self.dhcp_server.process_dhcp_decline(receiving_interface, data)
-
-                                elif data.get_dhcp_identifier() == 'DHCP_OFFER' and self.sent_dhcp_discover:
-                                    # DHCP CLIENT Here
-                                    pass
+                            # ---- DHCP Server ---- #
 
                         case _:
                             pass
@@ -322,15 +328,18 @@ class Router:
             working_interface.set_dhcp_transaction_id(t_id)  # Random 16-bit number (stored as int)
 
         frame = nf.create_dhcp_discover(self.MAC_Address, working_interface.get_ipv4_address(), t_id)
+        self.sent_dhcp_discover = True
         working_interface.send(frame)
         globalVars.prompt_save = True
 
-        self.sent_dhcp_discover = True
+    def send_dhcp_request(self, working_interface: PhysicalInterface, data):
+        dhcp_server_ip_address = data.get_si_address()
+        provided_ip = data.get_yi_address()
+        flags = data.get_flags()
 
-    # def send_dhcp_request(self, dhcp_server_ip_address, provided_ip, transaction_id, flags):
-    #     frame = nf.create_dhcp_request(self.MAC_Address, dhcp_server_ip_address, provided_ip, transaction_id, flags)
-    #     self.interface[0].send(frame)
-    #     globalVars.prompt_save = True
+        frame = nf.create_dhcp_request(self.MAC_Address, dhcp_server_ip_address, provided_ip, working_interface.get_dhcp_transaction_id(), flags)
+        working_interface.send(frame)
+        globalVars.prompt_save = True
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

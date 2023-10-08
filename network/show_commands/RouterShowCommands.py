@@ -1,25 +1,32 @@
 def interfaces(interface_list):
-    header = "{:<16} {:<15} {:<15} {:<15}".format('Interface', 'IP Address', 'Connected', 'Operational')
-    header += '\n------------------------------------------------------------\n'
+    header = "{:<12} {:<16} {:<7} {:<4} {:<12} {:<12}".format('Interface', 'IP Address', 'Method', 'OK?', 'Connected', 'Operational')
+    header += '\n-----------------------------------------------------------------------------\n'
     entries = ''
     for interface in interface_list:
+
         int_co = "False"
-        int_op = "False"
         if interface.get_is_connected():
             int_co = "True"
+
+        int_ok = "NO"
         if interface.get_is_operational():
-            int_op = "True"
+            int_ok = "YES"
+
+        int_op = "Up" + ' ' * 19
+        if interface.get_administratively_down():
+            int_op = "Administratively Down"
 
         ipv4 = interface.get_ipv4_address()
         if not ipv4:
             ipv4 = "   ----"
 
-        entries += "{:<16} {:<15} {:<15} {:<15}".format(interface.get_shortened_name(), ipv4, int_co,
-                                                        int_op) + '\n'
+        method = interface.get_ip_assignment_method()
+
+        entries += "{:<12} {:<16} {:<7} {:<4} {:<12} {:<12}".format(interface.get_shortened_name(), ipv4, method, int_ok, int_co,
+                                                                      int_op + '\n')
 
         for sub_intf in interface.get_sub_interfaces():
-            entries += '--> ' + ("{:<12} {:<15}".format(sub_intf.get_shortened_name(),
-                                                        sub_intf.get_ipv4_address()) + '\n')
+            entries += '--> ' + ("{:<12} {:<15}".format(sub_intf.get_shortened_name(), sub_intf.get_ipv4_address()) + '\n')
 
     return header + entries
 
