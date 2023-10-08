@@ -1,4 +1,3 @@
-import random
 import UI.helper_functions as hf
 from operations import globalVars
 
@@ -14,6 +13,8 @@ class DHCPpool:
         self.offered_ips = []  # IPs waiting for DORA -> Request
         self.unknown_ip_assignments = []  # If server receives a DECLINE due to ARP Request check
 
+        self.example_ip = None  # Used to check for same subnet
+
         self.pool_subnet = None
         self.dns_servers = []
         self.domain_name = None
@@ -26,18 +27,18 @@ class DHCPpool:
         except ValueError:
             self.pool_subnet = subnet
 
+        # Get IP Range
         self.ip_pool = hf.get_ip_range(ip, subnet, is_prefix)
+
+        # Remove reserved network address
         self.ip_pool.pop(0)
 
-        # Remove interface ip from pool
-        for interface in self.class_object.get_interfaces():
-            try:
-                if interface.get_ipv4_address() and hf.is_same_subnet(interface.get_ipv4_address(), self.pool_subnet, self.ip_pool[0]):
-                    self.ip_pool.remove(interface.get_ipv4_address())
-            except ValueError:
-                pass
+        # Remove Excluded addresses
+        excluded_addresses = self.class_object.get_dhcp_server().get_excluded_addresses()
+        self.ip_pool = [ip for ip in self.ip_pool if ip not in excluded_addresses]
 
-        random.shuffle(self.ip_pool)
+        # Used to check same subnet
+        self.example_ip = self.ip_pool[0]
 
     def add_dns_server(self, dns_server):
         self.dns_servers.append(dns_server)
@@ -57,22 +58,18 @@ class DHCPpool:
     def get_pool(self):
         return self.ip_pool
 
-    def get_ip_from_pool(self, ip, excluded_ips):
-
-        ip_address = None  # Remains None if ip pool is exhausted
-        if ip and ip in self.ip_pool and ip not in excluded_ips:
+    def get_ip_from_pool(self, ip):
+        if ip and ip in self.ip_pool:
             ip_address = ip
-
+            self.ip_pool.remove(ip_address)         # Remove from pool
         else:
-            for ip in self.ip_pool:
-                if ip not in excluded_ips:
-                    ip_address = ip
+            try:
+                ip_address = self.ip_pool.pop(0)    # Remove from pool
+            except IndexError:
+                return None
 
-        if ip_address:
-            self.ip_pool.remove(ip_address)  # Remove from pool
-            self.offered_ips.append(ip_address)  # Place it on hold until Request is received.
+        self.offered_ips.append(ip_address)     # Place it on hold until Request is received.
 
-        print(ip_address)
         return ip_address
 
     def remove_ip_from_hold(self, ip_address, assigned=True):
@@ -82,7 +79,6 @@ class DHCPpool:
             self.ip_pool.append(ip_address)
 
         self.offered_ips.remove(ip_address)
-        print(ip_address)
 
     def release_ip_assignment(self, ip):
         self.leased_ip_pool.pop(ip)
@@ -116,3 +112,6 @@ class DHCPpool:
 
     def set_leased_ip_pool(self, pool):
         self.leased_ip_pool = pool
+
+    def get_example_ip(self):
+        return self.example_ip

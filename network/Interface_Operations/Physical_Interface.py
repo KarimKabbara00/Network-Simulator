@@ -15,9 +15,11 @@ class PhysicalInterface:
         self.canvas_cable = None
 
         if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
-            self.ip_address = None
+            self.ipv4_address = None
             self.netmask = None
             self.sub_interfaces = []
+            self.preferred_ipv4_address = None
+            self.dhcp_transaction_id = None
 
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
             self.switchport_type = 'Access'  # If none, then all vlan traffic is allowed
@@ -103,27 +105,6 @@ class PhysicalInterface:
         else:
             raise Exception("What you doin bruh")
 
-    def get_ipv4_address(self):
-        if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
-            if not self.ip_address:
-                # return "   ----"
-                return None
-            return self.ip_address
-        else:
-            raise Exception("What you doin bruh")
-
-    def get_netmask(self):
-        if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
-            return self.netmask
-        else:
-            raise Exception("What you doin bruh")
-
-    def set_ipv4_address(self, address):
-        self.ip_address = address
-
-    def set_netmask(self, netmask):
-        self.netmask = netmask
-
     def set_speed(self, speed):
         self.speed = speed
 
@@ -172,6 +153,7 @@ class PhysicalInterface:
         except AttributeError:
             pass
 
+    # ------ Switch only ------ #
     def set_access_vlan_id(self, v_id):
         if self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
             self.access_vlan_id = v_id
@@ -179,7 +161,6 @@ class PhysicalInterface:
         else:
             raise Exception("What you doin bruh")
 
-    # ------ Switch only ------ #
     def set_switchport_type(self, sw_type):
         self.switchport_type = sw_type
 
@@ -210,12 +191,42 @@ class PhysicalInterface:
 
     def get_sub_interfaces(self):
         return self.sub_interfaces
-    # ------ Router only ------ #
+
+    def get_ipv4_address(self):
+        if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
+            if not self.ipv4_address:
+                # return "   ----"
+                return None
+            return self.ipv4_address
+        else:
+            raise Exception("What you doin bruh")
+
+    def get_netmask(self):
+        if self.host.get_model() == "R94X" or self.host.get_model() == "RTSA1000X":
+            return self.netmask
+        else:
+            raise Exception("What you doin bruh")
+
+    def set_ipv4_address(self, address):
+        self.ipv4_address = address
+
+    def set_netmask(self, netmask):
+        self.netmask = netmask
+
+    def get_preferred_ipv4_address(self):
+        return self.preferred_ipv4_address
+
+    def get_dhcp_transaction_id(self):
+        return self.dhcp_transaction_id
+
+    def set_dhcp_transaction_id(self, t_id):
+        self.dhcp_transaction_id = t_id
 
     def get_sub_interface_by_name(self, name):
         for i in self.sub_interfaces:
             if i.get_shortened_name() == name:
                 return name
+    # ------ Router only ------ #
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
@@ -227,7 +238,7 @@ class PhysicalInterface:
 
             return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
                     self.connected_to_MAC, self.operational, self.administratively_down,
-                    self.ip_address, self.netmask, sub_interfaces]
+                    self.ipv4_address, self.netmask, sub_interfaces]
 
         elif self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
             return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,

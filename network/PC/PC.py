@@ -46,7 +46,8 @@ class PC:
         self.dns_servers = None  # assigned by dhcp, not dhcp related.
         self.domain_name = None  # ^
         self.dhcp_transaction_id = None
-        self.received_dhcp_arp_check = None
+        self.received_arp_reply_dhcp_check = False   # ARP check to before Request
+        self.tried_discover_after_NAK = False        # Discover once if a NAK is received
         # DHCP
 
         self.internal_clock = None
@@ -99,10 +100,13 @@ class PC:
             dhcp_server = '255.255.255.255'     # No DHCP server specified
             dhcp_mac_address = 'FF:FF:FF:FF:FF:FF'
 
-        frame = nf.create_dhcp_renew(self.preferred_ipv4_address, dhcp_server, self.MAC_Address, dhcp_mac_address,
-                                     flags, is_t1, self.dhcp_transaction_id)
-        self.interface[0].send(frame)
-        globalVars.prompt_save = True
+        if self.preferred_ipv4_address:
+            frame = nf.create_dhcp_renew(self.preferred_ipv4_address, dhcp_server, self.MAC_Address, dhcp_mac_address,
+                                         flags, is_t1, self.dhcp_transaction_id)
+            self.interface[0].send(frame)
+            globalVars.prompt_save = True
+        else:
+            self.send_dhcp_discover()
 
     def send_dhcp_release(self):
         frame = nf.create_dhcp_release(self.MAC_Address, self.preferred_ipv4_address, self.dhcp_server_mac,
@@ -122,6 +126,7 @@ class PC:
             self.send_dhcp_renew(is_t1=True)
 
         self.received_dhcp_offer = False
+        self.tried_discover_after_NAK = False
 
     def set_auto_configure(self, is_auto_config):
         self.autoconfiguration_enabled = is_auto_config
@@ -154,7 +159,7 @@ class PC:
 
                     # For DHCP ARP check
                     if self.received_dhcp_offer:
-                        self.received_dhcp_arp_check = True
+                        self.received_arp_reply_dhcp_check = True
 
         elif packet_identifier == "ipv4":
             segment = packet.get_segment()
@@ -190,6 +195,7 @@ class PC:
 
                     case "DHCP":
                         if data.get_dhcp_identifier() == 'DHCP_OFFER' and not self.received_dhcp_offer:  # Responds to first offer
+
                             # Extract data
                             self.received_dhcp_offer = True
                             dhcp_server_ip_address = data.get_si_address()
@@ -199,12 +205,12 @@ class PC:
                             # First check if IP is used by another host by sending an ARP request
                             self.arp_request(data.get_yi_address())
 
-                            if not self.received_dhcp_arp_check:    # If no reply is received from the ARP Request, send a request
+                            if not self.received_arp_reply_dhcp_check:    # If no reply is received from the ARP Request, send a request
                                 self.send_dhcp_request(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
                             else:
                                 self.send_dhcp_decline(dhcp_server_ip_address, provided_ip, self.dhcp_transaction_id, flags)
                                 self.send_dhcp_discover()  # Reapply for IP
-                                self.received_dhcp_arp_check = False
+                                self.received_arp_reply_dhcp_check = False
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
                             self.configure_nic_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
@@ -214,8 +220,11 @@ class PC:
                         elif data.get_dhcp_identifier() == "DHCP_NAK":
                             # receives a NAK when pc requests DHCP configurations that do not match the current configurations
                             # EX: preferred IP: 192.168.1.5 /24, current config ip pool: 192.168.5.128 /25
+                            if not self.tried_discover_after_NAK:
+                                self.tried_discover_after_NAK = True
+                                self.expire_ip_lease()
+                                self.send_dhcp_discover()
                             # TODO: PC syslog ("event viewer")
-                            pass
 
                     case _:
                         pass

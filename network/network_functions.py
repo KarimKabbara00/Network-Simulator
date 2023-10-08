@@ -7,7 +7,7 @@ from network.Switch.Dot1q import Dot1q
 import time
 from network.PDUs.UDP import UDP
 from network.Application_Protocols.DHCP import (DhcpDiscover, DhcpOffer, DhcpRequest, DhcpAcknowledge, DhcpRelease,
-                                                DhcpRenew, DhcpDecline)
+                                                DhcpRenew, DhcpDecline, DhcpNak)
 
 
 def create_icmp_echo_segment():
@@ -162,9 +162,7 @@ def create_dhcp_discover(source_mac, preferred_ip, transaction_id, dot1q=None):
     return frame
 
 
-def create_dhcp_offer(source_ip, source_mac, flags, ci_address, yi_address, si_address, gi_address, ch_address,
-                      transaction_id, dot1q=None):
-
+def create_dhcp_offer(source_ip, source_mac, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id, dot1q=None):
     application_data = DhcpOffer(flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id)
     udp_segment = UDP(source_port=67, dest_port=68, data=application_data)
     packet = create_ipv4_packet(udp_segment, source_ip, '255.255.255.255')
@@ -212,6 +210,14 @@ def create_dhcp_decline(source_mac, dhcp_server_ip_address, provided_ip, dhcp_tr
     udp_segment = UDP(source_port=68, dest_port=67, data=application_data)
     packet = create_ipv4_packet(udp_segment, '0.0.0.0', '255.255.255.255')
     frame = create_ethernet_frame('FF:FF:FF:FF:FF:FF', source_mac, dot1q, packet, None)
+    return frame
+
+
+def create_dhcp_nak(si_address, ch_address, transaction_id, source_mac, source_ip, dest_ip='255.255.255.255', dot1q=None):
+    application_data = DhcpNak(si_address, ch_address, transaction_id)
+    udp_segment = UDP(source_port=67, dest_port=68, data=application_data)
+    packet = create_ipv4_packet(udp_segment, source_ip, dest_ip)
+    frame = create_ethernet_frame(ch_address, source_mac, dot1q, packet, None)
     return frame
 
 

@@ -1,3 +1,5 @@
+import random
+
 import UI.helper_functions as hf
 import network.Router.DHCP_Server
 import network.network_functions as nf
@@ -22,6 +24,7 @@ class Router:
         self.ARP_table = {}
 
         self.dhcp_server = None
+        self.sent_dhcp_discover = False  # DHCP Client
 
         self.canvas_object = None
         self.internal_clock = None
@@ -146,7 +149,7 @@ class Router:
                         case "DHCP":
                             if self.dhcp_server:
                                 if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
-                                    frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac)
+                                    frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac, self.MAC_Address)
                                     if frame:
                                         receiving_interface.send(frame)
 
@@ -170,8 +173,12 @@ class Router:
                                 elif data.get_dhcp_identifier() == 'DHCP_RELEASE':
                                     self.dhcp_server.release_ip_assignment(receiving_interface, data)
 
-                                elif data.get_dhcp_identifier() == "DHCP_DECLINE":
+                                elif data.get_dhcp_identifier() == 'DHCP_DECLINE':
                                     self.dhcp_server.process_dhcp_decline(receiving_interface, data)
+
+                                elif data.get_dhcp_identifier() == 'DHCP_OFFER' and self.sent_dhcp_discover:
+                                    # DHCP CLIENT
+                                    pass
 
                         case _:
                             pass
@@ -306,8 +313,24 @@ class Router:
     def get_dhcp_server(self, bg_process=False):
         if not self.dhcp_server and not bg_process:
             self.dhcp_server: network.Router.DHCP_Server.DHCP_Server = DHCP_Server(self)
-
         return self.dhcp_server
+
+    def send_dhcp_discover(self, working_interface: PhysicalInterface):
+        t_id = working_interface.get_dhcp_transaction_id()
+        if not t_id:
+            t_id = random.getrandbits(16)
+            working_interface.set_dhcp_transaction_id(t_id)  # Random 16-bit number (stored as int)
+
+        frame = nf.create_dhcp_discover(self.MAC_Address, working_interface.get_ipv4_address(), t_id)
+        working_interface.send(frame)
+        globalVars.prompt_save = True
+
+        self.sent_dhcp_discover = True
+
+    # def send_dhcp_request(self, dhcp_server_ip_address, provided_ip, transaction_id, flags):
+    #     frame = nf.create_dhcp_request(self.MAC_Address, dhcp_server_ip_address, provided_ip, transaction_id, flags)
+    #     self.interface[0].send(frame)
+    #     globalVars.prompt_save = True
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):

@@ -897,6 +897,8 @@ def str_time_to_datetime(t):
 
     if am_pm == 'PM':
         hour = int(hms[0]) + 12
+        if hour == 24:
+            hour = 12
     else:
         hour = int(hms[0])
 

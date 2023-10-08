@@ -223,6 +223,7 @@ class DhcpRelease(Dhcp):
         super().__init__()
 
         self.options['DHCP_RELEASE'] = True
+        self.options = {i: j for i, j in self.options.items() if j != ""}
 
         self.ch_address = ch_address
         self.ci_address = ci_address
@@ -242,12 +243,32 @@ class DhcpDecline(Dhcp):
         super().__init__()
 
         self.options['DHCP_DECLINE'] = True
+        self.options = {i: j for i, j in self.options.items() if j != ""}
 
         self.ch_address = ch_address
         self.yi_address = yi_address
         self.si_address = si_address
         self.transaction_id = transaction_id
         self.dhcp_identifier = "DHCP_DECLINE"
+
+    def get_dhcp_identifier(self):
+        return self.dhcp_identifier
+
+    def get_options(self):
+        return self.options
+
+
+class DhcpNak(Dhcp):
+    def __init__(self, ch_address, si_address, transaction_id):
+        super().__init__()
+
+        self.ch_address = ch_address
+        self.si_address = si_address
+        self.transaction_id = transaction_id
+        self.dhcp_identifier = "DHCP_NAK"
+
+        self.options['DHCP_NAK'] = True
+        self.options = {i: j for i, j in self.options.items() if j != ""}
 
     def get_dhcp_identifier(self):
         return self.dhcp_identifier

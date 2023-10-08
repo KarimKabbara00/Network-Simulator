@@ -235,6 +235,9 @@ class RouterCli(DeviceCli):
                     self.cli.insert(tk.END, "\n" + self.cli_text)
                     valid_command = False
 
+            elif command == "ip address dhcp":
+                self.class_object.send_dhcp_discover(self.working_interface)
+
             else:
                 self.cli.insert(tk.END, "\nUnknown Command\n" + "\n" + self.cli_text)
                 valid_command = False

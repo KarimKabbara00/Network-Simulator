@@ -31,7 +31,7 @@ class DHCP_Server:
         receiving_interface_netmask = receiving_interface.get_netmask()
         for pool in self.dhcp_pools:
             try:
-                if (hf.is_same_subnet(receiving_interface_ip_address, receiving_interface_netmask, pool.get_pool()[0]) and
+                if (hf.is_same_subnet(receiving_interface_ip_address, receiving_interface_netmask, pool.get_example_ip()) and
                         receiving_interface_netmask == pool.get_subnet()):
                     return pool
             except IndexError:
@@ -42,25 +42,31 @@ class DHCP_Server:
     def get_dhcp_pools(self):
         return self.dhcp_pools
 
-    def create_offer(self, receiving_interface, data: DHCP.Dhcp, source_mac):
+    def create_offer(self, receiving_interface, data: DHCP.Dhcp, original_sender_mac, source_mac):
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
-
         flags = data.get_flags()
-        options = data.get_options() # TODO: check preferred IP in here, maybe add preferred subnet_mask. Then see if they match working_dhcp_pool's configs
-        ci_address = None              # ^ if not, send NAK, otherwise proceed
+        options = data.get_options()
+
+        # Check if requested configurations match the pool's configurations
+        try:
+            if not hf.is_same_subnet(options['PREFERRED_IP'], working_dhcp_pool.get_subnet(), working_dhcp_pool.get_example_ip()):
+                return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
+        except KeyError:    # No preferred IP
+            pass
+
+        ci_address = None
         si_address = receiving_interface.get_ipv4_address()
         gi_address = None
-        ch_address = source_mac
+        ch_address = original_sender_mac
         transaction_id = data.get_transaction_id()
         self.transaction_ids[transaction_id] = hf.build_tid_table()
 
         if working_dhcp_pool:
-
             # ---------------------------- DHCP OPTIONS ---------------------------- #
             try:
-                yi_address = working_dhcp_pool.get_ip_from_pool(options["PREFERRED_IP"], self.dhcp_excluded_ip_ranges)
+                yi_address = working_dhcp_pool.get_ip_from_pool(options["PREFERRED_IP"])
             except KeyError:
-                yi_address = working_dhcp_pool.get_ip_from_pool(None, self.dhcp_excluded_ip_ranges)
+                yi_address = working_dhcp_pool.get_ip_from_pool(None)
             self.transaction_ids[transaction_id]['REQUEST_SUBNET_MASK'] = working_dhcp_pool.get_subnet()
             self.transaction_ids[transaction_id]['REQUEST_ROUTER'] = working_dhcp_pool.get_default_gateway()
             self.transaction_ids[transaction_id]['REQUEST_DNS_SERVER'] = working_dhcp_pool.get_dns_servers()
@@ -70,10 +76,8 @@ class DHCP_Server:
             self.transaction_ids[transaction_id]['OFFERED_IP_ADDRESS'] = yi_address
             # ---------------------------- DHCP OPTIONS ---------------------------- #
 
-            # Exhausted IP Pool
-            if not yi_address: # TODO: NAK HERE
-                print('exhausted!')
-                # return nf.create_dhcp_nak()
+            if not yi_address:
+                return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
 
             return nf.create_dhcp_offer(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
                                         si_address, gi_address, ch_address, transaction_id)
@@ -90,8 +94,19 @@ class DHCP_Server:
         gi_address = None
         ch_address = original_sender_mac
         transaction_id = data.get_transaction_id()
-        requested_options = self.transaction_ids[transaction_id]
-        # self.transaction_ids.pop(transaction_id)
+        try:
+            requested_options = self.transaction_ids[transaction_id]
+        except KeyError:
+            print("NAK 3")
+            return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
+
+        # Check if requested configurations match the pool's configurations
+        try:
+            if not hf.is_same_subnet(requested_options['PREFERRED_IP'], working_dhcp_pool.get_subnet(), working_dhcp_pool.get_example_ip()):
+                print("NAK 4")
+                return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
+        except KeyError:
+            pass    # No preferred IP
 
         if working_dhcp_pool:
             if not dhcp_renew:  # The IP is not on hold when a dhcp renew is received
@@ -100,20 +115,17 @@ class DHCP_Server:
             else:
                 dest_ip = ci_address
 
+            print('created ack')
             return nf.create_dhcp_ack(receiving_interface.get_ipv4_address(), source_mac, flags, ci_address, yi_address,
                                       si_address, gi_address, ch_address, dest_ip, transaction_id, requested_options)
         else:
             return None
 
-
     def create_nak(self, receiving_interface, source_mac, data, original_sender_mac):
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
         transaction_id = data.get_transaction_id()
-        # source_mac is router
-        # original_sender_mac is PC
-
-        #TODO: check the requested configurations
-        # call this in create_offer if checks fail
+        return nf.create_dhcp_nak(receiving_interface.get_ipv4_address(), original_sender_mac, transaction_id, source_mac,
+                                  receiving_interface.get_ipv4_address(), '255.255.255.255')
 
     def release_ip_assignment(self, receiving_interface, data):
         working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
@@ -163,3 +175,6 @@ class DHCP_Server:
                 self.transaction_ids.pop(t_id)
             except KeyError:
                 pass
+
+    def get_excluded_addresses(self):
+        return self.dhcp_excluded_ip_ranges
