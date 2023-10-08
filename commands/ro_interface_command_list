@@ -8,3 +8,4 @@ interface 10G
 ip
 ip address
 ip address dhcp
+ip helper-address

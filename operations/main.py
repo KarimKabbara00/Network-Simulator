@@ -224,5 +224,4 @@ ip_lease_expiry.start()
 tk.mainloop()
 
 # TODO:
-#   - DHCP NAK (exhausted pool || wrong configs)
 #   - Cable connect: Switch, then cancel (Same ethernet obj), then pc to switch --> ERROR!

@@ -50,6 +50,10 @@ class DHCP_Server:
         # Check if requested configurations match the pool's configurations
         try:
             if not hf.is_same_subnet(options['PREFERRED_IP'], working_dhcp_pool.get_subnet(), working_dhcp_pool.get_example_ip()):
+                # TODO: RELAY AGENT. Must set gi_address here
+                # if options['PREFERRED_IP'], check routing table for same subnet preferred IP and configured external dhcp address
+                #   if yes, route somehow
+                #   else: NAK
                 return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
         except KeyError:    # No preferred IP
             pass
@@ -97,11 +101,17 @@ class DHCP_Server:
         try:
             requested_options = self.transaction_ids[transaction_id]
         except KeyError:
+            # Offer revoked or transaction ID is no longer found
             return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
 
+        # Checked again here for DHCP Renew
         # Check if requested configurations match the pool's configurations
         try:
             if not hf.is_same_subnet(requested_options['PREFERRED_IP'], working_dhcp_pool.get_subnet(), working_dhcp_pool.get_example_ip()):
+                # TODO: RELAY AGENT. Must set gi_address here
+                # if options['PREFERRED_IP'], check routing table for same subnet preferred IP and configured external dhcp address
+                #   if yes, route somehow
+                #   else: NAK
                 return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
         except KeyError:
             pass    # No preferred IP

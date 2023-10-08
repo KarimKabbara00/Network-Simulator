@@ -253,18 +253,17 @@ class PhysicalInterface:
             for i in self.sub_interfaces:
                 sub_interfaces.append(i.get_save_info())
 
-            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
-                    self.connected_to_MAC, self.operational, self.administratively_down,
-                    self.ipv4_address, self.netmask, sub_interfaces]
+            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected, self.connected_to_MAC,
+                    self.operational, self.administratively_down, self.ipv4_address, self.netmask, sub_interfaces]
 
         elif self.host.get_model() == "TSA1000X" or self.host.get_model() == "RTSA1000X":
-            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
-                    self.connected_to_MAC, self.operational, self.administratively_down, self.switchport_type,
-                    self.access_vlan_id, self.trunk_vlan_ids, self.native_vlan]
+            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected, self.connected_to_MAC,
+                    self.operational, self.administratively_down, self.switchport_type, self.access_vlan_id, self.trunk_vlan_ids,
+                    self.native_vlan]
 
         else:
-            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected,
-                    self.connected_to_MAC, self.operational, self.administratively_down]
+            return [self.speed, self.bandwidth, self.name, self.host_mac_address, self.is_connected, self.connected_to_MAC,
+                    self.operational, self.administratively_down]
 
     def set_allowed_trunk_vlans(self, vlans):
         self.trunk_vlan_ids = vlans

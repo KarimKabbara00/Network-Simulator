@@ -14,6 +14,7 @@ class PC:
         self.MAC_Address = hf.generate_mac_address()
         self.Model_Number = model
         self.interface = self.set_interface()
+        self.canvas_object = None
 
         self.ipv4_address = None
         self.netmask = None
@@ -24,7 +25,6 @@ class PC:
         self.default_gateway = None
 
         self.ARP_table = {}
-        self.canvas_object = None
 
         # ICMP Control
         self.cli_busy = False
@@ -56,16 +56,15 @@ class PC:
         return [PhysicalInterface('0/0', 1000, self)]
 
     def icmp_echo_request(self, dest_ipv4_address, count):
-        nf.icmp_echo_request(self.ipv4_address, self.MAC_Address, self.netmask, self.default_gateway, dest_ipv4_address,
-                             count, self.canvas_object, self, self.time_between_pings, self.interface[0])
+        nf.icmp_echo_request(self.ipv4_address, self.MAC_Address, self.netmask, self.default_gateway, dest_ipv4_address, count,
+                             self.canvas_object, self, self.time_between_pings, self.interface[0])
 
-        hf.compute_ping_stats(self.ping_rtt_times, dest_ipv4_address, count, self.received_ping_count,
-                              self.canvas_object, self)
+        hf.compute_ping_stats(self.ping_rtt_times, dest_ipv4_address, count, self.received_ping_count, self.canvas_object, self)
         globalVars.prompt_save = True
 
     def icmp_echo_reply(self, original_sender_ipv4):
-        frame = nf.icmp_echo_reply(self.MAC_Address, self.ipv4_address, original_sender_ipv4, self.netmask,
-                                   self.ARP_table, self, default_gateway=self.default_gateway)
+        frame = nf.icmp_echo_reply(self.MAC_Address, self.ipv4_address, original_sender_ipv4, self.netmask, self.ARP_table, self,
+                                   default_gateway=self.default_gateway)
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
@@ -101,16 +100,16 @@ class PC:
             dhcp_mac_address = 'FF:FF:FF:FF:FF:FF'
 
         if self.preferred_ipv4_address:
-            frame = nf.create_dhcp_renew(self.preferred_ipv4_address, dhcp_server, self.MAC_Address, dhcp_mac_address,
-                                         flags, is_t1, self.dhcp_transaction_id)
+            frame = nf.create_dhcp_renew(self.preferred_ipv4_address, dhcp_server, self.MAC_Address, dhcp_mac_address, flags, is_t1,
+                                         self.dhcp_transaction_id)
             self.interface[0].send(frame)
             globalVars.prompt_save = True
         else:
             self.send_dhcp_discover()
 
     def send_dhcp_release(self):
-        frame = nf.create_dhcp_release(self.MAC_Address, self.preferred_ipv4_address, self.dhcp_server_mac,
-                                       self.dhcp_server_ip, self.dhcp_transaction_id)
+        frame = nf.create_dhcp_release(self.MAC_Address, self.preferred_ipv4_address, self.dhcp_server_mac, self.dhcp_server_ip,
+                                       self.dhcp_transaction_id)
         self.interface[0].send(frame)
         globalVars.prompt_save = True
 
@@ -184,9 +183,8 @@ class PC:
                     time_taken = str(int(str(time_taken)[2:5])) + "ms"
 
                 self.canvas_object.get_info(
-                    info="Reply from " + original_sender_ipv4 + ": bytes=" + str(
-                        segment.get_size()) + " time=" + time_taken + " TTL=" + str(int(packet.get_ttl(), 2)),
-                    linebreak=True, last=False)
+                    info="Reply from " + original_sender_ipv4 + ": bytes=" + str(segment.get_size()) + " time=" +
+                         time_taken + " TTL=" + str(int(packet.get_ttl(), 2)), linebreak=True, last=False)
 
             elif segment_identifier == "UDP":
                 data = segment.get_data()
@@ -214,8 +212,7 @@ class PC:
 
                         elif data.get_dhcp_identifier() == "DHCP_ACK":
                             self.configure_nic_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
-                            self.canvas_object.set_fields_from_dhcp(self.ipv4_address, self.netmask,
-                                                                    self.default_gateway)
+                            self.canvas_object.set_fields_from_dhcp(self.ipv4_address, self.netmask, self.default_gateway)
 
                         elif data.get_dhcp_identifier() == "DHCP_NAK":
                             # receives a NAK when pc requests DHCP configurations that do not match the current configurations
@@ -394,8 +391,6 @@ class PC:
     def set_netmask(self, netmask):
         self.netmask = netmask
 
-
-
     def set_host_name(self, hostname):
         self.Host_Name = hostname
 
@@ -420,9 +415,8 @@ class PC:
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
-        return [self.Host_Name, self.MAC_Address, self.Model_Number, self.ipv4_address,
-                self.netmask, self.ipv6_address, self.prefix, self.default_gateway, self.ARP_table,
-                self.interface[0].get_save_info()]
+        return [self.Host_Name, self.MAC_Address, self.Model_Number, self.ipv4_address, self.netmask, self.ipv6_address, self.prefix,
+                self.default_gateway, self.ARP_table, self.interface[0].get_save_info()]
 
     def set_arp_table(self, arp):
         self.ARP_table = arp

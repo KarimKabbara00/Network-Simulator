@@ -214,6 +214,13 @@ class RouterCli(DeviceCli):
                                         + "\n" + self.cli_text)
                         self.class_object.update_routing_table(self.working_interface, ip, netmask)
 
+            elif command.startswith('ip helper-address '):
+                try:
+                    destination_dhcp = command.split('ip helper-address ')[1]
+                    self.class_object.set_relay_agent(True, destination_dhcp)
+                except IndexError:
+                    pass
+
             elif command.startswith("no "):
                 next_command = command.split("no ")[1]
 

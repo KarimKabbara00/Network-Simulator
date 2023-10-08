@@ -23,8 +23,12 @@ class Router:
         self.rt_count = 0
         self.ARP_table = {}
 
+        # -- DHCP -- #
         self.dhcp_server = None
-        self.sent_dhcp_discover = False  # DHCP Client
+        self.sent_dhcp_discover = False     # DHCP Client
+        self.relay_agent = False
+        self.destination_dhcp_server = None
+        # -- DHCP -- #
 
         self.canvas_object = None
         self.internal_clock = None
@@ -151,7 +155,7 @@ class Router:
                                 self.send_dhcp_request(receiving_interface, data)
 
                             elif data.get_dhcp_identifier() == 'DHCP_ACK' and self.sent_dhcp_discover:
-                                receiving_interface.configure_interface_from_dhcp(data, hf.bin_to_hex(frame.get_src_mac()))
+                                receiving_interface.configure_interface_from_dhcp(data, dhcp_server_mac=hf.bin_to_hex(frame.get_src_mac()))
                             # ---- DHCP Client ---- #
 
                             # ---- DHCP Server ---- #
@@ -340,6 +344,10 @@ class Router:
         frame = nf.create_dhcp_request(self.MAC_Address, dhcp_server_ip_address, provided_ip, working_interface.get_dhcp_transaction_id(), flags)
         working_interface.send(frame)
         globalVars.prompt_save = True
+
+    def set_relay_agent(self, dhcp_ip):
+        self.relay_agent = True
+        self.destination_dhcp_server = dhcp_ip
 
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
