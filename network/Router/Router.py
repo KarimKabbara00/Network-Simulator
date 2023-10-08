@@ -177,7 +177,7 @@ class Router:
                                     self.dhcp_server.process_dhcp_decline(receiving_interface, data)
 
                                 elif data.get_dhcp_identifier() == 'DHCP_OFFER' and self.sent_dhcp_discover:
-                                    # DHCP CLIENT
+                                    # DHCP CLIENT Here
                                     pass
 
                         case _:
