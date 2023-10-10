@@ -36,24 +36,34 @@ class DHCP_Server:
                     return pool
             except IndexError:
                 pass
+        return None
 
+    def get_dhcp_pool_by_gi_address(self, receiving_interface, gi_address):
+        receiving_interface_netmask = receiving_interface.get_netmask()
+        for pool in self.dhcp_pools:
+            try:
+                if (hf.is_same_subnet(gi_address, pool.get_subnet(), pool.get_example_ip()) and
+                        receiving_interface_netmask == pool.get_subnet()):
+                    return pool
+            except IndexError:
+                pass
         return None
 
     def get_dhcp_pools(self):
         return self.dhcp_pools
 
     def create_offer(self, receiving_interface, data: DHCP.Dhcp, original_sender_mac, source_mac):
-        working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
+        if not data.get_gi_address():   # Assuming that no GI_ADDR means the DHCP server is in the same subnet
+            working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
+        else:
+            working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_gi_address(receiving_interface, data.get_gi_address())
+
         flags = data.get_flags()
         options = data.get_options()
 
         # Check if requested configurations match the pool's configurations
         try:
             if not hf.is_same_subnet(options['PREFERRED_IP'], working_dhcp_pool.get_subnet(), working_dhcp_pool.get_example_ip()):
-                # TODO: RELAY AGENT. Must set gi_address here
-                # if options['PREFERRED_IP'], check routing table for same subnet preferred IP and configured external dhcp address
-                #   if yes, route somehow
-                #   else: NAK
                 return self.create_nak(receiving_interface, source_mac, data, original_sender_mac)
         except KeyError:    # No preferred IP
             pass
@@ -89,7 +99,10 @@ class DHCP_Server:
             return None
 
     def create_ack(self, receiving_interface, source_mac, data, original_sender_mac, dhcp_renew):
-        working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
+        if not data.get_gi_address():   # Assuming that no GI_ADDR means the DHCP server is in the same subnet
+            working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_network_address(receiving_interface)
+        else:
+            working_dhcp_pool: network.Router.DHCP_Pool.DHCPpool = self.get_dhcp_pool_by_gi_address(receiving_interface, data.get_gi_address())
 
         flags = data.get_flags()
         ci_address = data.get_ci_address()

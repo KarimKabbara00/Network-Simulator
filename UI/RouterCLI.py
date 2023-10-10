@@ -217,7 +217,13 @@ class RouterCli(DeviceCli):
             elif command.startswith('ip helper-address '):
                 try:
                     destination_dhcp = command.split('ip helper-address ')[1]
-                    self.class_object.set_relay_agent(True, destination_dhcp)
+                    if not hf.check_ipv4(destination_dhcp):
+                        self.cli.insert(tk.END, "\nInvalid IP Address\n" + "\n" + self.cli_text)
+                        valid_command = False
+                    else:
+                        self.class_object.set_destination_dhcp_for_relay_agent(destination_dhcp)
+                        self.cli_text = self.class_object.get_host_name() + "(int-config)> "
+                        self.cli.insert(tk.END, "\n" + self.cli_text)
                 except IndexError:
                     pass
 

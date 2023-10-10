@@ -76,7 +76,7 @@ class Dhcp(ABC):
 
 
 class DhcpDiscover(Dhcp):
-    def __init__(self, is_broadcast, preferred_ip, transaction_id):
+    def __init__(self, is_broadcast, preferred_ip, transaction_id, gi_address=None):
         super().__init__()
 
         self.transaction_id = transaction_id
@@ -87,6 +87,9 @@ class DhcpDiscover(Dhcp):
         else:
             self.flags.append(0x00)  # B set to 0 for unicast reply
         self.flags.append(0b0000000000000000)  # 15 0's. reserved and not used.
+
+        if gi_address:
+            self.gi_address = gi_address
 
         self.options = DHCP_options
         self.options['DHCP_DISCOVER'] = True
@@ -105,6 +108,10 @@ class DhcpDiscover(Dhcp):
 
     def get_options(self):
         return self.options
+
+    def set_gi_address(self, gi_address):
+        self.gi_address = gi_address
+
 
 class DhcpOffer(Dhcp):
     def __init__(self, flags, ci_address, yi_address, si_address, gi_address, ch_address, transaction_id):

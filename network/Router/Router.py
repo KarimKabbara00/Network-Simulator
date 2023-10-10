@@ -6,6 +6,8 @@ import network.network_functions as nf
 from network.Interface_Operations.Physical_Interface import PhysicalInterface
 from operations import globalVars
 from network.Router.DHCP_Server import DHCP_Server
+from network.Application_Protocols.DHCP import DhcpDiscover
+from network.PDUs.UDP import UDP
 
 class Router:
     def __init__(self, host_name="Router", load=False):
@@ -26,7 +28,6 @@ class Router:
         # -- DHCP -- #
         self.dhcp_server = None
         self.sent_dhcp_discover = False     # DHCP Client
-        self.relay_agent = False
         self.destination_dhcp_server = None
         # -- DHCP -- #
 
@@ -68,6 +69,7 @@ class Router:
 
         # Only deal with the packet if the receiving interface is operational
         if receiving_interface.get_is_operational():
+
 
             # # Check if the dest is in the router's ARP table, and the packet is not an ARP packet
             if (forwarding_interface and original_dest_ipv4 not in self.ARP_table and packet_identifier != 'ARP' and
@@ -158,10 +160,54 @@ class Router:
                                 receiving_interface.configure_interface_from_dhcp(data, dhcp_server_mac=hf.bin_to_hex(frame.get_src_mac()))
                             # ---- DHCP Client ---- #
 
+                            # ---- DHCP Relay Agent ---- #
+                            if not self.dhcp_server and self.destination_dhcp_server:
+
+                                if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
+
+                                    gi_address = receiving_interface.get_ipv4_address()
+                                    try:
+                                        preferred_ip = data.get_options()['PREFERRED_IP']
+                                    except KeyError:
+                                        preferred_ip = ''
+
+                                    application_data = DhcpDiscover(False, preferred_ip, data.get_transaction_id(), gi_address)
+                                    segment = UDP(67, 67, application_data)
+
+                                    # Create intermediary packet using remote DHCP to learn forwarding interface
+                                    intermediary_packet = nf.create_ipv4_packet(segment, original_sender_ipv4, self.destination_dhcp_server)
+
+                                    # Get the forwarding interface using the intermediary packet
+                                    forwarding_interface, destination_directly_attached, next_hop_ip = self.decide_route(intermediary_packet)
+
+                                    # Check if remote DHCP is in ARP table
+                                    if self.destination_dhcp_server not in self.ARP_table:
+                                        self.arp_request(self.destination_dhcp_server, forwarding_interface)
+
+                                    # Recreate the packet again with the forwarding interface ipv4
+                                    modified_packet = nf.create_ipv4_packet(segment, forwarding_interface.get_ipv4_address(),
+                                                                            self.destination_dhcp_server)
+
+                                    # Recreate the frame
+                                    frame = nf.create_ethernet_frame(self.ARP_table[self.destination_dhcp_server][0], self.MAC_Address,
+                                                                     dot1q_header, modified_packet, None)
+
+                                    forwarding_interface.send(frame)
+
+                                elif data.get_dhcp_identifier() == 'DHCP_OFFER':
+                                    print('received DHCP_OFFER!')
+                                elif data.get_dhcp_identifier() == 'DHCP_REQUEST':
+                                    print('received DHCP_REQUEST!')
+                                elif data.get_dhcp_identifier() == 'DHCP_ACK':
+                                    print('received DHCP_ACK!')
+
+                            # ---- DHCP Relay Agent ---- #
+
                             # ---- DHCP Server ---- #
                             if self.dhcp_server:
 
                                 if data.get_dhcp_identifier() == 'DHCP_DISCOVER':
+                                    print('received discover')
                                     frame = self.dhcp_server.create_offer(receiving_interface, data, original_sender_mac, self.MAC_Address)
                                     if frame:
                                         receiving_interface.send(frame)
@@ -345,8 +391,7 @@ class Router:
         working_interface.send(frame)
         globalVars.prompt_save = True
 
-    def set_relay_agent(self, dhcp_ip):
-        self.relay_agent = True
+    def set_destination_dhcp_for_relay_agent(self, dhcp_ip):
         self.destination_dhcp_server = dhcp_ip
 
     # -------------------------- Save & Load Methods -------------------------- #
