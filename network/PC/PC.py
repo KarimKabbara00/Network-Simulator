@@ -416,7 +416,13 @@ class PC:
     # -------------------------- Save & Load Methods -------------------------- #
     def get_save_info(self):
         return [self.Host_Name, self.MAC_Address, self.Model_Number, self.ipv4_address, self.netmask, self.ipv6_address, self.prefix,
-                self.default_gateway, self.ARP_table, self.interface[0].get_save_info()]
+                self.default_gateway, self.save_arp_table(), self.interface[0].get_save_info()]
+
+    def save_arp_table(self):
+        arp_table = {}
+        for entry in self.ARP_table:
+            arp_table[entry] = [self.ARP_table[entry][0], self.ARP_table[entry][1], self.ARP_table[entry][2].strftime('%A, %B %d, %Y %I:%M:%S %p')]
+        return arp_table
 
     def set_arp_table(self, arp):
         self.ARP_table = arp

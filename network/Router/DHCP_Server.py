@@ -1,3 +1,5 @@
+import copy
+
 import UI.helper_functions as hf
 import network.Router.DHCP_Pool
 import network.network_functions as nf
@@ -198,3 +200,39 @@ class DHCP_Server:
 
     def get_excluded_addresses(self):
         return self.dhcp_excluded_ip_ranges
+
+    def get_transaction_ids(self):
+        return self.transaction_ids
+
+    # -------------------------- Save & Load Methods -------------------------- #
+    def save_dhcp_pools(self):
+        pools = {}
+
+        for pool in self.dhcp_pools:
+            name = pool.get_name()
+            ip_pool = pool.get_ip_pool()
+
+            leased_ip_pool = pool.get_leased_ip_pool()
+            for leased in copy.copy(leased_ip_pool):
+                leased_ip_pool[leased] = leased_ip_pool[leased].strftime('%A, %B %d, %Y %I:%M:%S %p')
+
+            offered_ips = pool.get_offered_ips()
+            unknown_ip_assignments = pool.get_unknown_ip_assignments()
+            example_ip = pool.get_example_ip()
+            subnet = pool.get_subnet()
+            dns_servers = pool.get_dns_servers()
+            domain_name = pool.get_domain_name()
+            default_gateway = pool.get_default_gateway()
+            lease_time = pool.get_lease_time(as_list=True)
+
+            pools[name] = [ip_pool, leased_ip_pool, offered_ips, unknown_ip_assignments, example_ip, subnet, dns_servers, domain_name,
+                           default_gateway, lease_time]
+        return pools
+
+    def set_excluded_ranges(self, ranges):
+        self.dhcp_excluded_ip_ranges = ranges
+
+    def set_t_ids(self, t_ids):
+        self.transaction_ids = t_ids
+    # -------------------------- Save & Load Methods -------------------------- #
+

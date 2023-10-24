@@ -349,7 +349,7 @@ class RouterCli(DeviceCli):
                             self.cli.insert(tk.END, "\nInvalid Prefix Length\n" + "\n" + self.cli_text)
                             valid_command = False
                         else:
-                            self.working_dhcp_pool.set_pool(ip, prefix, is_prefix=True)
+                            self.working_dhcp_pool.create_pool(ip, prefix, is_prefix=True)
                             self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "(dhcp-config)> ")
                     else:
                         subnet = subnet_or_prefix
@@ -360,7 +360,7 @@ class RouterCli(DeviceCli):
                             self.cli.insert(tk.END, "\nInvalid Subnet Mask\n" + "\n" + self.cli_text)
                             valid_command = False
                         else:
-                            self.working_dhcp_pool.set_pool(ip, subnet, is_prefix=False)
+                            self.working_dhcp_pool.create_pool(ip, subnet, is_prefix=False)
                             self.cli.insert(tk.END, "\n" + self.class_object.get_host_name() + "(dhcp-config)> ")
 
                 except IndexError:

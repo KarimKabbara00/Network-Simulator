@@ -244,7 +244,7 @@ class Switch:
         for entry in self.CAM_table:
             cam_table[entry] = [self.CAM_table[entry][0], self.CAM_table[entry][1],
                                 self.CAM_table[entry][2], self.CAM_table[entry][3].get_shortened_name(),
-                                self.CAM_table[entry][4]]
+                                self.CAM_table[entry][4].strftime('%A, %B %d, %Y %I:%M:%S %p')]
         return cam_table
 
     def set_interfaces_on_load(self, interface):

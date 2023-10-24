@@ -1,4 +1,8 @@
+from datetime import datetime
 from tkinter.filedialog import asksaveasfile, askopenfilename
+
+from network.Router.DHCP_Pool import DHCPpool
+from network.Router.DHCP_Server import DHCP_Server
 from operations import globalVars
 import json
 from UI.EthernetCableCanvasObject import EthernetCableCanvasObject
@@ -107,7 +111,7 @@ def quit_program(canvas, master):
         master.quit()
 
 
-def save(master, canvas, file_name, clear):  # TODO: save and load router-dhcp, dhcp class, pc-dhcp
+def save(master, canvas, file_name, clear):  # TODO: save and load pc-dhcp
     save_info = {'node_number': globalVars.node_number, 'PC': [], 'SW': [], 'RO': [], 'ETH': [], 'RECT': [], 'LBL': [],
                  'OTHER': {}}
 
@@ -124,8 +128,7 @@ def save(master, canvas, file_name, clear):  # TODO: save and load router-dhcp, 
 
     for i in globalVars.ro_objects:
         temp = i.get_save_info()
-        save_info['RO'].append({'x': temp[0], 'y': temp[1], 'block_name': temp[2], 'cli_text': temp[3],
-                                'class_info': temp[4]})
+        save_info['RO'].append({'x': temp[0], 'y': temp[1], 'block_name': temp[2], 'cli_text': temp[3], 'class_info': temp[4]})
 
     for i in globalVars.cable_objects:
         temp = i.get_save_info()
@@ -255,7 +258,8 @@ def load(canvas, master, file):
         cam_table = {}
         for entry in sw_class_info[2]:
             cam_table[int(entry)] = [sw_class_info[2][entry][0], sw_class_info[2][entry][1], sw_class_info[2][entry][2],
-                                     sw_obj.get_interface_by_name(sw_class_info[2][entry][3]), sw_class_info[2][entry][4]]
+                                     sw_obj.get_interface_by_name(sw_class_info[2][entry][3]),
+                                     datetime.strptime(sw_class_info[2][entry][4], '%A, %B %d, %Y %I:%M:%S %p')]
         sw_obj.set_cam_table(cam_table)
         # ----- Rebuild CAM Table ----- #
 
@@ -275,12 +279,20 @@ def load(canvas, master, file):
 
         ro_class_info = ro['class_info']
         ro_interface_info = ro['class_info'][4]
+        ro_dhcp_info =ro ['class_info'][5]
 
         # ----- Rebuild RO ----- #
         ro_obj = Router(ro_class_info[0], True)
         ro_obj.set_mac_address(ro_class_info[1])
-        ro_obj.set_arp_table(ro_class_info[2])
         # ----- Rebuild RO ----- #
+
+        # ----- Rebuild ARP table ----- #
+        ARP_table = {}
+        for entry in ro_class_info[2]:
+            ARP_table[entry] = [ro_class_info[2][entry][0], ro_class_info[2][entry][1],
+                                datetime.strptime(ro_class_info[2][entry][2], '%A, %B %d, %Y %I:%M:%S %p')]
+        ro_obj.set_arp_table(ARP_table)
+        # ----- Rebuild ARP table ----- #
 
         # ----- Rebuild Interfaces ----- #
         for interface in ro_interface_info:
@@ -310,6 +322,28 @@ def load(canvas, master, file):
                 routing_table[intf].append([route[0], route[1], route[2]])
         ro_obj.set_routing_table(routing_table, len(routing_table))
         # ----- Rebuild Routing Table ----- #
+
+        # ----- Rebuild DHCP Server ----- #
+        # DHCPpool(self.class_object, pool_name)
+        dhcp_server = DHCP_Server(ro_obj)
+        dhcp_server.set_excluded_ranges(ro_dhcp_info[0])
+        dhcp_server.set_t_ids(ro_dhcp_info[1])
+        for pool_name in ro_dhcp_info[2]:
+            pool = DHCPpool(ro_obj, pool_name)
+            pool.set_pool(ro_dhcp_info[2][pool_name][0])
+            pool.set_leased_ip_pool(ro_dhcp_info[2][pool_name][1])
+            pool.set_offered_ips(ro_dhcp_info[2][pool_name][2])
+            pool.set_unknown_assignments(ro_dhcp_info[2][pool_name][3])
+            pool.set_example_ip(ro_dhcp_info[2][pool_name][4])
+            pool.set_subnet(ro_dhcp_info[2][pool_name][5])
+            pool.set_dns_servers(ro_dhcp_info[2][pool_name][6])
+            pool.set_domain_name(ro_dhcp_info[2][pool_name][7])
+            pool.set_default_router(ro_dhcp_info[2][pool_name][8])
+            lease = ro_dhcp_info[2][pool_name][9]
+            pool.set_lease(lease[0], lease[1], lease[2])
+            dhcp_server.add_dhcp_pool(pool)
+        ro_obj.set_dhcp_server(dhcp_server)
+        # ----- Rebuild DHCP Server ----- #
 
         # ----- Rebuild Canvas RO ----- #
         ro_canvas_object = RouterCanvasObject(canvas, ro['block_name'], ro_icons, ro_obj, master,

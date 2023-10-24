@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import UI.helper_functions as hf
 from operations import globalVars
 
@@ -21,7 +23,7 @@ class DHCPpool:
         self.default_gateway = None
         self.lease_time = [1, 0, 0]  # Days, Minutes, Seconds. Infinite = [0, 0, 0]
 
-    def set_pool(self, ip, subnet, is_prefix):
+    def create_pool(self, ip, subnet, is_prefix):
         try:
             self.pool_subnet = hf.get_subnet_from_prefix_length(subnet)
         except ValueError:
@@ -55,7 +57,7 @@ class DHCPpool:
     def get_name(self):
         return self.pool_name
 
-    def get_pool(self):
+    def get_ip_pool(self):
         return self.ip_pool
 
     def get_ip_from_pool(self, ip):
@@ -101,17 +103,45 @@ class DHCPpool:
     def get_domain_name(self):
         return self.domain_name
 
-    def get_lease_time(self):
-        if all(i == 0 for i in self.lease_time):
-            return None
-        else:
-            return hf.get_lease_time(self.lease_time)
+    def get_lease_time(self, as_list=False):
+        if not as_list:
+            if all(i == 0 for i in self.lease_time):
+                return None
+            else:
+                return hf.get_lease_time(self.lease_time)
+        else: # for saving
+            return self.lease_time
 
     def get_leased_ip_pool(self):
         return self.leased_ip_pool
 
-    def set_leased_ip_pool(self, pool):
-        self.leased_ip_pool = pool
+    def set_leased_ip_pool(self, leased_pool):
+        for lease in leased_pool:
+            self.leased_ip_pool[lease] = datetime.strptime(leased_pool[lease], '%A, %B %d, %Y %I:%M:%S %p')
 
     def get_example_ip(self):
         return self.example_ip
+
+    def get_offered_ips(self):
+        return self.offered_ips
+
+    def get_unknown_ip_assignments(self):
+        return self.unknown_ip_assignments
+
+    def set_pool(self, pool):
+        self.ip_pool = pool
+
+    def set_offered_ips(self, offered_ips):
+        self.offered_ips = offered_ips
+
+    def set_unknown_assignments(self, unknown_ip_assignments):
+        self.unknown_ip_assignments = unknown_ip_assignments
+
+    def set_example_ip(self, ex_ip):
+        self.example_ip = ex_ip
+
+    def set_subnet(self, subnet):
+        self.pool_subnet = subnet
+
+    def set_dns_servers(self, dns_servers):
+        self.dns_servers = dns_servers
