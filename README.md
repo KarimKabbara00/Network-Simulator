@@ -13,6 +13,9 @@
         <li>Switchport configuration (Access/Trunk)</li>
         <li>VLAN Configuration</li>
         <li>Router on a Stick (ROAS)</li>
+        <li>DHCP</li>
     </ul>
 
 </ul>
+
+<h3>Currently working on load / save dhcp information on PC.</h3>
