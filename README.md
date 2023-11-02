@@ -13,6 +13,8 @@
         <li>Switchport configuration (Access/Trunk)</li>
         <li>VLAN Configuration</li>
         <li>Router on a Stick (ROAS)</li>
+        <li>Static Routes</li>
+        <li>DHCP</li>
     </ul>
 
 </ul>
